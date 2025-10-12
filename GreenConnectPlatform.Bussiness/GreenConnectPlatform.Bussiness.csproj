@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Folder Include="Mappers\"/>
+        <Folder Include="Models\NewFolder\"/>
+        <Folder Include="Services\"/>
+        <Folder Include="Utilities\"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\GreenConnectPlatform.Data\GreenConnectPlatform.Data.csproj"/>
+    </ItemGroup>
+
+</Project>

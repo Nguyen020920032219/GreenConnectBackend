@@ -1,0 +1,89 @@
+﻿using System.Configuration;
+using GreenConnectPlatform.Data.Configurations;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
+using ConfigurationManager = Microsoft.Extensions.Configuration.ConfigurationManager;
+
+namespace GreenConnectPlatform.Api.Configurations;
+
+public static class DatabaseConfiguration
+{
+    public static async Task AddPostgresAsync(this IServiceCollection services, ConfigurationManager configuration,
+        string connectionName, bool isDevelopment = false)
+    {
+        var props = GetDbConnectionProps(configuration, connectionName);
+        if (string.IsNullOrWhiteSpace(props.DbHost))
+            throw new ConfigurationErrorsException("Missing DbHost for database configuration");
+
+        services.AddEntityFrameworkNpgsql().AddDbContext<GreenConnectDbContext>(options =>
+        {
+            options.UseNpgsql(props.PsqlConnectionString);
+
+            if (isDevelopment) options.EnableSensitiveDataLogging();
+        });
+
+        await ApplyEfMigrationsAsync(services, props);
+    }
+
+    private static async Task ApplyEfMigrationsAsync(IServiceCollection services, DbConnectionProps props)
+    {
+        try
+        {
+            Console.WriteLine($"[Database] Checking database '{props.Database}' on {props.DbHost}:{props.DbPort}...");
+
+            await CreateDbIfNotExistsAsync(props);
+
+            using var scope = services.BuildServiceProvider().CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<GreenConnectDbContext>();
+
+            Console.WriteLine("[Database] Applying EF Core migrations...");
+            await dbContext.Database.MigrateAsync();
+            Console.WriteLine("[Database] EF Core migrations applied successfully.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Database] Migration failed: {ex.Message}");
+            throw;
+        }
+    }
+
+    private static async Task CreateDbIfNotExistsAsync(DbConnectionProps props)
+    {
+        var dbName = props.Database;
+        if (string.IsNullOrWhiteSpace(dbName))
+            throw new ConfigurationErrorsException("Missing database name for database configuration");
+
+        var connectionBuilder = new NpgsqlConnectionStringBuilder
+        {
+            Host = props.DbHost,
+            Port = props.DbPort,
+            Username = props.DbUser,
+            Password = props.DbPass
+        };
+
+        await using var conn = new NpgsqlConnection(connectionBuilder.ToString());
+        await using var command = new NpgsqlCommand("SELECT 1 FROM pg_catalog.pg_database WHERE datname = @name", conn);
+        command.Parameters.AddWithValue("@name", dbName);
+
+        await conn.OpenAsync();
+        var result = await command.ExecuteScalarAsync();
+        if (result?.ToString() != "1")
+        {
+            Console.WriteLine($"[Database] Database '{dbName}' not found. Creating...");
+            await using var createDbCmd = new NpgsqlCommand($"CREATE DATABASE \"{dbName}\"", conn);
+            await createDbCmd.ExecuteNonQueryAsync();
+            Console.WriteLine($"[Database] Database '{dbName}' created successfully.");
+        }
+    }
+
+    private static DbConnectionProps GetDbConnectionProps(ConfigurationManager configuration, string connectionName)
+    {
+        var props = new DbConnectionProps();
+        configuration.GetSection("DatabaseConnection").GetSection(connectionName).Bind(props);
+
+        if (string.IsNullOrWhiteSpace(props.PsqlConnectionString))
+            Console.WriteLine($"[Database] Warning: No connection string found for '{connectionName}'.");
+
+        return props;
+    }
+}

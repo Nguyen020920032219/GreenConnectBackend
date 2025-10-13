@@ -1,4 +1,8 @@
+using System.Text.Json.Serialization;
 using GreenConnectPlatform.Api.Configurations;
+using GreenConnectPlatform.Bussiness.Mappers;
+using GreenConnectPlatform.Data.Enums;
+using Npgsql;
 
 namespace GreenConnectPlatform.Api;
 
@@ -36,9 +40,15 @@ public class Program
         builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
         builder.Services.AddProblemDetails();
-
-        builder.Services.AddControllers();
-        // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+        builder.Services.AddAutoMapper(config =>
+        {
+            config.AddProfile<BaseMappingProfile>();
+        });
+        builder.Services.AddControllers()
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            });
         builder.Services.AddOpenApi();
 
         var app = builder.Build();

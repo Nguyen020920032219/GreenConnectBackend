@@ -9,12 +9,15 @@
     <ItemGroup>
         <Folder Include="Mappers\"/>
         <Folder Include="Models\NewFolder\"/>
-        <Folder Include="Services\"/>
         <Folder Include="Utilities\"/>
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\GreenConnectPlatform.Data\GreenConnectPlatform.Data.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="FirebaseStorage.net" Version="1.0.3" />
     </ItemGroup>
 
 </Project>

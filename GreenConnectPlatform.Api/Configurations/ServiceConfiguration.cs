@@ -1,4 +1,4 @@
-﻿using GreenConnectPlatform.Bussiness.Mappers;
+using GreenConnectPlatform.Bussiness.Mappers;
 using GreenConnectPlatform.Bussiness.Services.Auth;
 
 namespace GreenConnectPlatform.Api.Configurations;

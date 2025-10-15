@@ -1,451 +1,363 @@
 ﻿using GreenConnectPlatform.Data.Entities;
-using GreenConnectPlatform.Data.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace GreenConnectPlatform.Data.Configurations;
 
-public class GreenConnectDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
+public partial class GreenConnectDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 {
-    public DbSet<Profile> Profiles { get; set; }
-    public DbSet<ScrapCategory> ScrapCategories { get; set; }
-    public DbSet<ScrapPost> ScrapPosts { get; set; }
-    public DbSet<ScrapPostDetail> ScrapPostDetails { get; set; }
-    public DbSet<CollectionOffer> CollectionOffers { get; set; }
-    public DbSet<Transaction> Transactions { get; set; }
-    public DbSet<Feedback> Feedbacks { get; set; }
-    public DbSet<Complaint> Complaints { get; set; }
-    public DbSet<ChatRoom> ChatRooms { get; set; }
-    public DbSet<Message> Messages { get; set; }
-    public DbSet<ChatParticipant> ChatParticipants { get; set; }
-    public DbSet<RewardItem> RewardItems { get; set; }
-    public DbSet<UserRewardRedemption> UserRewardRedemptions { get; set; }
-
-    public GreenConnectDbContext(DbContextOptions<GreenConnectDbContext> options) : base(options)
+    public GreenConnectDbContext()
     {
     }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    public GreenConnectDbContext(DbContextOptions<GreenConnectDbContext> options)
+        : base(options)
     {
-        // Tắt cảnh báo model dynamic nếu cần (chỉ nên bật trong dev)
-        optionsBuilder.ConfigureWarnings(w =>
-            w.Ignore(RelationalEventId.PendingModelChangesWarning));
     }
 
-    protected override void OnModelCreating(ModelBuilder builder)
+    public virtual DbSet<ChatParticipant> ChatParticipants { get; set; }
+
+    public virtual DbSet<ChatRoom> ChatRooms { get; set; }
+
+    public virtual DbSet<CollectionOffer> CollectionOffers { get; set; }
+
+    public virtual DbSet<CollectorVerificationInfo> CollectorVerificationInfos { get; set; }
+
+    public virtual DbSet<Complaint> Complaints { get; set; }
+
+    public virtual DbSet<Feedback> Feedbacks { get; set; }
+
+    public virtual DbSet<Message> Messages { get; set; }
+
+    public virtual DbSet<Notification> Notifications { get; set; }
+
+    public virtual DbSet<Profile> Profiles { get; set; }
+
+    public virtual DbSet<RewardItem> RewardItems { get; set; }
+
+    public virtual DbSet<ScheduleProposal> ScheduleProposals { get; set; }
+
+    public virtual DbSet<ScrapCategory> ScrapCategories { get; set; }
+
+    public virtual DbSet<ScrapPost> ScrapPosts { get; set; }
+
+    public virtual DbSet<ScrapPostDetail> ScrapPostDetails { get; set; }
+
+    public virtual DbSet<Transaction> Transactions { get; set; }
+
+    public virtual DbSet<TransactionDetail> TransactionDetails { get; set; }
+
+    public virtual DbSet<UserRewardRedemption> UserRewardRedemptions { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        base.OnModelCreating(builder);
+        base.OnModelCreating(modelBuilder);
+        
+        modelBuilder.HasPostgresExtension("postgis");
 
-        #region PostgreSQL ENUM Mapping
-
-        if (Database.ProviderName == "Npgsql.EntityFrameworkCore.PostgreSQL")
+        modelBuilder.Entity<ChatParticipant>(entity =>
         {
-            builder.HasPostgresEnum<UserStatus>();
-            builder.HasPostgresEnum<PostStatus>();
-            builder.HasPostgresEnum<ItemStatus>();
-            builder.HasPostgresEnum<OfferStatus>();
-            builder.HasPostgresEnum<TransactionStatus>();
-            builder.HasPostgresEnum<ComplaintStatus>();
-        }
+            entity.HasKey(e => new { e.UserId, e.ChatRoomId }).HasName("ChatParticipants_pkey");
 
-        #endregion
+            entity.Property(e => e.JoinedAt).HasDefaultValueSql("now()");
 
-        #region Identity Table Renaming
+            entity.HasOne(d => d.ChatRoom).WithMany(p => p.ChatParticipants)
+                .HasForeignKey(d => d.ChatRoomId)
+                .HasConstraintName("ChatParticipants_ChatRoomId_fkey");
 
-        builder.Entity<User>().ToTable("Users");
-        builder.Entity<IdentityRole<Guid>>().ToTable("Roles");
-        builder.Entity<IdentityUserRole<Guid>>().ToTable("UserRoles");
-        builder.Entity<IdentityUserClaim<Guid>>().ToTable("UserClaims");
-        builder.Entity<IdentityUserLogin<Guid>>().ToTable("UserLogins");
-        builder.Entity<IdentityRoleClaim<Guid>>().ToTable("RoleClaims");
-        builder.Entity<IdentityUserToken<Guid>>().ToTable("UserTokens");
-
-        #endregion
-
-        #region Entity Configurations
-
-        builder.Entity<User>(entity =>
-        {
-            entity.ToTable("Users");
-            entity.HasKey(u => u.Id);
-            entity.Property(u => u.FullName).HasMaxLength(100);
-            entity.HasIndex(u => u.PhoneNumber).IsUnique();
+            entity.HasOne(d => d.User).WithMany(p => p.ChatParticipants)
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("ChatParticipants_UserId_fkey");
         });
 
-        builder.Entity<Profile>(entity =>
+        modelBuilder.Entity<ChatRoom>(entity =>
         {
-            entity.ToTable("Profiles");
-            entity.HasKey(p => p.ProfileId);
-            entity.Property(p => p.Address).HasMaxLength(255);
-            entity.Property(p => p.Gender).HasMaxLength(10);
-            entity.HasOne(p => p.User)
-                .WithOne(u => u.Profile)
-                .HasForeignKey<Profile>(p => p.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasKey(e => e.ChatRoomId).HasName("ChatRooms_pkey");
+
+            entity.HasIndex(e => e.TransactionId, "ChatRooms_TransactionId_key").IsUnique();
+
+            entity.Property(e => e.ChatRoomId).ValueGeneratedNever();
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
+
+            entity.HasOne(d => d.Transaction).WithOne(p => p.ChatRoom)
+                .HasForeignKey<ChatRoom>(d => d.TransactionId)
+                .HasConstraintName("ChatRooms_TransactionId_fkey");
         });
 
-        builder.Entity<ScrapCategory>(entity =>
+        modelBuilder.Entity<CollectionOffer>(entity =>
         {
-            entity.ToTable("ScrapCategories");
-            entity.HasKey(sc => sc.ScrapCategoryId);
-            entity.Property(sc => sc.CategoryName).HasMaxLength(100).IsRequired();
+            entity.HasKey(e => e.CollectionOfferId).HasName("CollectionOffers_pkey");
+
+            entity.Property(e => e.CollectionOfferId).ValueGeneratedNever();
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
+            entity.Property(e => e.ProposedPrice).HasPrecision(18, 2);
+            entity.Property(e => e.Status)
+                .HasConversion<string>();
+
+            entity.HasOne(d => d.ScrapCollector).WithMany(p => p.CollectionOffers)
+                .HasForeignKey(d => d.ScrapCollectorId)
+                .HasConstraintName("CollectionOffers_ScrapCollectorId_fkey");
+
+            entity.HasOne(d => d.ScrapPost).WithMany(p => p.CollectionOffers)
+                .HasForeignKey(d => d.ScrapPostId)
+                .HasConstraintName("CollectionOffers_ScrapPostId_fkey");
         });
 
-        builder.Entity<ScrapPost>(entity =>
+        modelBuilder.Entity<CollectorVerificationInfo>(entity =>
         {
-            entity.ToTable("ScrapPosts");
-            entity.HasKey(p => p.ScrapPostId);
-            entity.Property(p => p.Title).HasMaxLength(200).IsRequired();
-            entity.Property(p => p.Address).HasMaxLength(255).IsRequired();
-            entity.Property(p => p.AvailableTimeRange).HasMaxLength(100);
-            entity.HasIndex(p => p.Status);
-            entity.HasOne(p => p.Household)
-                .WithMany(u => u.CreatedScrapPosts)
-                .HasForeignKey(p => p.HouseholdId)
-                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasKey(e => e.UserId).HasName("CollectorVerificationInfos_pkey");
+
+            entity.Property(e => e.UserId).ValueGeneratedNever();
+            entity.Property(e => e.Status)
+                .HasConversion<string>();
+
+            entity.HasOne(d => d.User).WithOne(p => p.CollectorVerificationInfo)
+                .HasForeignKey<CollectorVerificationInfo>(d => d.UserId)
+                .HasConstraintName("CollectorVerificationInfos_UserId_fkey");
+
+            entity.HasOne<User>(v => v.Reviewer)
+                .WithMany()
+                .HasForeignKey(v => v.ReviewerId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
-        builder.Entity<ScrapPostDetail>(entity =>
+        modelBuilder.Entity<Complaint>(entity =>
         {
-            entity.ToTable("ScrapPostDetails");
-            entity.HasKey(d => new { d.ScrapPostId, d.ScrapCategoryId });
-            entity.Property(d => d.AmountDescription).HasMaxLength(100);
+            entity.HasKey(e => e.ComplaintId).HasName("Complaints_pkey");
+
+            entity.Property(e => e.ComplaintId).ValueGeneratedNever();
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
+            entity.Property(e => e.Status)
+                .HasConversion<string>();
+
+            entity.HasOne(d => d.Accused).WithMany(p => p.ComplaintAccuseds)
+                .HasForeignKey(d => d.AccusedId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("Complaints_AccusedId_fkey");
+
+            entity.HasOne(d => d.Complainant).WithMany(p => p.ComplaintComplainants)
+                .HasForeignKey(d => d.ComplainantId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("Complaints_ComplainantId_fkey");
+
+            entity.HasOne(d => d.Transaction).WithMany(p => p.Complaints)
+                .HasForeignKey(d => d.TransactionId)
+                .HasConstraintName("Complaints_TransactionId_fkey");
         });
 
-        builder.Entity<CollectionOffer>(entity =>
+        modelBuilder.Entity<Feedback>(entity =>
         {
-            entity.ToTable("CollectionOffers");
-            entity.HasKey(o => o.OfferId);
-            entity.Property(o => o.ProposedPrice).HasColumnType("decimal(18, 2)").IsRequired();
-            entity.HasMany(o => o.OfferedItems)
-                .WithMany(d => d.Offers)
-                .UsingEntity("CollectionOfferDetails",
-                    l => l.HasOne(typeof(ScrapPostDetail)).WithMany().HasForeignKey("ScrapPostId", "ScrapCategoryId")
-                        .OnDelete(DeleteBehavior.Cascade),
-                    r => r.HasOne(typeof(CollectionOffer)).WithMany().HasForeignKey("OfferId")
-                        .OnDelete(DeleteBehavior.Cascade));
+            entity.HasKey(e => e.FeedbackId).HasName("Feedbacks_pkey");
+
+            entity.Property(e => e.FeedbackId).ValueGeneratedNever();
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
+
+            entity.HasOne(d => d.Reviewee).WithMany(p => p.FeedbackReviewees)
+                .HasForeignKey(d => d.RevieweeId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("Feedbacks_RevieweeId_fkey");
+
+            entity.HasOne(d => d.Reviewer).WithMany(p => p.FeedbackReviewers)
+                .HasForeignKey(d => d.ReviewerId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("Feedbacks_ReviewerId_fkey");
+
+            entity.HasOne(d => d.Transaction).WithMany(p => p.Feedbacks)
+                .HasForeignKey(d => d.TransactionId)
+                .HasConstraintName("Feedbacks_TransactionId_fkey");
         });
 
-        builder.Entity<Transaction>(entity =>
+        modelBuilder.Entity<Message>(entity =>
         {
-            entity.ToTable("Transactions");
-            entity.HasKey(t => t.TransactionId);
-            entity.Property(t => t.FinalPrice).HasColumnType("decimal(18, 2)");
-            entity.HasIndex(t => t.HouseholdId);
-            entity.HasIndex(t => t.ScrapCollectorId);
-            entity.HasOne(t => t.Offer)
-                .WithOne(o => o.Transaction)
-                .HasForeignKey<Transaction>(t => t.OfferId)
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Restrict);
-            entity.HasOne(t => t.Household)
-                .WithMany(u => u.TransactionsAsHousehold)
-                .HasForeignKey(t => t.HouseholdId)
-                .OnDelete(DeleteBehavior.Restrict);
-            entity.HasOne(t => t.ScrapCollector)
-                .WithMany(u => u.TransactionsAsCollector)
-                .HasForeignKey(t => t.ScrapCollectorId)
-                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasKey(e => e.MessageId).HasName("Messages_pkey");
+
+            entity.HasIndex(e => new { e.ChatRoomId, e.Timestamp }, "IX_Messages_ChatRoomId_Timestamp")
+                .IsDescending(false, true);
+
+            entity.Property(e => e.MessageId).ValueGeneratedNever();
+            entity.Property(e => e.Timestamp).HasDefaultValueSql("now()");
+
+            entity.HasOne(d => d.ChatRoom).WithMany(p => p.Messages)
+                .HasForeignKey(d => d.ChatRoomId)
+                .HasConstraintName("Messages_ChatRoomId_fkey");
+
+            entity.HasOne(d => d.Sender).WithMany(p => p.Messages)
+                .HasForeignKey(d => d.SenderId)
+                .HasConstraintName("Messages_SenderId_fkey");
         });
 
-        builder.Entity<Feedback>(entity =>
+        modelBuilder.Entity<Notification>(entity =>
         {
-            entity.ToTable("Feedbacks");
-            entity.HasKey(f => f.FeedbackId);
-            entity.Property(f => f.Rate).IsRequired();
-            entity.HasOne(f => f.Transaction)
-                .WithOne(t => t.Feedback)
-                .HasForeignKey<Feedback>(f => f.TransactionId)
-                .OnDelete(DeleteBehavior.Cascade);
-            entity.HasOne(f => f.Reviewer)
-                .WithMany(u => u.ReviewsGiven)
-                .HasForeignKey(f => f.ReviewerId)
-                .OnDelete(DeleteBehavior.Restrict);
-            entity.HasOne(f => f.Reviewee)
-                .WithMany(u => u.ReviewsReceived)
-                .HasForeignKey(f => f.RevieweeId)
-                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasKey(e => e.NotificationId).HasName("Notifications_pkey");
+
+            entity.HasIndex(e => new { e.RecipientId, e.CreatedAt }, "IX_Notifications_RecipientId_CreatedAt")
+                .IsDescending(false, true);
+
+            entity.Property(e => e.NotificationId).ValueGeneratedNever();
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
+            entity.Property(e => e.EntityType).HasMaxLength(50);
+            entity.Property(e => e.IsRead).HasDefaultValue(false);
+
+            entity.HasOne(d => d.Recipient).WithMany(p => p.Notifications)
+                .HasForeignKey(d => d.RecipientId)
+                .HasConstraintName("Notifications_RecipientId_fkey");
         });
 
-        builder.Entity<Complaint>(entity =>
+        modelBuilder.Entity<Profile>(entity =>
         {
-            entity.ToTable("Complaints");
-            entity.HasKey(c => c.ComplaintId);
-            entity.Property(c => c.Reason).IsRequired();
-            entity.HasOne(c => c.Complainant)
-                .WithMany(u => u.ComplaintsFiled)
-                .HasForeignKey(c => c.ComplainantId)
-                .OnDelete(DeleteBehavior.Restrict);
-            entity.HasOne(c => c.Accused)
-                .WithMany(u => u.ComplaintsAgainst)
-                .HasForeignKey(c => c.AccusedId)
-                .OnDelete(DeleteBehavior.Restrict);
-            entity.HasOne(c => c.Transaction)
-                .WithMany(t => t.Complaints)
-                .HasForeignKey(c => c.TransactionId)
-                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasKey(e => e.ProfileId).HasName("Profiles_pkey");
+
+            entity.HasIndex(e => e.Location, "IX_Profiles_Location").HasMethod("gist");
+
+            entity.HasIndex(e => e.UserId, "Profiles_UserId_key").IsUnique();
+
+            entity.Property(e => e.ProfileId).ValueGeneratedNever();
+            entity.Property(e => e.Address).HasMaxLength(255);
+            entity.Property(e => e.Gender).HasMaxLength(10);
+            entity.Property(e => e.Location).HasColumnType("geometry(Point,4326)");
+            entity.Property(e => e.RewardPoint).HasDefaultValue(0);
+
+            entity.HasOne(d => d.User).WithOne(p => p.Profile)
+                .HasForeignKey<Profile>(d => d.UserId)
+                .HasConstraintName("Profiles_UserId_fkey");
         });
 
-        builder.Entity<ChatRoom>(entity =>
+        modelBuilder.Entity<RewardItem>(entity =>
         {
-            entity.ToTable("ChatRooms");
-            entity.HasKey(cr => cr.ChatRoomId);
-            entity.HasOne(cr => cr.Transaction)
-                .WithOne(t => t.ChatRoom)
-                .HasForeignKey<ChatRoom>(cr => cr.TransactionId)
-                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasKey(e => e.RewardItemId).HasName("RewardItems_pkey");
+
+            entity.Property(e => e.ItemName).HasMaxLength(150);
         });
 
-        builder.Entity<Message>(entity =>
+        modelBuilder.Entity<ScheduleProposal>(entity =>
         {
-            entity.ToTable("Messages");
-            entity.HasKey(m => m.MessageId);
-            entity.Property(m => m.Content).IsRequired();
-            entity.HasIndex(m => m.ChatRoomId);
-            entity.HasOne(m => m.ChatRoom)
-                .WithMany(cr => cr.Messages)
-                .HasForeignKey(m => m.ChatRoomId)
-                .OnDelete(DeleteBehavior.Cascade);
-            entity.HasOne(m => m.Sender)
-                .WithMany(u => u.SentMessages)
-                .HasForeignKey(m => m.SenderId)
-                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasKey(e => e.ScheduleProposalId).HasName("ScheduleProposals_pkey");
+
+            entity.HasIndex(e => e.TransactionId, "IX_ScheduleProposals_TransactionId");
+
+            entity.Property(e => e.ScheduleProposalId).ValueGeneratedNever();
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
+            entity.Property(e => e.Status)
+                .HasConversion<string>();
+
+            entity.HasOne(d => d.Proposer).WithMany(p => p.ScheduleProposals)
+                .HasForeignKey(d => d.ProposerId)
+                .HasConstraintName("ScheduleProposals_ProposerId_fkey");
+
+            entity.HasOne(d => d.Transaction).WithMany(p => p.ScheduleProposals)
+                .HasForeignKey(d => d.TransactionId)
+                .HasConstraintName("ScheduleProposals_TransactionId_fkey");
         });
 
-        builder.Entity<ChatParticipant>(entity =>
+        modelBuilder.Entity<ScrapCategory>(entity =>
         {
-            entity.ToTable("ChatParticipants");
-            entity.HasKey(cp => new { cp.UserId, cp.ChatRoomId });
-            entity.HasOne(cp => cp.User)
-                .WithMany(u => u.ChatRooms)
-                .HasForeignKey(cp => cp.UserId);
-            entity.HasOne(cp => cp.ChatRoom)
-                .WithMany(cr => cr.Participants)
-                .HasForeignKey(cp => cp.ChatRoomId);
+            entity.HasKey(e => e.ScrapCategoryId).HasName("ScrapCategories_pkey");
+
+            entity.Property(e => e.CategoryName).HasMaxLength(100);
         });
 
-        builder.Entity<RewardItem>(entity =>
+        modelBuilder.Entity<ScrapPost>(entity =>
         {
-            entity.ToTable("RewardItems");
-            entity.HasKey(ri => ri.RewardItemId);
-            entity.Property(ri => ri.ItemName).HasMaxLength(150).IsRequired();
-            entity.Property(ri => ri.PointsCost).IsRequired();
+            entity.HasKey(e => e.ScrapPostId).HasName("ScrapPosts_pkey");
+
+            entity.HasIndex(e => e.Location, "IX_ScrapPosts_Location").HasMethod("gist");
+
+            entity.HasIndex(e => new { e.Status, e.HouseholdId }, "IX_ScrapPosts_Status_HouseholdId");
+
+            entity.Property(e => e.ScrapPostId).ValueGeneratedNever();
+            entity.Property(e => e.Address).HasMaxLength(255);
+            entity.Property(e => e.AvailableTimeRange).HasMaxLength(100);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
+            entity.Property(e => e.Location).HasColumnType("geometry(Point,4326)");
+            entity.Property(e => e.Status).HasConversion<string>();
+            entity.Property(e => e.Title).HasMaxLength(200);
+
+            entity.HasOne(d => d.Household).WithMany(p => p.ScrapPosts)
+                .HasForeignKey(d => d.HouseholdId)
+                .HasConstraintName("ScrapPosts_HouseholdId_fkey");
         });
 
-        builder.Entity<UserRewardRedemption>(entity =>
+        modelBuilder.Entity<ScrapPostDetail>(entity =>
         {
-            entity.ToTable("UserRewardRedemptions");
-            entity.HasKey(urr => urr.RedemptionId);
-            entity.HasOne(urr => urr.User)
-                .WithMany(u => u.RewardRedemptions)
-                .HasForeignKey(urr => urr.UserId);
-            entity.HasOne(urr => urr.RewardItem)
-                .WithMany(ri => ri.Redemptions)
-                .HasForeignKey(urr => urr.RewardItemId);
+            entity.HasKey(e => new { e.ScrapPostId, e.ScrapCategoryId }).HasName("ScrapPostDetails_pkey");
+
+            entity.Property(e => e.AmountDescription).HasMaxLength(100);
+            entity.Property(e => e.Status)
+                .HasConversion<string>();
+
+            entity.HasOne(d => d.ScrapCategory).WithMany(p => p.ScrapPostDetails)
+                .HasForeignKey(d => d.ScrapCategoryId)
+                .HasConstraintName("ScrapPostDetails_ScrapCategoryId_fkey");
+
+            entity.HasOne(d => d.ScrapPost).WithMany(p => p.ScrapPostDetails)
+                .HasForeignKey(d => d.ScrapPostId)
+                .HasConstraintName("ScrapPostDetails_ScrapPostId_fkey");
         });
 
-        #endregion
+        modelBuilder.Entity<Transaction>(entity =>
+        {
+            entity.HasKey(e => e.TransactionId).HasName("Transactions_pkey");
 
-        #region Data Seeding
+            entity.HasIndex(e => new { e.Status, e.HouseholdId }, "IX_Transactions_Status_HouseholdId");
 
-        builder.Entity<ScrapCategory>().HasData(
-            new ScrapCategory { ScrapCategoryId = 1, CategoryName = "Giấy vụn" },
-            new ScrapCategory { ScrapCategoryId = 2, CategoryName = "Thùng carton" },
-            new ScrapCategory { ScrapCategoryId = 3, CategoryName = "Chai nhựa (PET)" },
-            new ScrapCategory { ScrapCategoryId = 4, CategoryName = "Lon nhôm" },
-            new ScrapCategory { ScrapCategoryId = 5, CategoryName = "Sắt vụn" },
-            new ScrapCategory { ScrapCategoryId = 6, CategoryName = "Đồ điện tử cũ" }
-        );
+            entity.HasIndex(e => new { e.Status, e.ScrapCollectorId }, "IX_Transactions_Status_ScrapCollectorId");
 
-        builder.Entity<IdentityRole<Guid>>().HasData(
-            new IdentityRole<Guid>
-                { Id = new Guid("8dd3637c-72a3-4a25-99d2-a7d1bce85542"), Name = "Admin", NormalizedName = "ADMIN" },
-            new IdentityRole<Guid>
-            {
-                Id = new Guid("d7d0c75c-9c3f-4e6b-9b7a-8f8d9a6c9e84"), Name = "ScrapCollector",
-                NormalizedName = "SCRAPCOLLECTOR"
-            },
-            new IdentityRole<Guid>
-            {
-                Id = new Guid("f9e7c1b5-9c8f-4b1a-8c7d-6e5f4a3b2a1c"), Name = "Household", NormalizedName = "HOUSEHOLD"
-            }
-        );
+            entity.Property(e => e.TransactionId).ValueGeneratedNever();
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
+            entity.Property(e => e.Status)
+                .HasConversion<string>();
 
-        var seedDate = new DateTime(2025, 10, 10, 10, 0, 0, DateTimeKind.Utc);
+            entity.HasOne(d => d.Household).WithMany(p => p.TransactionHouseholds)
+                .HasForeignKey(d => d.HouseholdId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("Transactions_HouseholdId_fkey");
 
-        builder.Entity<User>().HasData(
-            new User
-            {
-                Id = new Guid("a1b2c3d4-e5f6-7788-9900-aabbccddeeff"), UserName = "0900000000",
-                NormalizedUserName = "0900000000", PhoneNumber = "0900000000", PhoneNumberConfirmed = true,
-                FullName = "Admin GreenConnect", Status = UserStatus.Active, CreatedAt = seedDate
-            },
-            new User
-            {
-                Id = new Guid("b2c3d4e5-f6a1-8899-0011-bbccddeeff00"), UserName = "0911111111",
-                NormalizedUserName = "0911111111", PhoneNumber = "0911111111", PhoneNumberConfirmed = true,
-                FullName = "Anh Ba Ve Chai", Status = UserStatus.Active, CreatedAt = seedDate
-            },
-            new User
-            {
-                Id = new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"), UserName = "0922222222",
-                NormalizedUserName = "0922222222", PhoneNumber = "0922222222", PhoneNumberConfirmed = true,
-                FullName = "Chị Tư Bán Ve Chai", Status = UserStatus.Active, CreatedAt = seedDate
-            },
-            new User
-            {
-                Id = new Guid("d4e5f6a1-b2c3-0011-2233-ddeeff001122"), UserName = "0933333333",
-                NormalizedUserName = "0933333333", PhoneNumber = "0933333333", PhoneNumberConfirmed = true,
-                FullName = "Gia đình Bác Năm", Status = UserStatus.Active, CreatedAt = seedDate
-            }
-        );
+            entity.HasOne(d => d.Offer).WithMany(p => p.Transactions)
+                .HasForeignKey(d => d.OfferId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("Transactions_OfferId_fkey");
 
-        builder.Entity<IdentityUserRole<Guid>>().HasData(
-            new IdentityUserRole<Guid>
-            {
-                UserId = new Guid("a1b2c3d4-e5f6-7788-9900-aabbccddeeff"),
-                RoleId = new Guid("8dd3637c-72a3-4a25-99d2-a7d1bce85542")
-            },
-            new IdentityUserRole<Guid>
-            {
-                UserId = new Guid("b2c3d4e5-f6a1-8899-0011-bbccddeeff00"),
-                RoleId = new Guid("d7d0c75c-9c3f-4e6b-9b7a-8f8d9a6c9e84")
-            },
-            new IdentityUserRole<Guid>
-            {
-                UserId = new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"),
-                RoleId = new Guid("f9e7c1b5-9c8f-4b1a-8c7d-6e5f4a3b2a1c")
-            },
-            new IdentityUserRole<Guid>
-            {
-                UserId = new Guid("d4e5f6a1-b2c3-0011-2233-ddeeff001122"),
-                RoleId = new Guid("f9e7c1b5-9c8f-4b1a-8c7d-6e5f4a3b2a1c")
-            }
-        );
+            entity.HasOne(d => d.ScrapCollector).WithMany(p => p.TransactionScrapCollectors)
+                .HasForeignKey(d => d.ScrapCollectorId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("Transactions_ScrapCollectorId_fkey");
+        });
 
-        builder.Entity<Profile>().HasData(
-            new Profile
-            {
-                ProfileId = new Guid("10000000-0000-0000-0000-000000000001"),
-                UserId = new Guid("a1b2c3d4-e5f6-7788-9900-aabbccddeeff"), Address = "123 Admin St, District 1, HCMC"
-            },
-            new Profile
-            {
-                ProfileId = new Guid("10000000-0000-0000-0000-000000000002"),
-                UserId = new Guid("b2c3d4e5-f6a1-8899-0011-bbccddeeff00"),
-                Address = "456 Collector Rd, Binh Thanh, HCMC", Gender = "Male"
-            },
-            new Profile
-            {
-                ProfileId = new Guid("10000000-0000-0000-0000-000000000003"),
-                UserId = new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"),
-                Address = "789 Household Ave, District 3, HCMC", Gender = "Female"
-            },
-            new Profile
-            {
-                ProfileId = new Guid("10000000-0000-0000-0000-000000000004"),
-                UserId = new Guid("d4e5f6a1-b2c3-0011-2233-ddeeff001122"),
-                Address = "101 Household Way, Phu Nhuan, HCMC"
-            }
-        );
+        modelBuilder.Entity<TransactionDetail>(entity =>
+        {
+            entity.HasKey(e => new { e.TransactionId, e.ScrapCategoryId }).HasName("TransactionDetails_pkey");
 
-        builder.Entity<RewardItem>().HasData(
-            new RewardItem { RewardItemId = 1, ItemName = "Khung viền Avatar 'Chiến binh Tái chế'", PointsCost = 100 },
-            new RewardItem { RewardItemId = 2, ItemName = "Voucher Giảm giá 10%", PointsCost = 500 }
-        );
+            entity.Property(e => e.ActualPrice).HasPrecision(18, 2);
 
-        builder.Entity<ScrapPost>().HasData(
-            new ScrapPost
-            {
-                ScrapPostId = new Guid("20000000-0000-0000-0000-000000000001"),
-                Title = "Dọn nhà bếp, có chai nhựa và lon",
-                Description = "Khoảng 1 bao lớn, đã gom sạch sẽ.",
-                Address = "789 Household Ave, District 3, HCMC",
-                AvailableTimeRange = "Chiều nay (14h-16h)",
-                Status = PostStatus.FullyBooked,
-                CreatedAt = new DateTime(2025, 10, 9, 10, 0, 0, DateTimeKind.Utc),
-                HouseholdId = new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011")
-            },
-            new ScrapPost
-            {
-                ScrapPostId = new Guid("20000000-0000-0000-0000-000000000002"),
-                Title = "Giấy vụn và carton",
-                Description = "Khoảng 3kg giấy A4 cũ, vài thùng carton.",
-                Address = "101 Household Way, Phu Nhuan, HCMC",
-                AvailableTimeRange = "Mai sáng (9h-11h)",
-                Status = PostStatus.FullyBooked,
-                CreatedAt = new DateTime(2025, 10, 11, 10, 0, 0, DateTimeKind.Utc),
-                HouseholdId = new Guid("d4e5f6a1-b2c3-0011-2233-ddeeff001122")
-            }
-        );
+            entity.HasOne(d => d.ScrapCategory).WithMany(p => p.TransactionDetails)
+                .HasForeignKey(d => d.ScrapCategoryId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("TransactionDetails_ScrapCategoryId_fkey");
 
-        builder.Entity<ScrapPostDetail>().HasData(
-            new ScrapPostDetail
-            {
-                ScrapPostId = new Guid("20000000-0000-0000-0000-000000000001"),
-                ScrapCategoryId = 3,
-                AmountDescription = "Khoảng 1 bao lớn"
-            },
-            new ScrapPostDetail
-            {
-                ScrapPostId = new Guid("20000000-0000-0000-0000-000000000001"),
-                ScrapCategoryId = 4,
-                AmountDescription = "Khoảng 50 lon"
-            },
-            new ScrapPostDetail
-            {
-                ScrapPostId = new Guid("20000000-0000-0000-0000-000000000002"),
-                ScrapCategoryId = 1,
-                AmountDescription = "3kg giấy"
-            },
-            new ScrapPostDetail
-            {
-                ScrapPostId = new Guid("20000000-0000-0000-0000-000000000002"),
-                ScrapCategoryId = 2,
-                AmountDescription = "5 thùng"
-            }
-        );
+            entity.HasOne(d => d.Transaction).WithMany(p => p.TransactionDetails)
+                .HasForeignKey(d => d.TransactionId)
+                .HasConstraintName("TransactionDetails_TransactionId_fkey");
+        });
 
-        builder.Entity<CollectionOffer>().HasData(
-            new CollectionOffer
-            {
-                OfferId = new Guid("30000000-0000-0000-0000-000000000001"),
-                ScrapPostId = new Guid("20000000-0000-0000-0000-000000000001"),
-                ScrapCollectorId = new Guid("b2c3d4e5-f6a1-8899-0011-bbccddeeff00"),
-                ProposedPrice = 50000,
-                Status = OfferStatus.Accepted,
-                CreatedAt = new DateTime(2025, 10, 9, 10, 0, 0, DateTimeKind.Utc)
-            }
-        );
+        modelBuilder.Entity<UserRewardRedemption>(entity =>
+        {
+            entity.HasKey(e => new { e.UserId, e.RewardItemId, e.RedemptionDate })
+                .HasName("UserRewardRedemptions_pkey");
 
-        builder.Entity<Transaction>().HasData(
-            new Transaction
-            {
-                TransactionId = new Guid("40000000-0000-0000-0000-000000000001"),
-                OfferId = new Guid("30000000-0000-0000-0000-000000000001"),
-                HouseholdId = new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"),
-                ScrapCollectorId = new Guid("b2c3d4e5-f6a1-8899-0011-bbccddeeff00"),
-                FinalPrice = 50000,
-                Status = TransactionStatus.Completed,
-                CreatedAt = new DateTime(2025, 10, 10, 10, 0, 0, DateTimeKind.Utc)
-            }
-        );
+            entity.Property(e => e.RedemptionDate).HasDefaultValueSql("now()");
 
-        builder.Entity<Feedback>().HasData(
-            new Feedback
-            {
-                FeedbackId = new Guid("50000000-0000-0000-0000-000000000001"),
-                TransactionId = new Guid("40000000-0000-0000-0000-000000000001"),
-                ReviewerId = new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"),
-                RevieweeId = new Guid("b2c3d4e5-f6a1-8899-0011-bbccddeeff00"),
-                Rate = 5,
-                Comment = "Thu gom nhanh, thân thiện!",
-                CreatedAt = new DateTime(2025, 10, 10, 10, 0, 0, DateTimeKind.Utc)
-            }
-        );
+            entity.HasOne(d => d.RewardItem).WithMany(p => p.UserRewardRedemptions)
+                .HasForeignKey(d => d.RewardItemId)
+                .HasConstraintName("UserRewardRedemptions_RewardItemId_fkey");
 
-        #endregion
+            entity.HasOne(d => d.User).WithMany(p => p.UserRewardRedemptions)
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("UserRewardRedemptions_UserId_fkey");
+        });
+
+        OnModelCreatingPartial(modelBuilder);
     }
+
+    partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }

@@ -17,8 +17,7 @@ public static class DatabaseConfiguration
 
         services.AddEntityFrameworkNpgsql().AddDbContext<GreenConnectDbContext>(options =>
         {
-            options.UseNpgsql(props.PsqlConnectionString);
-
+            options.UseNpgsql(props.PsqlConnectionString, npgsqlOptions => npgsqlOptions.UseNetTopologySuite());
             if (isDevelopment) options.EnableSensitiveDataLogging();
         });
 
@@ -38,6 +37,7 @@ public static class DatabaseConfiguration
 
             Console.WriteLine("[Database] Applying EF Core migrations...");
             await dbContext.Database.MigrateAsync();
+            await dbContext.Database.ExecuteSqlRawAsync("CREATE EXTENSION IF NOT EXISTS postgis;");
             Console.WriteLine("[Database] EF Core migrations applied successfully.");
         }
         catch (Exception ex)

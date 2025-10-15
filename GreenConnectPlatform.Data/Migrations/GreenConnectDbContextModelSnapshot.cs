@@ -4,6 +4,7 @@ using GreenConnectPlatform.Data.Configurations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
@@ -20,30 +21,25 @@ namespace GreenConnectPlatform.Data.Migrations
                 .HasAnnotation("ProductVersion", "9.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "complaint_status", new[] { "submitted", "in_review", "resolved", "dismissed" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "item_status", new[] { "available", "booked", "collected" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "offer_status", new[] { "pending", "accepted", "rejected", "canceled" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "post_status", new[] { "open", "partially_booked", "fully_booked", "completed", "canceled" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "transaction_status", new[] { "scheduled", "in_progress", "completed", "canceled_by_system", "canceled_by_user" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "user_status", new[] { "pending_verification", "active", "inactive", "blocked" });
+            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "postgis");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("CollectionOfferDetails", b =>
+            modelBuilder.Entity("CollectionOfferScrapPostDetail", b =>
                 {
-                    b.Property<Guid>("OfferId")
+                    b.Property<Guid>("CollectionOffersCollectionOfferId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("ScrapPostId")
+                    b.Property<Guid>("ScrapPostDetailsScrapPostId")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("ScrapCategoryId")
+                    b.Property<int>("ScrapPostDetailsScrapCategoryId")
                         .HasColumnType("integer");
 
-                    b.HasKey("OfferId", "ScrapPostId", "ScrapCategoryId");
+                    b.HasKey("CollectionOffersCollectionOfferId", "ScrapPostDetailsScrapPostId", "ScrapPostDetailsScrapCategoryId");
 
-                    b.HasIndex("ScrapPostId", "ScrapCategoryId");
+                    b.HasIndex("ScrapPostDetailsScrapPostId", "ScrapPostDetailsScrapCategoryId");
 
-                    b.ToTable("CollectionOfferDetails");
+                    b.ToTable("CollectionOfferScrapPostDetail");
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.ChatParticipant", b =>
@@ -55,46 +51,53 @@ namespace GreenConnectPlatform.Data.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("JoinedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
 
-                    b.HasKey("UserId", "ChatRoomId");
+                    b.HasKey("UserId", "ChatRoomId")
+                        .HasName("ChatParticipants_pkey");
 
                     b.HasIndex("ChatRoomId");
 
-                    b.ToTable("ChatParticipants", (string)null);
+                    b.ToTable("ChatParticipants");
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.ChatRoom", b =>
                 {
                     b.Property<Guid>("ChatRoomId")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<Guid>("TransactionId")
                         .HasColumnType("uuid");
 
-                    b.HasKey("ChatRoomId");
+                    b.HasKey("ChatRoomId")
+                        .HasName("ChatRooms_pkey");
 
-                    b.HasIndex("TransactionId")
+                    b.HasIndex(new[] { "TransactionId" }, "ChatRooms_TransactionId_key")
                         .IsUnique();
 
-                    b.ToTable("ChatRooms", (string)null);
+                    b.ToTable("ChatRooms");
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.CollectionOffer", b =>
                 {
-                    b.Property<Guid>("OfferId")
-                        .ValueGeneratedOnAdd()
+                    b.Property<Guid>("CollectionOfferId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<decimal>("ProposedPrice")
-                        .HasColumnType("decimal(18, 2)");
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<Guid>("ScrapCollectorId")
                         .HasColumnType("uuid");
@@ -102,33 +105,58 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.Property<Guid>("ScrapPostId")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.HasKey("OfferId");
+                    b.HasKey("CollectionOfferId")
+                        .HasName("CollectionOffers_pkey");
 
                     b.HasIndex("ScrapCollectorId");
 
                     b.HasIndex("ScrapPostId");
 
-                    b.ToTable("CollectionOffers", (string)null);
+                    b.ToTable("CollectionOffers");
+                });
 
-                    b.HasData(
-                        new
-                        {
-                            OfferId = new Guid("30000000-0000-0000-0000-000000000001"),
-                            CreatedAt = new DateTime(2025, 10, 9, 10, 0, 0, 0, DateTimeKind.Utc),
-                            ProposedPrice = 50000m,
-                            ScrapCollectorId = new Guid("b2c3d4e5-f6a1-8899-0011-bbccddeeff00"),
-                            ScrapPostId = new Guid("20000000-0000-0000-0000-000000000001"),
-                            Status = 1
-                        });
+            modelBuilder.Entity("GreenConnectPlatform.Data.Entities.CollectorVerificationInfo", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("DocumentBackUrl")
+                        .HasColumnType("text");
+
+                    b.Property<string>("DocumentFrontUrl")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ReviewerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ReviewerNotes")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("SubmittedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("UserId")
+                        .HasName("CollectorVerificationInfos_pkey");
+
+                    b.HasIndex("ReviewerId");
+
+                    b.ToTable("CollectorVerificationInfos");
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.Complaint", b =>
                 {
                     b.Property<Guid>("ComplaintId")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("AccusedId")
@@ -138,7 +166,9 @@ namespace GreenConnectPlatform.Data.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<string>("EvidenceUrl")
                         .HasColumnType("text");
@@ -147,13 +177,15 @@ namespace GreenConnectPlatform.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<Guid>("TransactionId")
                         .HasColumnType("uuid");
 
-                    b.HasKey("ComplaintId");
+                    b.HasKey("ComplaintId")
+                        .HasName("Complaints_pkey");
 
                     b.HasIndex("AccusedId");
 
@@ -161,20 +193,21 @@ namespace GreenConnectPlatform.Data.Migrations
 
                     b.HasIndex("TransactionId");
 
-                    b.ToTable("Complaints", (string)null);
+                    b.ToTable("Complaints");
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.Feedback", b =>
                 {
                     b.Property<Guid>("FeedbackId")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<string>("Comment")
                         .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<int>("Rate")
                         .HasColumnType("integer");
@@ -188,34 +221,21 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.Property<Guid>("TransactionId")
                         .HasColumnType("uuid");
 
-                    b.HasKey("FeedbackId");
+                    b.HasKey("FeedbackId")
+                        .HasName("Feedbacks_pkey");
 
                     b.HasIndex("RevieweeId");
 
                     b.HasIndex("ReviewerId");
 
-                    b.HasIndex("TransactionId")
-                        .IsUnique();
+                    b.HasIndex("TransactionId");
 
-                    b.ToTable("Feedbacks", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            FeedbackId = new Guid("50000000-0000-0000-0000-000000000001"),
-                            Comment = "Thu gom nhanh, thân thiện!",
-                            CreatedAt = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Rate = 5,
-                            RevieweeId = new Guid("b2c3d4e5-f6a1-8899-0011-bbccddeeff00"),
-                            ReviewerId = new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"),
-                            TransactionId = new Guid("40000000-0000-0000-0000-000000000001")
-                        });
+                    b.ToTable("Feedbacks");
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.Message", b =>
                 {
                     b.Property<Guid>("MessageId")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("ChatRoomId")
@@ -225,27 +245,69 @@ namespace GreenConnectPlatform.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("boolean");
+
                     b.Property<Guid>("SenderId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("Timestamp")
-                        .HasColumnType("timestamp with time zone");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
 
-                    b.HasKey("MessageId");
-
-                    b.HasIndex("ChatRoomId");
+                    b.HasKey("MessageId")
+                        .HasName("Messages_pkey");
 
                     b.HasIndex("SenderId");
 
-                    b.HasIndex(new[] { "ChatRoomId" }, "idx_messages_chatroom");
+                    b.HasIndex(new[] { "ChatRoomId", "Timestamp" }, "IX_Messages_ChatRoomId_Timestamp")
+                        .IsDescending(false, true);
 
-                    b.ToTable("Messages", (string)null);
+                    b.ToTable("Messages");
+                });
+
+            modelBuilder.Entity("GreenConnectPlatform.Data.Entities.Notification", b =>
+                {
+                    b.Property<Guid>("NotificationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<Guid?>("EntityId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("EntityType")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<bool>("IsRead")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<Guid>("RecipientId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("NotificationId")
+                        .HasName("Notifications_pkey");
+
+                    b.HasIndex(new[] { "RecipientId", "CreatedAt" }, "IX_Notifications_RecipientId_CreatedAt")
+                        .IsDescending(false, true);
+
+                    b.ToTable("Notifications");
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.Profile", b =>
                 {
                     b.Property<Guid>("ProfileId")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<string>("Address")
@@ -255,57 +317,35 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.Property<string>("AvatarUrl")
                         .HasColumnType("text");
 
-                    b.Property<DateTime?>("DateOfBirth")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateOnly?>("DateOfBirth")
+                        .HasColumnType("date");
 
                     b.Property<string>("Gender")
                         .HasMaxLength(10)
                         .HasColumnType("character varying(10)");
 
+                    b.Property<Point>("Location")
+                        .HasColumnType("geometry(Point,4326)");
+
                     b.Property<int>("RewardPoint")
-                        .HasColumnType("integer");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
-                    b.HasKey("ProfileId");
+                    b.HasKey("ProfileId")
+                        .HasName("Profiles_pkey");
 
-                    b.HasIndex("UserId")
+                    b.HasIndex(new[] { "Location" }, "IX_Profiles_Location");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex(new[] { "Location" }, "IX_Profiles_Location"), "gist");
+
+                    b.HasIndex(new[] { "UserId" }, "Profiles_UserId_key")
                         .IsUnique();
 
-                    b.ToTable("Profiles", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            ProfileId = new Guid("10000000-0000-0000-0000-000000000001"),
-                            Address = "123 Admin St, District 1, HCMC",
-                            RewardPoint = 0,
-                            UserId = new Guid("a1b2c3d4-e5f6-7788-9900-aabbccddeeff")
-                        },
-                        new
-                        {
-                            ProfileId = new Guid("10000000-0000-0000-0000-000000000002"),
-                            Address = "456 Collector Rd, Binh Thanh, HCMC",
-                            Gender = "Male",
-                            RewardPoint = 0,
-                            UserId = new Guid("b2c3d4e5-f6a1-8899-0011-bbccddeeff00")
-                        },
-                        new
-                        {
-                            ProfileId = new Guid("10000000-0000-0000-0000-000000000003"),
-                            Address = "789 Household Ave, District 3, HCMC",
-                            Gender = "Female",
-                            RewardPoint = 0,
-                            UserId = new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011")
-                        },
-                        new
-                        {
-                            ProfileId = new Guid("10000000-0000-0000-0000-000000000004"),
-                            Address = "101 Household Way, Phu Nhuan, HCMC",
-                            RewardPoint = 0,
-                            UserId = new Guid("d4e5f6a1-b2c3-0011-2233-ddeeff001122")
-                        });
+                    b.ToTable("Profiles");
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.RewardItem", b =>
@@ -327,23 +367,46 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.Property<int>("PointsCost")
                         .HasColumnType("integer");
 
-                    b.HasKey("RewardItemId");
+                    b.HasKey("RewardItemId")
+                        .HasName("RewardItems_pkey");
 
-                    b.ToTable("RewardItems", (string)null);
+                    b.ToTable("RewardItems");
+                });
 
-                    b.HasData(
-                        new
-                        {
-                            RewardItemId = 1,
-                            ItemName = "Khung viền Avatar 'Chiến binh Tái chế'",
-                            PointsCost = 100
-                        },
-                        new
-                        {
-                            RewardItemId = 2,
-                            ItemName = "Voucher Giảm giá 10%",
-                            PointsCost = 500
-                        });
+            modelBuilder.Entity("GreenConnectPlatform.Data.Entities.ScheduleProposal", b =>
+                {
+                    b.Property<Guid>("ScheduleProposalId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<DateTime>("ProposedTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ProposerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ResponseMessage")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("TransactionId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("ScheduleProposalId")
+                        .HasName("ScheduleProposals_pkey");
+
+                    b.HasIndex("ProposerId");
+
+                    b.HasIndex(new[] { "TransactionId" }, "IX_ScheduleProposals_TransactionId");
+
+                    b.ToTable("ScheduleProposals");
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.ScrapCategory", b =>
@@ -362,47 +425,15 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
-                    b.HasKey("ScrapCategoryId");
+                    b.HasKey("ScrapCategoryId")
+                        .HasName("ScrapCategories_pkey");
 
-                    b.ToTable("ScrapCategories", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            ScrapCategoryId = 1,
-                            CategoryName = "Giấy vụn"
-                        },
-                        new
-                        {
-                            ScrapCategoryId = 2,
-                            CategoryName = "Thùng carton"
-                        },
-                        new
-                        {
-                            ScrapCategoryId = 3,
-                            CategoryName = "Chai nhựa (PET)"
-                        },
-                        new
-                        {
-                            ScrapCategoryId = 4,
-                            CategoryName = "Lon nhôm"
-                        },
-                        new
-                        {
-                            ScrapCategoryId = 5,
-                            CategoryName = "Sắt vụn"
-                        },
-                        new
-                        {
-                            ScrapCategoryId = 6,
-                            CategoryName = "Đồ điện tử cũ"
-                        });
+                    b.ToTable("ScrapCategories");
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.ScrapPost", b =>
                 {
                     b.Property<Guid>("ScrapPostId")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<string>("Address")
@@ -415,7 +446,9 @@ namespace GreenConnectPlatform.Data.Migrations
                         .HasColumnType("character varying(100)");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<string>("Description")
                         .HasColumnType("text");
@@ -423,45 +456,33 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.Property<Guid>("HouseholdId")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
+                    b.Property<Point>("Location")
+                        .HasColumnType("geometry(Point,4326)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.HasKey("ScrapPostId");
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("ScrapPostId")
+                        .HasName("ScrapPosts_pkey");
 
                     b.HasIndex("HouseholdId");
 
-                    b.HasIndex("Status");
+                    b.HasIndex(new[] { "Location" }, "IX_ScrapPosts_Location");
 
-                    b.ToTable("ScrapPosts", (string)null);
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex(new[] { "Location" }, "IX_ScrapPosts_Location"), "gist");
 
-                    b.HasData(
-                        new
-                        {
-                            ScrapPostId = new Guid("20000000-0000-0000-0000-000000000001"),
-                            Address = "789 Household Ave, District 3, HCMC",
-                            AvailableTimeRange = "Chiều nay (14h-16h)",
-                            CreatedAt = new DateTime(2025, 10, 9, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Khoảng 1 bao lớn, đã gom sạch sẽ.",
-                            HouseholdId = new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"),
-                            Status = 2,
-                            Title = "Dọn nhà bếp, có chai nhựa và lon"
-                        },
-                        new
-                        {
-                            ScrapPostId = new Guid("20000000-0000-0000-0000-000000000002"),
-                            Address = "101 Household Way, Phu Nhuan, HCMC",
-                            AvailableTimeRange = "Mai sáng (9h-11h)",
-                            CreatedAt = new DateTime(2025, 10, 11, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Khoảng 3kg giấy A4 cũ, vài thùng carton.",
-                            HouseholdId = new Guid("d4e5f6a1-b2c3-0011-2233-ddeeff001122"),
-                            Status = 2,
-                            Title = "Giấy vụn và carton"
-                        });
+                    b.HasIndex(new[] { "Status", "HouseholdId" }, "IX_ScrapPosts_Status_HouseholdId");
+
+                    b.ToTable("ScrapPosts");
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.ScrapPostDetail", b =>
@@ -479,50 +500,21 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.Property<string>("ImageUrl")
                         .HasColumnType("text");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.HasKey("ScrapPostId", "ScrapCategoryId");
+                    b.HasKey("ScrapPostId", "ScrapCategoryId")
+                        .HasName("ScrapPostDetails_pkey");
 
                     b.HasIndex("ScrapCategoryId");
 
-                    b.ToTable("ScrapPostDetails", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            ScrapPostId = new Guid("20000000-0000-0000-0000-000000000001"),
-                            ScrapCategoryId = 3,
-                            AmountDescription = "Khoảng 1 bao lớn",
-                            Status = 0
-                        },
-                        new
-                        {
-                            ScrapPostId = new Guid("20000000-0000-0000-0000-000000000001"),
-                            ScrapCategoryId = 4,
-                            AmountDescription = "Khoảng 50 lon",
-                            Status = 0
-                        },
-                        new
-                        {
-                            ScrapPostId = new Guid("20000000-0000-0000-0000-000000000002"),
-                            ScrapCategoryId = 1,
-                            AmountDescription = "3kg giấy",
-                            Status = 0
-                        },
-                        new
-                        {
-                            ScrapPostId = new Guid("20000000-0000-0000-0000-000000000002"),
-                            ScrapCategoryId = 2,
-                            AmountDescription = "5 thùng",
-                            Status = 0
-                        });
+                    b.ToTable("ScrapPostDetails");
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.Transaction", b =>
                 {
                     b.Property<Guid>("TransactionId")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<string>("CheckInSelfieUrl")
@@ -532,13 +524,9 @@ namespace GreenConnectPlatform.Data.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<decimal?>("FinalPrice")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.Property<float?>("FinalWeight")
-                        .HasColumnType("real");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<Guid>("HouseholdId")
                         .HasColumnType("uuid");
@@ -552,31 +540,50 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.Property<Guid>("ScrapCollectorId")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.HasKey("TransactionId");
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("TransactionId")
+                        .HasName("Transactions_pkey");
 
                     b.HasIndex("HouseholdId");
 
-                    b.HasIndex("OfferId")
-                        .IsUnique();
+                    b.HasIndex("OfferId");
 
                     b.HasIndex("ScrapCollectorId");
 
-                    b.ToTable("Transactions", (string)null);
+                    b.HasIndex(new[] { "Status", "HouseholdId" }, "IX_Transactions_Status_HouseholdId");
 
-                    b.HasData(
-                        new
-                        {
-                            TransactionId = new Guid("40000000-0000-0000-0000-000000000001"),
-                            CreatedAt = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc),
-                            FinalPrice = 50000m,
-                            HouseholdId = new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"),
-                            OfferId = new Guid("30000000-0000-0000-0000-000000000001"),
-                            ScrapCollectorId = new Guid("b2c3d4e5-f6a1-8899-0011-bbccddeeff00"),
-                            Status = 2
-                        });
+                    b.HasIndex(new[] { "Status", "ScrapCollectorId" }, "IX_Transactions_Status_ScrapCollectorId");
+
+                    b.ToTable("Transactions");
+                });
+
+            modelBuilder.Entity("GreenConnectPlatform.Data.Entities.TransactionDetail", b =>
+                {
+                    b.Property<Guid>("TransactionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ScrapCategoryId")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("ActualPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<float>("ActualWeight")
+                        .HasColumnType("real");
+
+                    b.HasKey("TransactionId", "ScrapCategoryId")
+                        .HasName("TransactionDetails_pkey");
+
+                    b.HasIndex("ScrapCategoryId");
+
+                    b.ToTable("TransactionDetails");
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.User", b =>
@@ -603,8 +610,7 @@ namespace GreenConnectPlatform.Data.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<string>("FullName")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("text");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean");
@@ -619,6 +625,12 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.Property<string>("NormalizedUserName")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
+
+                    b.Property<string>("OtpCode")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("OtpExpiredAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("PasswordHash")
                         .HasColumnType("text");
@@ -638,6 +650,9 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("boolean");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
@@ -651,100 +666,28 @@ namespace GreenConnectPlatform.Data.Migrations
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
 
-                    b.HasIndex("PhoneNumber")
-                        .IsUnique();
-
-                    b.ToTable("Users", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("a1b2c3d4-e5f6-7788-9900-aabbccddeeff"),
-                            AccessFailedCount = 0,
-                            ConcurrencyStamp = "8a780245-f0c6-4c0f-a99c-a3034f02d437",
-                            CreatedAt = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc),
-                            EmailConfirmed = false,
-                            FullName = "Admin GreenConnect",
-                            LockoutEnabled = false,
-                            NormalizedUserName = "0900000000",
-                            PhoneNumber = "0900000000",
-                            PhoneNumberConfirmed = true,
-                            Status = 1,
-                            TwoFactorEnabled = false,
-                            UserName = "0900000000"
-                        },
-                        new
-                        {
-                            Id = new Guid("b2c3d4e5-f6a1-8899-0011-bbccddeeff00"),
-                            AccessFailedCount = 0,
-                            ConcurrencyStamp = "df101f36-638a-4a05-8e9d-ca1fa7ea43d5",
-                            CreatedAt = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc),
-                            EmailConfirmed = false,
-                            FullName = "Anh Ba Ve Chai",
-                            LockoutEnabled = false,
-                            NormalizedUserName = "0911111111",
-                            PhoneNumber = "0911111111",
-                            PhoneNumberConfirmed = true,
-                            Status = 1,
-                            TwoFactorEnabled = false,
-                            UserName = "0911111111"
-                        },
-                        new
-                        {
-                            Id = new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"),
-                            AccessFailedCount = 0,
-                            ConcurrencyStamp = "1e46f029-b862-4c0b-b1d6-bb7a36b3384c",
-                            CreatedAt = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc),
-                            EmailConfirmed = false,
-                            FullName = "Chị Tư Bán Ve Chai",
-                            LockoutEnabled = false,
-                            NormalizedUserName = "0922222222",
-                            PhoneNumber = "0922222222",
-                            PhoneNumberConfirmed = true,
-                            Status = 1,
-                            TwoFactorEnabled = false,
-                            UserName = "0922222222"
-                        },
-                        new
-                        {
-                            Id = new Guid("d4e5f6a1-b2c3-0011-2233-ddeeff001122"),
-                            AccessFailedCount = 0,
-                            ConcurrencyStamp = "00bc157a-9db5-487a-9bc6-835946d78475",
-                            CreatedAt = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc),
-                            EmailConfirmed = false,
-                            FullName = "Gia đình Bác Năm",
-                            LockoutEnabled = false,
-                            NormalizedUserName = "0933333333",
-                            PhoneNumber = "0933333333",
-                            PhoneNumberConfirmed = true,
-                            Status = 1,
-                            TwoFactorEnabled = false,
-                            UserName = "0933333333"
-                        });
+                    b.ToTable("AspNetUsers", (string)null);
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.UserRewardRedemption", b =>
                 {
-                    b.Property<Guid>("RedemptionId")
-                        .ValueGeneratedOnAdd()
+                    b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
-
-                    b.Property<DateTime>("RedemptionDate")
-                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("RewardItemId")
                         .HasColumnType("integer");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                    b.Property<DateTime>("RedemptionDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
 
-                    b.HasKey("RedemptionId");
+                    b.HasKey("UserId", "RewardItemId", "RedemptionDate")
+                        .HasName("UserRewardRedemptions_pkey");
 
                     b.HasIndex("RewardItemId");
 
-                    b.HasIndex("UserId");
-
-                    b.ToTable("UserRewardRedemptions", (string)null);
+                    b.ToTable("UserRewardRedemptions");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>
@@ -771,27 +714,7 @@ namespace GreenConnectPlatform.Data.Migrations
                         .IsUnique()
                         .HasDatabaseName("RoleNameIndex");
 
-                    b.ToTable("Roles", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("8dd3637c-72a3-4a25-99d2-a7d1bce85542"),
-                            Name = "Admin",
-                            NormalizedName = "ADMIN"
-                        },
-                        new
-                        {
-                            Id = new Guid("d7d0c75c-9c3f-4e6b-9b7a-8f8d9a6c9e84"),
-                            Name = "ScrapCollector",
-                            NormalizedName = "SCRAPCOLLECTOR"
-                        },
-                        new
-                        {
-                            Id = new Guid("f9e7c1b5-9c8f-4b1a-8c7d-6e5f4a3b2a1c"),
-                            Name = "Household",
-                            NormalizedName = "HOUSEHOLD"
-                        });
+                    b.ToTable("AspNetRoles", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -815,7 +738,7 @@ namespace GreenConnectPlatform.Data.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("RoleClaims", (string)null);
+                    b.ToTable("AspNetRoleClaims", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
@@ -839,7 +762,7 @@ namespace GreenConnectPlatform.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserClaims", (string)null);
+                    b.ToTable("AspNetUserClaims", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
@@ -860,7 +783,7 @@ namespace GreenConnectPlatform.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserLogins", (string)null);
+                    b.ToTable("AspNetUserLogins", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<System.Guid>", b =>
@@ -875,29 +798,7 @@ namespace GreenConnectPlatform.Data.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("UserRoles", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            UserId = new Guid("a1b2c3d4-e5f6-7788-9900-aabbccddeeff"),
-                            RoleId = new Guid("8dd3637c-72a3-4a25-99d2-a7d1bce85542")
-                        },
-                        new
-                        {
-                            UserId = new Guid("b2c3d4e5-f6a1-8899-0011-bbccddeeff00"),
-                            RoleId = new Guid("d7d0c75c-9c3f-4e6b-9b7a-8f8d9a6c9e84")
-                        },
-                        new
-                        {
-                            UserId = new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"),
-                            RoleId = new Guid("f9e7c1b5-9c8f-4b1a-8c7d-6e5f4a3b2a1c")
-                        },
-                        new
-                        {
-                            UserId = new Guid("d4e5f6a1-b2c3-0011-2233-ddeeff001122"),
-                            RoleId = new Guid("f9e7c1b5-9c8f-4b1a-8c7d-6e5f4a3b2a1c")
-                        });
+                    b.ToTable("AspNetUserRoles", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
@@ -916,20 +817,20 @@ namespace GreenConnectPlatform.Data.Migrations
 
                     b.HasKey("UserId", "LoginProvider", "Name");
 
-                    b.ToTable("UserTokens", (string)null);
+                    b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("CollectionOfferDetails", b =>
+            modelBuilder.Entity("CollectionOfferScrapPostDetail", b =>
                 {
                     b.HasOne("GreenConnectPlatform.Data.Entities.CollectionOffer", null)
                         .WithMany()
-                        .HasForeignKey("OfferId")
+                        .HasForeignKey("CollectionOffersCollectionOfferId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("GreenConnectPlatform.Data.Entities.ScrapPostDetail", null)
                         .WithMany()
-                        .HasForeignKey("ScrapPostId", "ScrapCategoryId")
+                        .HasForeignKey("ScrapPostDetailsScrapPostId", "ScrapPostDetailsScrapCategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -937,16 +838,18 @@ namespace GreenConnectPlatform.Data.Migrations
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.ChatParticipant", b =>
                 {
                     b.HasOne("GreenConnectPlatform.Data.Entities.ChatRoom", "ChatRoom")
-                        .WithMany("Participants")
+                        .WithMany("ChatParticipants")
                         .HasForeignKey("ChatRoomId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("ChatParticipants_ChatRoomId_fkey");
 
                     b.HasOne("GreenConnectPlatform.Data.Entities.User", "User")
-                        .WithMany("ChatRooms")
+                        .WithMany("ChatParticipants")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("ChatParticipants_UserId_fkey");
 
                     b.Navigation("ChatRoom");
 
@@ -959,7 +862,8 @@ namespace GreenConnectPlatform.Data.Migrations
                         .WithOne("ChatRoom")
                         .HasForeignKey("GreenConnectPlatform.Data.Entities.ChatRoom", "TransactionId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("ChatRooms_TransactionId_fkey");
 
                     b.Navigation("Transaction");
                 });
@@ -967,41 +871,65 @@ namespace GreenConnectPlatform.Data.Migrations
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.CollectionOffer", b =>
                 {
                     b.HasOne("GreenConnectPlatform.Data.Entities.User", "ScrapCollector")
-                        .WithMany("SentOffers")
+                        .WithMany("CollectionOffers")
                         .HasForeignKey("ScrapCollectorId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("CollectionOffers_ScrapCollectorId_fkey");
 
                     b.HasOne("GreenConnectPlatform.Data.Entities.ScrapPost", "ScrapPost")
-                        .WithMany("Offers")
+                        .WithMany("CollectionOffers")
                         .HasForeignKey("ScrapPostId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("CollectionOffers_ScrapPostId_fkey");
 
                     b.Navigation("ScrapCollector");
 
                     b.Navigation("ScrapPost");
                 });
 
+            modelBuilder.Entity("GreenConnectPlatform.Data.Entities.CollectorVerificationInfo", b =>
+                {
+                    b.HasOne("GreenConnectPlatform.Data.Entities.User", "Reviewer")
+                        .WithMany()
+                        .HasForeignKey("ReviewerId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("GreenConnectPlatform.Data.Entities.User", "User")
+                        .WithOne("CollectorVerificationInfo")
+                        .HasForeignKey("GreenConnectPlatform.Data.Entities.CollectorVerificationInfo", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("CollectorVerificationInfos_UserId_fkey");
+
+                    b.Navigation("Reviewer");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.Complaint", b =>
                 {
                     b.HasOne("GreenConnectPlatform.Data.Entities.User", "Accused")
-                        .WithMany("ComplaintsAgainst")
+                        .WithMany("ComplaintAccuseds")
                         .HasForeignKey("AccusedId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("Complaints_AccusedId_fkey");
 
                     b.HasOne("GreenConnectPlatform.Data.Entities.User", "Complainant")
-                        .WithMany("ComplaintsFiled")
+                        .WithMany("ComplaintComplainants")
                         .HasForeignKey("ComplainantId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("Complaints_ComplainantId_fkey");
 
                     b.HasOne("GreenConnectPlatform.Data.Entities.Transaction", "Transaction")
                         .WithMany("Complaints")
                         .HasForeignKey("TransactionId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("Complaints_TransactionId_fkey");
 
                     b.Navigation("Accused");
 
@@ -1013,22 +941,25 @@ namespace GreenConnectPlatform.Data.Migrations
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.Feedback", b =>
                 {
                     b.HasOne("GreenConnectPlatform.Data.Entities.User", "Reviewee")
-                        .WithMany("ReviewsReceived")
+                        .WithMany("FeedbackReviewees")
                         .HasForeignKey("RevieweeId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("Feedbacks_RevieweeId_fkey");
 
                     b.HasOne("GreenConnectPlatform.Data.Entities.User", "Reviewer")
-                        .WithMany("ReviewsGiven")
+                        .WithMany("FeedbackReviewers")
                         .HasForeignKey("ReviewerId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("Feedbacks_ReviewerId_fkey");
 
                     b.HasOne("GreenConnectPlatform.Data.Entities.Transaction", "Transaction")
-                        .WithOne("Feedback")
-                        .HasForeignKey("GreenConnectPlatform.Data.Entities.Feedback", "TransactionId")
+                        .WithMany("Feedbacks")
+                        .HasForeignKey("TransactionId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("Feedbacks_TransactionId_fkey");
 
                     b.Navigation("Reviewee");
 
@@ -1043,17 +974,31 @@ namespace GreenConnectPlatform.Data.Migrations
                         .WithMany("Messages")
                         .HasForeignKey("ChatRoomId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("Messages_ChatRoomId_fkey");
 
                     b.HasOne("GreenConnectPlatform.Data.Entities.User", "Sender")
-                        .WithMany("SentMessages")
+                        .WithMany("Messages")
                         .HasForeignKey("SenderId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("Messages_SenderId_fkey");
 
                     b.Navigation("ChatRoom");
 
                     b.Navigation("Sender");
+                });
+
+            modelBuilder.Entity("GreenConnectPlatform.Data.Entities.Notification", b =>
+                {
+                    b.HasOne("GreenConnectPlatform.Data.Entities.User", "Recipient")
+                        .WithMany("Notifications")
+                        .HasForeignKey("RecipientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("Notifications_RecipientId_fkey");
+
+                    b.Navigation("Recipient");
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.Profile", b =>
@@ -1062,18 +1007,41 @@ namespace GreenConnectPlatform.Data.Migrations
                         .WithOne("Profile")
                         .HasForeignKey("GreenConnectPlatform.Data.Entities.Profile", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("Profiles_UserId_fkey");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("GreenConnectPlatform.Data.Entities.ScheduleProposal", b =>
+                {
+                    b.HasOne("GreenConnectPlatform.Data.Entities.User", "Proposer")
+                        .WithMany("ScheduleProposals")
+                        .HasForeignKey("ProposerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("ScheduleProposals_ProposerId_fkey");
+
+                    b.HasOne("GreenConnectPlatform.Data.Entities.Transaction", "Transaction")
+                        .WithMany("ScheduleProposals")
+                        .HasForeignKey("TransactionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("ScheduleProposals_TransactionId_fkey");
+
+                    b.Navigation("Proposer");
+
+                    b.Navigation("Transaction");
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.ScrapPost", b =>
                 {
                     b.HasOne("GreenConnectPlatform.Data.Entities.User", "Household")
-                        .WithMany("CreatedScrapPosts")
+                        .WithMany("ScrapPosts")
                         .HasForeignKey("HouseholdId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("ScrapPosts_HouseholdId_fkey");
 
                     b.Navigation("Household");
                 });
@@ -1084,13 +1052,15 @@ namespace GreenConnectPlatform.Data.Migrations
                         .WithMany("ScrapPostDetails")
                         .HasForeignKey("ScrapCategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("ScrapPostDetails_ScrapCategoryId_fkey");
 
                     b.HasOne("GreenConnectPlatform.Data.Entities.ScrapPost", "ScrapPost")
-                        .WithMany("Details")
+                        .WithMany("ScrapPostDetails")
                         .HasForeignKey("ScrapPostId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("ScrapPostDetails_ScrapPostId_fkey");
 
                     b.Navigation("ScrapCategory");
 
@@ -1100,22 +1070,25 @@ namespace GreenConnectPlatform.Data.Migrations
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.Transaction", b =>
                 {
                     b.HasOne("GreenConnectPlatform.Data.Entities.User", "Household")
-                        .WithMany("TransactionsAsHousehold")
+                        .WithMany("TransactionHouseholds")
                         .HasForeignKey("HouseholdId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("Transactions_HouseholdId_fkey");
 
                     b.HasOne("GreenConnectPlatform.Data.Entities.CollectionOffer", "Offer")
-                        .WithOne("Transaction")
-                        .HasForeignKey("GreenConnectPlatform.Data.Entities.Transaction", "OfferId")
+                        .WithMany("Transactions")
+                        .HasForeignKey("OfferId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("Transactions_OfferId_fkey");
 
                     b.HasOne("GreenConnectPlatform.Data.Entities.User", "ScrapCollector")
-                        .WithMany("TransactionsAsCollector")
+                        .WithMany("TransactionScrapCollectors")
                         .HasForeignKey("ScrapCollectorId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("Transactions_ScrapCollectorId_fkey");
 
                     b.Navigation("Household");
 
@@ -1124,19 +1097,42 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.Navigation("ScrapCollector");
                 });
 
+            modelBuilder.Entity("GreenConnectPlatform.Data.Entities.TransactionDetail", b =>
+                {
+                    b.HasOne("GreenConnectPlatform.Data.Entities.ScrapCategory", "ScrapCategory")
+                        .WithMany("TransactionDetails")
+                        .HasForeignKey("ScrapCategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("TransactionDetails_ScrapCategoryId_fkey");
+
+                    b.HasOne("GreenConnectPlatform.Data.Entities.Transaction", "Transaction")
+                        .WithMany("TransactionDetails")
+                        .HasForeignKey("TransactionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("TransactionDetails_TransactionId_fkey");
+
+                    b.Navigation("ScrapCategory");
+
+                    b.Navigation("Transaction");
+                });
+
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.UserRewardRedemption", b =>
                 {
                     b.HasOne("GreenConnectPlatform.Data.Entities.RewardItem", "RewardItem")
-                        .WithMany("Redemptions")
+                        .WithMany("UserRewardRedemptions")
                         .HasForeignKey("RewardItemId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("UserRewardRedemptions_RewardItemId_fkey");
 
                     b.HasOne("GreenConnectPlatform.Data.Entities.User", "User")
-                        .WithMany("RewardRedemptions")
+                        .WithMany("UserRewardRedemptions")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("UserRewardRedemptions_UserId_fkey");
 
                     b.Navigation("RewardItem");
 
@@ -1196,31 +1192,33 @@ namespace GreenConnectPlatform.Data.Migrations
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.ChatRoom", b =>
                 {
-                    b.Navigation("Messages");
+                    b.Navigation("ChatParticipants");
 
-                    b.Navigation("Participants");
+                    b.Navigation("Messages");
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.CollectionOffer", b =>
                 {
-                    b.Navigation("Transaction");
+                    b.Navigation("Transactions");
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.RewardItem", b =>
                 {
-                    b.Navigation("Redemptions");
+                    b.Navigation("UserRewardRedemptions");
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.ScrapCategory", b =>
                 {
                     b.Navigation("ScrapPostDetails");
+
+                    b.Navigation("TransactionDetails");
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.ScrapPost", b =>
                 {
-                    b.Navigation("Details");
+                    b.Navigation("CollectionOffers");
 
-                    b.Navigation("Offers");
+                    b.Navigation("ScrapPostDetails");
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.Transaction", b =>
@@ -1229,34 +1227,44 @@ namespace GreenConnectPlatform.Data.Migrations
 
                     b.Navigation("Complaints");
 
-                    b.Navigation("Feedback");
+                    b.Navigation("Feedbacks");
+
+                    b.Navigation("ScheduleProposals");
+
+                    b.Navigation("TransactionDetails");
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.User", b =>
                 {
-                    b.Navigation("ChatRooms");
+                    b.Navigation("ChatParticipants");
 
-                    b.Navigation("ComplaintsAgainst");
+                    b.Navigation("CollectionOffers");
 
-                    b.Navigation("ComplaintsFiled");
+                    b.Navigation("CollectorVerificationInfo");
 
-                    b.Navigation("CreatedScrapPosts");
+                    b.Navigation("ComplaintAccuseds");
+
+                    b.Navigation("ComplaintComplainants");
+
+                    b.Navigation("FeedbackReviewees");
+
+                    b.Navigation("FeedbackReviewers");
+
+                    b.Navigation("Messages");
+
+                    b.Navigation("Notifications");
 
                     b.Navigation("Profile");
 
-                    b.Navigation("ReviewsGiven");
+                    b.Navigation("ScheduleProposals");
 
-                    b.Navigation("ReviewsReceived");
+                    b.Navigation("ScrapPosts");
 
-                    b.Navigation("RewardRedemptions");
+                    b.Navigation("TransactionHouseholds");
 
-                    b.Navigation("SentMessages");
+                    b.Navigation("TransactionScrapCollectors");
 
-                    b.Navigation("SentOffers");
-
-                    b.Navigation("TransactionsAsCollector");
-
-                    b.Navigation("TransactionsAsHousehold");
+                    b.Navigation("UserRewardRedemptions");
                 });
 #pragma warning restore 612, 618
         }

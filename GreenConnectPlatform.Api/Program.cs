@@ -23,11 +23,13 @@ public class Program
 
         NpgsqlConnection.GlobalTypeMapper.MapEnum<UserStatus>("user_status");
         NpgsqlConnection.GlobalTypeMapper.MapEnum<PostStatus>("post_status");
-        NpgsqlConnection.GlobalTypeMapper.MapEnum<ItemStatus>("item_status");
+        NpgsqlConnection.GlobalTypeMapper.MapEnum<PostDetailStatus>("post_detail_status");
         NpgsqlConnection.GlobalTypeMapper.MapEnum<OfferStatus>("offer_status");
         NpgsqlConnection.GlobalTypeMapper.MapEnum<TransactionStatus>("transaction_status");
         NpgsqlConnection.GlobalTypeMapper.MapEnum<ComplaintStatus>("complaint_status");
-        
+        NpgsqlConnection.GlobalTypeMapper.MapEnum<ProposalStatus>("proposal_status");
+        NpgsqlConnection.GlobalTypeMapper.MapEnum<VerificationStatus>("verification_status");
+
         builder.Services.ConfigureServices();
 
         builder.Services.ConfigureRepositories();

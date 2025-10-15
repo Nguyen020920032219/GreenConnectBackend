@@ -25,7 +25,7 @@
 
     <ItemGroup>
         <Folder Include="Controllers\"/>
-        <Folder Include="Resources\" />
+        <Folder Include="Resources\"/>
     </ItemGroup>
 
     <ItemGroup>

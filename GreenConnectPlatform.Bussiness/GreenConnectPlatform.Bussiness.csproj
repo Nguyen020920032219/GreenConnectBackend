@@ -9,6 +9,7 @@
     <ItemGroup>
         <Folder Include="Mappers\"/>
         <Folder Include="Models\NewFolder\"/>
+        <Folder Include="Services\"/>
         <Folder Include="Utilities\"/>
     </ItemGroup>
 

@@ -27,7 +27,7 @@ public class GlobalExceptionHandler : IExceptionHandler
 
         switch (exception)
         {
-            case ApiException apiException:
+            case ApiExceptionModel apiException:
                 statusCode = apiException.StatusCode;
                 errorCode = apiException.ErrorCode;
                 message = apiException.Message;

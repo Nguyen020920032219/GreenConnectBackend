@@ -1,8 +1,8 @@
 ﻿namespace GreenConnectPlatform.Bussiness.Models.Exceptions;
 
-public class ApiException : Exception
+public class ApiExceptionModel : Exception
 {
-    public ApiException(int statusCode, string errorCode, string message) : base(message)
+    public ApiExceptionModel(int statusCode, string errorCode, string message) : base(message)
     {
         StatusCode = statusCode;
         ErrorCode = errorCode;

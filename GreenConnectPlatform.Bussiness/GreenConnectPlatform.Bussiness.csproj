@@ -7,14 +7,17 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Folder Include="Mappers\"/>
-        <Folder Include="Models\NewFolder\"/>
-        <Folder Include="Services\"/>
         <Folder Include="Utilities\"/>
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\GreenConnectPlatform.Data\GreenConnectPlatform.Data.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1"/>
+        <PackageReference Include="FirebaseAdmin" Version="3.4.0"/>
+        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.0.1"/>
     </ItemGroup>
 
 </Project>

@@ -1,6 +1,4 @@
 using GreenConnectPlatform.Api.Configurations;
-using GreenConnectPlatform.Data.Enums;
-using Npgsql;
 
 namespace GreenConnectPlatform.Api;
 
@@ -14,6 +12,8 @@ public class Program
         // Add services to the container.
         builder.Services.ConfigureAuthentication(builder.Configuration);
 
+        builder.Services.ConfigureFirebase(builder.Environment);
+
         builder.Services.ConfigureSwagger();
 
         builder.Services.AddAuthorization();
@@ -21,14 +21,7 @@ public class Program
         await builder.Services.AddPostgresAsync(builder.Configuration, "DefaultConnection",
             builder.Environment.IsDevelopment());
 
-        NpgsqlConnection.GlobalTypeMapper.MapEnum<UserStatus>("user_status");
-        NpgsqlConnection.GlobalTypeMapper.MapEnum<PostStatus>("post_status");
-        NpgsqlConnection.GlobalTypeMapper.MapEnum<PostDetailStatus>("post_detail_status");
-        NpgsqlConnection.GlobalTypeMapper.MapEnum<OfferStatus>("offer_status");
-        NpgsqlConnection.GlobalTypeMapper.MapEnum<TransactionStatus>("transaction_status");
-        NpgsqlConnection.GlobalTypeMapper.MapEnum<ComplaintStatus>("complaint_status");
-        NpgsqlConnection.GlobalTypeMapper.MapEnum<ProposalStatus>("proposal_status");
-        NpgsqlConnection.GlobalTypeMapper.MapEnum<VerificationStatus>("verification_status");
+        DatabaseConfiguration.MapPostgresEnums();
 
         builder.Services.ConfigureServices();
 
@@ -43,6 +36,11 @@ public class Program
         builder.Services.AddOpenApi();
 
         var app = builder.Build();
+
+        using (var scope = app.Services.CreateScope())
+        {
+            await DataSeeder.SeedRolesAsync(scope.ServiceProvider);
+        }
 
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment()) app.MapOpenApi();

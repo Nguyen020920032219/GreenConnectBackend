@@ -1,5 +1,7 @@
 ﻿using System.Text;
 using System.Text.Json;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 using GreenConnectPlatform.Data.Configurations;
 using GreenConnectPlatform.Data.Entities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -76,5 +78,24 @@ public static class AuthConfiguration
                     }
                 };
             });
+    }
+
+    public static void ConfigureFirebase(this IServiceCollection services, IWebHostEnvironment environment)
+    {
+        var firebasePath = Path.Combine(environment.ContentRootPath, "Configs", "firebase-service-account.json");
+
+        if (!File.Exists(firebasePath))
+            throw new FileNotFoundException("Firebase config file not found.", firebasePath);
+
+        if (FirebaseApp.DefaultInstance == null)
+        {
+            var credential = GoogleCredential.FromFile(firebasePath);
+            FirebaseApp.Create(new AppOptions
+            {
+                Credential = credential
+            });
+        }
+
+        Console.WriteLine($"Firebase App '{FirebaseApp.DefaultInstance?.Name}' initialized.");
     }
 }

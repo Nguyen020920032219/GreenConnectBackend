@@ -39,7 +39,7 @@ namespace GreenConnectPlatform.Data.Migrations
 
                     b.HasIndex("ScrapPostDetailsScrapPostId", "ScrapPostDetailsScrapCategoryId");
 
-                    b.ToTable("CollectionOfferScrapPostDetail");
+                    b.ToTable("CollectionOfferScrapPostDetail", (string)null);
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.ChatParticipant", b =>
@@ -60,7 +60,7 @@ namespace GreenConnectPlatform.Data.Migrations
 
                     b.HasIndex("ChatRoomId");
 
-                    b.ToTable("ChatParticipants");
+                    b.ToTable("ChatParticipants", (string)null);
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.ChatRoom", b =>
@@ -82,7 +82,7 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.HasIndex(new[] { "TransactionId" }, "ChatRooms_TransactionId_key")
                         .IsUnique();
 
-                    b.ToTable("ChatRooms");
+                    b.ToTable("ChatRooms", (string)null);
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.CollectionOffer", b =>
@@ -116,7 +116,7 @@ namespace GreenConnectPlatform.Data.Migrations
 
                     b.HasIndex("ScrapPostId");
 
-                    b.ToTable("CollectionOffers");
+                    b.ToTable("CollectionOffers", (string)null);
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.CollectorVerificationInfo", b =>
@@ -151,7 +151,7 @@ namespace GreenConnectPlatform.Data.Migrations
 
                     b.HasIndex("ReviewerId");
 
-                    b.ToTable("CollectorVerificationInfos");
+                    b.ToTable("CollectorVerificationInfos", (string)null);
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.Complaint", b =>
@@ -193,7 +193,7 @@ namespace GreenConnectPlatform.Data.Migrations
 
                     b.HasIndex("TransactionId");
 
-                    b.ToTable("Complaints");
+                    b.ToTable("Complaints", (string)null);
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.Feedback", b =>
@@ -230,7 +230,7 @@ namespace GreenConnectPlatform.Data.Migrations
 
                     b.HasIndex("TransactionId");
 
-                    b.ToTable("Feedbacks");
+                    b.ToTable("Feedbacks", (string)null);
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.Message", b =>
@@ -264,7 +264,7 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.HasIndex(new[] { "ChatRoomId", "Timestamp" }, "IX_Messages_ChatRoomId_Timestamp")
                         .IsDescending(false, true);
 
-                    b.ToTable("Messages");
+                    b.ToTable("Messages", (string)null);
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.Notification", b =>
@@ -302,7 +302,7 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.HasIndex(new[] { "RecipientId", "CreatedAt" }, "IX_Notifications_RecipientId_CreatedAt")
                         .IsDescending(false, true);
 
-                    b.ToTable("Notifications");
+                    b.ToTable("Notifications", (string)null);
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.Profile", b =>
@@ -345,7 +345,7 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.HasIndex(new[] { "UserId" }, "Profiles_UserId_key")
                         .IsUnique();
 
-                    b.ToTable("Profiles");
+                    b.ToTable("Profiles", (string)null);
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.RewardItem", b =>
@@ -370,7 +370,7 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.HasKey("RewardItemId")
                         .HasName("RewardItems_pkey");
 
-                    b.ToTable("RewardItems");
+                    b.ToTable("RewardItems", (string)null);
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.ScheduleProposal", b =>
@@ -406,7 +406,7 @@ namespace GreenConnectPlatform.Data.Migrations
 
                     b.HasIndex(new[] { "TransactionId" }, "IX_ScheduleProposals_TransactionId");
 
-                    b.ToTable("ScheduleProposals");
+                    b.ToTable("ScheduleProposals", (string)null);
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.ScrapCategory", b =>
@@ -428,7 +428,7 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.HasKey("ScrapCategoryId")
                         .HasName("ScrapCategories_pkey");
 
-                    b.ToTable("ScrapCategories");
+                    b.ToTable("ScrapCategories", (string)null);
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.ScrapPost", b =>
@@ -482,7 +482,7 @@ namespace GreenConnectPlatform.Data.Migrations
 
                     b.HasIndex(new[] { "Status", "HouseholdId" }, "IX_ScrapPosts_Status_HouseholdId");
 
-                    b.ToTable("ScrapPosts");
+                    b.ToTable("ScrapPosts", (string)null);
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.ScrapPostDetail", b =>
@@ -509,7 +509,7 @@ namespace GreenConnectPlatform.Data.Migrations
 
                     b.HasIndex("ScrapCategoryId");
 
-                    b.ToTable("ScrapPostDetails");
+                    b.ToTable("ScrapPostDetails", (string)null);
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.Transaction", b =>
@@ -560,7 +560,7 @@ namespace GreenConnectPlatform.Data.Migrations
 
                     b.HasIndex(new[] { "Status", "ScrapCollectorId" }, "IX_Transactions_Status_ScrapCollectorId");
 
-                    b.ToTable("Transactions");
+                    b.ToTable("Transactions", (string)null);
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.TransactionDetail", b =>
@@ -583,7 +583,7 @@ namespace GreenConnectPlatform.Data.Migrations
 
                     b.HasIndex("ScrapCategoryId");
 
-                    b.ToTable("TransactionDetails");
+                    b.ToTable("TransactionDetails", (string)null);
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.User", b =>
@@ -687,7 +687,7 @@ namespace GreenConnectPlatform.Data.Migrations
 
                     b.HasIndex("RewardItemId");
 
-                    b.ToTable("UserRewardRedemptions");
+                    b.ToTable("UserRewardRedemptions", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>

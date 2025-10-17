@@ -5,7 +5,7 @@ namespace GreenConnectPlatform.Data.Entities;
 
 public class User : IdentityUser<Guid>
 {
-    public Guid Id { get; set; }
+    public override Guid Id { get; set; }
 
     public string? FullName { get; set; }
 
@@ -15,7 +15,7 @@ public class User : IdentityUser<Guid>
 
     public DateTime? UpdatedAt { get; set; }
 
-    public string? PhoneNumber { get; set; }
+    public override string? PhoneNumber { get; set; }
 
     public string? OtpCode { get; set; }
 

@@ -53,7 +53,7 @@ public partial class GreenConnectDbContext : IdentityDbContext<User, IdentityRol
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        
+
         modelBuilder.HasPostgresExtension("postgis");
 
         modelBuilder.Entity<ChatParticipant>(entity =>

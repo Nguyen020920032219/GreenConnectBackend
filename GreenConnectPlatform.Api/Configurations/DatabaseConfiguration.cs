@@ -1,5 +1,6 @@
 ﻿using System.Configuration;
 using GreenConnectPlatform.Data.Configurations;
+using GreenConnectPlatform.Data.Enums;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using ConfigurationManager = Microsoft.Extensions.Configuration.ConfigurationManager;
@@ -85,5 +86,20 @@ public static class DatabaseConfiguration
             Console.WriteLine($"[Database] Warning: No connection string found for '{connectionName}'.");
 
         return props;
+    }
+
+    [Obsolete("Obsolete")]
+    public static void MapPostgresEnums()
+    {
+        NpgsqlConnection.GlobalTypeMapper.MapEnum<UserStatus>("user_status");
+        NpgsqlConnection.GlobalTypeMapper.MapEnum<PostStatus>("post_status");
+        NpgsqlConnection.GlobalTypeMapper.MapEnum<PostDetailStatus>("post_detail_status");
+        NpgsqlConnection.GlobalTypeMapper.MapEnum<OfferStatus>("offer_status");
+        NpgsqlConnection.GlobalTypeMapper.MapEnum<TransactionStatus>("transaction_status");
+        NpgsqlConnection.GlobalTypeMapper.MapEnum<ComplaintStatus>("complaint_status");
+        NpgsqlConnection.GlobalTypeMapper.MapEnum<ProposalStatus>("proposal_status");
+        NpgsqlConnection.GlobalTypeMapper.MapEnum<VerificationStatus>("verification_status");
+
+        Console.WriteLine("[Database] PostgreSQL enums mapped successfully.");
     }
 }

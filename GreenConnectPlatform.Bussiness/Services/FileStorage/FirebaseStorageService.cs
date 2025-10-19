@@ -1,42 +1,62 @@
-using Firebase.Storage;
+using Google;
+using Google.Cloud.Storage.V1;
 using Microsoft.Extensions.Configuration;
 
 namespace GreenConnectPlatform.Bussiness.Services.FileStorage;
 
 public class FirebaseStorageService : IFileStorageService
 {
-    private readonly string? _bucket;
+    private readonly string _bucketName;
+    private readonly UrlSigner _urlSigner;
 
     public FirebaseStorageService(IConfiguration configuration)
     {
-        _bucket = configuration["FirebaseStorage:Bucket"];
-        if (string.IsNullOrEmpty(_bucket))
+        var serviceAccountPath = Path.Combine(AppContext.BaseDirectory, "Configs", "firebase-service-account.json");
+        _urlSigner = UrlSigner.FromCredentialFile(serviceAccountPath);
+
+        _bucketName = configuration["firebase_storage:bucket"]!;
+        if (string.IsNullOrEmpty(_bucketName))
+            throw new InvalidOperationException("Không tìm thấy 'firebase_storage:bucket' trong cấu hình.");
+    }
+
+    public Task<string> GenerateUploadSignedUrlAsync(string objectName, string contentType)
+    {
+        var requestTemplate = UrlSigner.RequestTemplate
+            .FromBucket(_bucketName)
+            .WithObjectName(objectName)
+            .WithHttpMethod(HttpMethod.Put);
+
+        var options = UrlSigner.Options.FromDuration(TimeSpan.FromMinutes(15))
+            .WithSigningVersion(SigningVersion.V4);
+
+        var signedUrl = _urlSigner.Sign(requestTemplate, options);
+        return Task.FromResult(signedUrl);
+    }
+
+    public Task<string> GetReadSignedUrlAsync(string objectName)
+    {
+        if (string.IsNullOrEmpty(objectName)) return Task.FromResult("URL_TO_DEFAULT_IMAGE");
+
+        var signedUrl = _urlSigner.Sign(
+            _bucketName,
+            objectName,
+            TimeSpan.FromHours(1),
+            HttpMethod.Get,
+            SigningVersion.V4
+        );
+        return Task.FromResult(signedUrl);
+    }
+
+    public async Task DeleteFileAsync(string objectName)
+    {
+        var storageClient = StorageClient.Create();
+        try
         {
-            throw new InvalidOperationException("Firebase Storage Bucket is not configured.");
+            await storageClient.DeleteObjectAsync(_bucketName, objectName);
         }
-    }
-
-    public async Task<string> UploadFileAsync(Stream fileStream, string fileName, string contentType,
-        CancellationToken cancellationToken = default)
-    {
-        var storage = new FirebaseStorage(_bucket);
-
-        var task = storage
-            .Child("images")
-            .Child(fileName)
-            .PutAsync(fileStream, cancellationToken, contentType);
-
-        var downloadUrl = await task;
-        return downloadUrl;
-    }
-
-    public async Task DeleteFileAsync(string fileName)
-    {
-        var storage = new FirebaseStorage(_bucket);
-
-        await storage
-            .Child("images")
-            .Child(fileName)
-            .DeleteAsync();
+        catch (GoogleApiException ex) when (ex.Error.Code == 404)
+        {
+            Console.WriteLine($"File to delete not found: {objectName}");
+        }
     }
 }

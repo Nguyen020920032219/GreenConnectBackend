@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace GreenConnectPlatform.Api.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/auth")]
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
@@ -22,28 +22,6 @@ public class AuthController : ControllerBase
         _roleManager = roleManager;
     }
 
-    [HttpGet("test-role/{email}")]
-    public async Task<IActionResult> TestRole(string email)
-    {
-        var user = await _userManager.FindByEmailAsync(email);
-        if (user == null) return NotFound($"Không tìm thấy user với email: {email}");
-
-        var rolesFromUserManager = await _userManager.GetRolesAsync(user);
-
-        var adminRoleExists = await _roleManager.RoleExistsAsync("Admin");
-
-        return Ok(new
-        {
-            Message = "Kết quả kiểm tra vai trò",
-            UserFound = user.UserName,
-            DoesAdminRoleExistInDb = adminRoleExists,
-            RolesFoundByUserManager = rolesFromUserManager
-        });
-    }
-
-    /// <summary>
-    ///     Đăng nhập hoặc tự động đăng ký cho người dùng (Household/Collector) bằng Firebase ID Token.
-    /// </summary>
     [HttpPost("login/firebase")]
     [ProducesResponseType(typeof(AuthResultModel), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(AuthResultModel), StatusCodes.Status400BadRequest)]
@@ -56,9 +34,6 @@ public class AuthController : ControllerBase
         return BadRequest(result);
     }
 
-    /// <summary>
-    ///     Đăng nhập cho tài khoản Quản trị viên (Admin).
-    /// </summary>
     [HttpPost("admin/login")]
     [ProducesResponseType(typeof(AuthResultModel), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(AuthResultModel), StatusCodes.Status400BadRequest)]

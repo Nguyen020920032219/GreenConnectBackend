@@ -9,6 +9,12 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
+        builder.Configuration.AddJsonFile(
+            Path.Combine(builder.Environment.ContentRootPath, "Configs", "firebase-service-account.json"),
+            true,
+            true
+        );
+
         // Add services to the container.
         builder.Services.ConfigureAuthentication(builder.Configuration);
 

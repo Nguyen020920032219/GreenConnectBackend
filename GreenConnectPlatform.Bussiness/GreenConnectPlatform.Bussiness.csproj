@@ -7,6 +7,8 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <Folder Include="Mappers\"/>
+        <Folder Include="Services\"/>
         <Folder Include="Utilities\"/>
     </ItemGroup>
 
@@ -17,7 +19,8 @@
     <ItemGroup>
         <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1"/>
         <PackageReference Include="FirebaseAdmin" Version="3.4.0"/>
+        <PackageReference Include="Google.Cloud.Storage.V1" Version="4.13.0"/>
         <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.0.1"/>
+        <PackageReference Include="FirebaseStorage.net" Version="1.0.3"/>
     </ItemGroup>
-
 </Project>

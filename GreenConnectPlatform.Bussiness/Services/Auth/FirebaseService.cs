@@ -16,7 +16,7 @@ public class FirebaseService
         if (FirebaseApp.DefaultInstance == null)
             FirebaseApp.Create(new AppOptions
             {
-                Credential = GoogleCredential.FromFile("firebase-service-account.json")
+                Credential = GoogleCredential.FromFile("Configs:firebase-service-account.json")
             });
     }
 

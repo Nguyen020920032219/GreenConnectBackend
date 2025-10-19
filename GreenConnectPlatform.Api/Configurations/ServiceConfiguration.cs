@@ -1,5 +1,6 @@
-﻿using GreenConnectPlatform.Bussiness.Mappers;
+using GreenConnectPlatform.Bussiness.Mappers;
 using GreenConnectPlatform.Bussiness.Services.Auth;
+using GreenConnectPlatform.Bussiness.Services.FileStorage;
 
 namespace GreenConnectPlatform.Api.Configurations;
 
@@ -11,6 +12,7 @@ public static class ServiceConfiguration
         services.AddAutoMapper(typeof(MappingProfile));
         services.AddScoped<IAuthService, AuthService>();
         services.AddSingleton<FirebaseService>();
+        services.AddSingleton<IFileStorageService, FirebaseStorageService>();
     }
 
     public static void ConfigureRepositories(this IServiceCollection services)

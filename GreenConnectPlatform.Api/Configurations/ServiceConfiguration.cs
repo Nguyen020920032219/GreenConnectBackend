@@ -4,6 +4,8 @@ using GreenConnectPlatform.Data.Repositories.ScrapPosts;
 using GreenConnectPlatform.Bussiness.Mappers;
 using GreenConnectPlatform.Bussiness.Services.Auth;
 using GreenConnectPlatform.Bussiness.Services.FileStorage;
+using GreenConnectPlatform.Data.Repositories.ScrapCategories;
+using GreenConnectPlatform.Data.Repositories.ScrapPosts.ScrapPostDetails;
 
 namespace GreenConnectPlatform.Api.Configurations;
 
@@ -23,5 +25,7 @@ public static class ServiceConfiguration
     {
         // Repositories
         services.AddScoped<IScrapPostRepository, ScrapPostRepository>();
+        services.AddScoped<IScrapPostDetailRepository, ScrapPostDetailRepository>();
+        services.AddScoped<IScrapCategoryRepository, ScrapCategoryRepository>();
     }
 }

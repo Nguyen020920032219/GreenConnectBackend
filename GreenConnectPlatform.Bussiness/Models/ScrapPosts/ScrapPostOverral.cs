@@ -1,9 +1,8 @@
-﻿using GreenConnectPlatform.Bussiness.Models.ScrapPosts.ScrapPostDetails;
-using GreenConnectPlatform.Data.Enums;
+﻿using GreenConnectPlatform.Data.Enums;
 
 namespace GreenConnectPlatform.Bussiness.Models.ScrapPosts;
 
-public class ScrapPostModel
+public class ScrapPostOverral
 {
     public Guid ScrapPostId { get; set; }
     public string Title { get; set; } = null!;
@@ -13,5 +12,4 @@ public class ScrapPostModel
     public PostStatus Status { get; set; }
     public DateTime CreatedAt { get; set; }
     public Guid HouseholdId { get; set; }
-    public List<ScrapPostDetailModel> ScrapPostDetails { get; set; } = new();
 }

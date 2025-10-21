@@ -1,5 +1,7 @@
-﻿using GreenConnectPlatform.Bussiness.Models.ScrapPosts;
+﻿using System.Security.Claims;
+using GreenConnectPlatform.Bussiness.Models.ScrapPosts;
 using GreenConnectPlatform.Bussiness.Services.ScrapPosts;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GreenConnectPlatform.Api.Controllers;
@@ -27,11 +29,14 @@ public class ScrapPostController(IScrapPostService scrapPostService) : Controlle
             return NotFound(e.Message);
         }
     }
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     public async Task<IActionResult> CreateScrapPost([FromBody] ScrapPostRequest scrapPostRequest)
     {
         try
         {
+            var householdId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            scrapPostRequest.HouseholdId = Guid.Parse(householdId);
             var post = await scrapPostService.CreateScrapPost(scrapPostRequest);
             return CreatedAtAction(nameof(GetPost), new { scrapPostId = post.ScrapPostId }, post);
         }

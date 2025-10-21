@@ -48,20 +48,11 @@ public class ScrapPostService : IScrapPostService
 
     public async Task<ScrapPostModel> CreateScrapPost(ScrapPostRequest scrapPostRequest)
     {
-        scrapPostRequest.ScrapPostId = Guid.NewGuid();
         var scrapPost = _mapper.Map<ScrapPost>(scrapPostRequest);
-        scrapPost.ScrapPostDetails = new List<ScrapPostDetail>();
+        scrapPost.ScrapPostId = Guid.NewGuid();
+        scrapPost.CreatedAt = DateTime.UtcNow;
         var result = await _scrapPostRepository.Add(scrapPost);
-        if(result == null) throw new Exception("Scrap post not created");
-        foreach (var details in scrapPostRequest.ScrapPostDetails)
-        {
-            var scrapPostDetails = _mapper.Map<ScrapPostDetail>(details);
-            var category = await _scrapCategoryRepository.DbSet().FirstOrDefaultAsync(c => c.ScrapCategoryId == scrapPostDetails.ScrapCategoryId);
-            if (category == null) throw new Exception("Category is not exist!");
-            scrapPostDetails.ScrapPostId = scrapPost.ScrapPostId;
-            var newScrapPostDetails = await _scrapPostDetailRepository.Add(scrapPostDetails);
-            if (newScrapPostDetails == null) throw new Exception("Scrap post details not created");
-        }
+        if (result == null) throw new Exception("Scrap post not created");
         return _mapper.Map<ScrapPostModel>(result);
     }
 }

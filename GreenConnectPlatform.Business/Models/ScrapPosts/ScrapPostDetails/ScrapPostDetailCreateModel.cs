@@ -4,7 +4,7 @@ using GreenConnectPlatform.Data.Enums;
 
 namespace GreenConnectPlatform.Business.Models.ScrapPosts.ScrapPostDetails;
 
-public class ScrapPostDetailRequest
+public class ScrapPostDetailCreateModel
 {
     [JsonIgnore] public Guid ScrapPostId { get; set; }
 

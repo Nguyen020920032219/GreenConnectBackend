@@ -6,14 +6,16 @@ namespace GreenConnectPlatform.Bussiness.Models.ScrapPosts.ScrapPostDetails;
 
 public class ScrapPostDetailRequest
 {
-    [JsonIgnore]
-    public Guid ScrapPostId { get; set; }
+    [JsonIgnore] public Guid ScrapPostId { get; set; }
+
     [Required(ErrorMessage = "ScrapCategoryId is required.")]
     public int ScrapCategoryId { get; set; }
+
     [Required(ErrorMessage = "AmountDescription is required.")]
     public string? AmountDescription { get; set; }
+
     [Required(ErrorMessage = "ImageUrl is required.")]
     public string? ImageUrl { get; set; }
-    [JsonIgnore]
-    public PostDetailStatus Status { get; set; } = PostDetailStatus.Available;
+
+    [JsonIgnore] public PostDetailStatus Status { get; set; } = PostDetailStatus.Available;
 }

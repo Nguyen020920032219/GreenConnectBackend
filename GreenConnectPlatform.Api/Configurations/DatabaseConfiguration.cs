@@ -9,17 +9,24 @@ namespace GreenConnectPlatform.Api.Configurations;
 
 public static class DatabaseConfiguration
 {
-    public static async Task AddPostgresAsync(this IServiceCollection services, ConfigurationManager configuration,
-        string connectionName, bool isDevelopment = false)
+    public static async Task AddPostgresAsync(this IServiceCollection services,
+        ConfigurationManager configuration,
+        string connectionName,
+        bool isDevelopment = false)
     {
         var props = GetDbConnectionProps(configuration, connectionName);
         if (string.IsNullOrWhiteSpace(props.DbHost))
             throw new ConfigurationErrorsException("Missing DbHost for database configuration");
 
-        services.AddEntityFrameworkNpgsql().AddDbContext<GreenConnectDbContext>(options =>
+        services.AddDbContext<GreenConnectDbContext>(options =>
         {
-            options.UseNpgsql(props.PsqlConnectionString, npgsqlOptions => npgsqlOptions.UseNetTopologySuite());
-            if (isDevelopment) options.EnableSensitiveDataLogging();
+            options.UseNpgsql(
+                props.PsqlConnectionString,
+                npgsqlOptions => npgsqlOptions.UseNetTopologySuite()
+            );
+
+            if (isDevelopment)
+                options.EnableSensitiveDataLogging();
         });
 
         await ApplyEfMigrationsAsync(services, props);
@@ -79,11 +86,14 @@ public static class DatabaseConfiguration
 
     private static DbConnectionProps GetDbConnectionProps(ConfigurationManager configuration, string connectionName)
     {
+        var section = configuration.GetSection("DatabaseConnection").GetSection(connectionName);
         var props = new DbConnectionProps();
-        configuration.GetSection("DatabaseConnection").GetSection(connectionName).Bind(props);
+        section.Bind(props);
 
-        if (string.IsNullOrWhiteSpace(props.PsqlConnectionString))
-            Console.WriteLine($"[Database] Warning: No connection string found for '{connectionName}'.");
+        props.DbHost = configuration[$"DatabaseConnection:{connectionName}:DbHost"] ?? props.DbHost;
+        props.DbPort = int.TryParse(configuration[$"DatabaseConnection:{connectionName}:DbPort"], out var port)
+            ? port
+            : props.DbPort;
 
         return props;
     }

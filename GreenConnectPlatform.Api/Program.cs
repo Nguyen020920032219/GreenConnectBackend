@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
+using DotNetEnv;
 using GreenConnectPlatform.Api.Configurations;
-using GreenConnectPlatform.Bussiness.Mappers;
 
 namespace GreenConnectPlatform.Api;
 
@@ -9,6 +9,8 @@ public class Program
     [Obsolete("Obsolete")]
     public static async Task Main(string[] args)
     {
+        Env.Load();
+
         var builder = WebApplication.CreateBuilder(args);
 
         builder.Configuration.AddJsonFile(

@@ -1,5 +1,4 @@
 ﻿using GreenConnectPlatform.Bussiness.Models.ScrapPosts;
-using GreenConnectPlatform.Data.Entities;
 
 namespace GreenConnectPlatform.Bussiness.Services.ScrapPosts;
 

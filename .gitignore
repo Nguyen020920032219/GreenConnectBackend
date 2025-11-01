@@ -7,6 +7,10 @@
 # Firebase SDK
 GreenConnectPlatform.Api/Configs/firebase-service-account.json
 
+# docker
+.env
+docker-compose.override.yml
+
 # JetBrains IDE (Rider, IntelliJ, WebStorm, etc.)
 .idea/
 !.idea/codeStyles/

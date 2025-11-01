@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GreenConnectPlatform.Api", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GreenConnectPlatform.Data", "GreenConnectPlatform.Data\GreenConnectPlatform.Data.csproj", "{A9AFDC4C-9B7D-4760-8783-AA4243C3A0C1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GreenConnectPlatform.Bussiness", "GreenConnectPlatform.Bussiness\GreenConnectPlatform.Bussiness.csproj", "{F591E0CD-3025-4B97-8223-D121B49BAC09}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GreenConnectPlatform.Business", "GreenConnectPlatform.Business\GreenConnectPlatform.Business.csproj", "{F591E0CD-3025-4B97-8223-D121B49BAC09}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

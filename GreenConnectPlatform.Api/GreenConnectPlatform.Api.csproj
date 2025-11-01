@@ -8,10 +8,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="FirebaseAdmin" Version="3.4.0"/>
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.9"/>
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.9"/>
-        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.9"/>
+        <PackageReference Include="DotNetEnv" Version="3.1.1" />
+        <PackageReference Include="FirebaseAdmin" Version="3.4.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.9" />
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.9" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.9" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.9">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -20,17 +21,21 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.9"/>
-        <PackageReference Include="Evolve" Version="3.2.0"/>
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.6"/>
+        <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.9" />
+        <PackageReference Include="Evolve" Version="3.2.0" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.6" />
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Resources\"/>
+        <Folder Include="Resources\" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\GreenConnectPlatform.Bussiness\GreenConnectPlatform.Bussiness.csproj"/>
+        <ProjectReference Include="..\GreenConnectPlatform.Business\GreenConnectPlatform.Business.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Dockerfile" />
     </ItemGroup>
 
 </Project>

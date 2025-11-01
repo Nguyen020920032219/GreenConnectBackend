@@ -1,10 +1,9 @@
-using GreenConnectPlatform.Bussiness.Services.ScrapPosts;
-using GreenConnectPlatform.Data.Repositories.ScrapPosts;
-
 using GreenConnectPlatform.Bussiness.Mappers;
 using GreenConnectPlatform.Bussiness.Services.Auth;
 using GreenConnectPlatform.Bussiness.Services.FileStorage;
+using GreenConnectPlatform.Bussiness.Services.ScrapPosts;
 using GreenConnectPlatform.Data.Repositories.ScrapCategories;
+using GreenConnectPlatform.Data.Repositories.ScrapPosts;
 using GreenConnectPlatform.Data.Repositories.ScrapPosts.ScrapPostDetails;
 
 namespace GreenConnectPlatform.Api.Configurations;

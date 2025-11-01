@@ -11,7 +11,7 @@ public class MappingProfile : Profile
     {
         CreateMap<ScrapPost, ScrapPostModel>();
         CreateMap<ScrapPostRequest, ScrapPost>();
-        CreateMap<ScrapPost,ScrapPostOverral>();
+        CreateMap<ScrapPost, ScrapPostOverral>();
         CreateMap<ScrapPostDetailRequest, ScrapPostDetail>();
         CreateMap<ScrapPostDetail, ScrapPostDetailModel>();
     }

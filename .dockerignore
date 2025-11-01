@@ -1,0 +1,25 @@
+# Bỏ thư mục build
+**/bin/
+**/obj/
+
+# Bỏ thông tin môi trường
+.env
+*.user
+*.suo
+
+# Bỏ file git
+.git
+.gitignore
+
+# IDE config
+.idea/
+.vscode/
+
+# Logs và hệ điều hành
+*.log
+*.DS_Store
+Thumbs.db
+
+# Dockerfile khác nếu có
+Dockerfile.*
+docker-compose.override.yml

@@ -16,6 +16,7 @@ public class ScrapPostController(IScrapPostService scrapPostService) : Controlle
         var posts = await scrapPostService.GetPosts(pageNumber, pageSize);
         return Ok(posts);
     }
+
     [HttpGet("{scrapPostId:guid}")]
     public async Task<IActionResult> GetPost([FromRoute] Guid scrapPostId)
     {
@@ -29,6 +30,7 @@ public class ScrapPostController(IScrapPostService scrapPostService) : Controlle
             return NotFound(e.Message);
         }
     }
+
     [Authorize(Roles = "Admin")]
     [HttpPost]
     public async Task<IActionResult> CreateScrapPost([FromBody] ScrapPostRequest scrapPostRequest)
@@ -36,7 +38,7 @@ public class ScrapPostController(IScrapPostService scrapPostService) : Controlle
         try
         {
             var householdId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            scrapPostRequest.HouseholdId = Guid.Parse(householdId);
+            if (householdId != null) scrapPostRequest.HouseholdId = Guid.Parse(householdId);
             var post = await scrapPostService.CreateScrapPost(scrapPostRequest);
             return CreatedAtAction(nameof(GetPost), new { scrapPostId = post.ScrapPostId }, post);
         }

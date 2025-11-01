@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using GreenConnectPlatform.Bussiness.Models.ScrapPosts;
-using GreenConnectPlatform.Bussiness.Models.ScrapPosts.ScrapPostDetails;
 using GreenConnectPlatform.Data.Entities;
 using GreenConnectPlatform.Data.Enums;
 using GreenConnectPlatform.Data.Repositories.ScrapCategories;
@@ -12,10 +11,11 @@ namespace GreenConnectPlatform.Bussiness.Services.ScrapPosts;
 
 public class ScrapPostService : IScrapPostService
 {
-    private readonly IScrapPostRepository _scrapPostRepository;
-    private readonly IScrapPostDetailRepository _scrapPostDetailRepository;
-    private readonly IScrapCategoryRepository _scrapCategoryRepository;
     private readonly IMapper _mapper;
+    private readonly IScrapCategoryRepository _scrapCategoryRepository;
+    private readonly IScrapPostDetailRepository _scrapPostDetailRepository;
+    private readonly IScrapPostRepository _scrapPostRepository;
+
     public ScrapPostService(IScrapPostRepository scrapPostRepository,
         IScrapPostDetailRepository scrapPostDetailRepository,
         IScrapCategoryRepository scrapCategoryRepository,
@@ -26,6 +26,7 @@ public class ScrapPostService : IScrapPostService
         _scrapCategoryRepository = scrapCategoryRepository;
         _mapper = mapper;
     }
+
     public async Task<List<ScrapPostOverral>> GetPosts(int pageNumber, int pageSize)
     {
         var scrapPosts = await _scrapPostRepository.DbSet()
@@ -40,7 +41,8 @@ public class ScrapPostService : IScrapPostService
 
     public async Task<ScrapPostModel> GetPost(Guid scrapPostId)
     {
-        var scrapPost = await _scrapPostRepository.DbSet().Include(s => s.ScrapPostDetails).FirstOrDefaultAsync(s => s.ScrapPostId == scrapPostId);
+        var scrapPost = await _scrapPostRepository.DbSet().Include(s => s.ScrapPostDetails)
+            .FirstOrDefaultAsync(s => s.ScrapPostId == scrapPostId);
         if (scrapPost == null)
             throw new KeyNotFoundException("Scrap post not found");
         return _mapper.Map<ScrapPostModel>(scrapPost);

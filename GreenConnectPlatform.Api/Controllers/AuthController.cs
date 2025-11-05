@@ -1,5 +1,5 @@
-using GreenConnectPlatform.Bussiness.Models.Auth;
-using GreenConnectPlatform.Bussiness.Services.Auth;
+using GreenConnectPlatform.Business.Models.Auth;
+using GreenConnectPlatform.Business.Services.Auth;
 using GreenConnectPlatform.Data.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;

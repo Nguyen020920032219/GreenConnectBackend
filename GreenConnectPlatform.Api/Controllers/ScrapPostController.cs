@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
-using GreenConnectPlatform.Bussiness.Models.ScrapPosts;
-using GreenConnectPlatform.Bussiness.Services.ScrapPosts;
+using GreenConnectPlatform.Business.Models.ScrapPosts;
+using GreenConnectPlatform.Business.Services.ScrapPosts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

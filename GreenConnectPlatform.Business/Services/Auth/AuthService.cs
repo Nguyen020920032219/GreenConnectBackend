@@ -3,15 +3,15 @@ using System.Security.Claims;
 using System.Text;
 using AutoMapper;
 using FirebaseAdmin.Auth;
-using GreenConnectPlatform.Bussiness.Models.Auth;
-using GreenConnectPlatform.Bussiness.Models.Users;
+using GreenConnectPlatform.Business.Models.Auth;
+using GreenConnectPlatform.Business.Models.Users;
 using GreenConnectPlatform.Data.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
-namespace GreenConnectPlatform.Bussiness.Services.Auth;
+namespace GreenConnectPlatform.Business.Services.Auth;
 
 public class AuthService : IAuthService
 {

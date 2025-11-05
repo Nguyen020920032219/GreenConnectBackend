@@ -1,6 +1,6 @@
-using GreenConnectPlatform.Bussiness.Models.Users;
+using GreenConnectPlatform.Business.Models.Users;
 
-namespace GreenConnectPlatform.Bussiness.Services.Auth;
+namespace GreenConnectPlatform.Business.Models.Auth;
 
 public class AuthResultModel
 {

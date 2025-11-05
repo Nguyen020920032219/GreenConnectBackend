@@ -1,4 +1,4 @@
-namespace GreenConnectPlatform.Bussiness.Services.FileStorage;
+namespace GreenConnectPlatform.Business.Services.FileStorage;
 
 public interface IFileStorageService
 {

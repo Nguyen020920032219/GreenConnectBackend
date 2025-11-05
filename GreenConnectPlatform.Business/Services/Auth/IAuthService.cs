@@ -1,6 +1,6 @@
-using GreenConnectPlatform.Bussiness.Models.Auth;
+using GreenConnectPlatform.Business.Models.Auth;
 
-namespace GreenConnectPlatform.Bussiness.Services.Auth;
+namespace GreenConnectPlatform.Business.Services.Auth;
 
 public interface IAuthService
 {

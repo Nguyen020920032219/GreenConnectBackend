@@ -1,7 +1,7 @@
-using GreenConnectPlatform.Bussiness.Mappers;
-using GreenConnectPlatform.Bussiness.Services.Auth;
-using GreenConnectPlatform.Bussiness.Services.FileStorage;
-using GreenConnectPlatform.Bussiness.Services.ScrapPosts;
+using GreenConnectPlatform.Business.Mappers;
+using GreenConnectPlatform.Business.Services.Auth;
+using GreenConnectPlatform.Business.Services.FileStorage;
+using GreenConnectPlatform.Business.Services.ScrapPosts;
 using GreenConnectPlatform.Data.Repositories.ScrapCategories;
 using GreenConnectPlatform.Data.Repositories.ScrapPosts;
 using GreenConnectPlatform.Data.Repositories.ScrapPosts.ScrapPostDetails;

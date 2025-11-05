@@ -1,6 +1,6 @@
 ﻿using GreenConnectPlatform.Data.Enums;
 
-namespace GreenConnectPlatform.Bussiness.Models.ScrapPosts.ScrapPostDetails;
+namespace GreenConnectPlatform.Business.Models.ScrapPosts.ScrapPostDetails;
 
 public class ScrapPostDetailUpdateModel
 {

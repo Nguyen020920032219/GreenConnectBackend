@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using GreenConnectPlatform.Business.Models.ScrapPosts;
-using GreenConnectPlatform.Bussiness.Models.ScrapPosts;
 using GreenConnectPlatform.Data.Entities;
 using GreenConnectPlatform.Data.Enums;
 using GreenConnectPlatform.Data.Repositories.Profiles;
@@ -10,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
 
-namespace GreenConnectPlatform.Bussiness.Services.ScrapPosts;
+namespace GreenConnectPlatform.Business.Services.ScrapPosts;
 
 public class ScrapPostService : IScrapPostService
 {

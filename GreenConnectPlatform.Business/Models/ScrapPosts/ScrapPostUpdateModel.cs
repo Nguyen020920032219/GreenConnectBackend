@@ -1,4 +1,4 @@
-﻿namespace GreenConnectPlatform.Bussiness.Models.ScrapPosts;
+﻿namespace GreenConnectPlatform.Business.Models.ScrapPosts;
 
 public class ScrapPostUpdateModel
 {

@@ -1,11 +1,9 @@
 using GreenConnectPlatform.Business.Models.ScrapPosts;
 using GreenConnectPlatform.Business.Models.ScrapPosts.ScrapPostDetails;
-using GreenConnectPlatform.Bussiness.Models.ScrapPosts;
-using GreenConnectPlatform.Bussiness.Models.ScrapPosts.ScrapPostDetails;
 using GreenConnectPlatform.Data.Entities;
 using Profile = AutoMapper.Profile;
 
-namespace GreenConnectPlatform.Bussiness.Mappers;
+namespace GreenConnectPlatform.Business.Mappers;
 
 public class MappingProfile : Profile
 {

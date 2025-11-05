@@ -1,10 +1,8 @@
 ﻿using System.Security.Claims;
 using GreenConnectPlatform.Business.Models.ScrapPosts;
 using GreenConnectPlatform.Business.Models.ScrapPosts.ScrapPostDetails;
-using GreenConnectPlatform.Bussiness.Models.ScrapPosts;
-using GreenConnectPlatform.Bussiness.Models.ScrapPosts.ScrapPostDetails;
-using GreenConnectPlatform.Bussiness.Services.ScrapPosts;
-// using GreenConnectPlatform.Bussiness.Services.ScrapPosts.ScrapPostDetails;
+using GreenConnectPlatform.Business.Services.ScrapPosts;
+using GreenConnectPlatform.Business.Services.ScrapPosts.ScrapPostDetails;
 using GreenConnectPlatform.Data.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,7 +12,7 @@ namespace GreenConnectPlatform.Api.Controllers;
 [Route("api/scrap-posts")]
 [ApiController]
 public class ScrapPostController(IScrapPostService scrapPostService
-    // , IScrapPostDetailService scrapPostDetailService
+    , IScrapPostDetailService scrapPostDetailService
     )
     : ControllerBase
 {
@@ -157,125 +155,125 @@ public class ScrapPostController(IScrapPostService scrapPostService
         }
     }
 
-    // [HttpGet("{scrapPostId:guid}/details")]
-    // [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status200OK)]
-    // [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status404NotFound)]
-    // public async Task<IActionResult> GetScrapPostDetailById([FromRoute] Guid scrapPostId,
-    //     [FromQuery] int scrapCategoryId)
-    // {
-    //     try
-    //     {
-    //         var detail = await scrapPostDetailService.GetScrapPostDetailById(scrapPostId, scrapCategoryId);
-    //         return Ok(detail);
-    //     }
-    //     catch (KeyNotFoundException e)
-    //     {
-    //         return NotFound(e.Message);
-    //     }
-    // }
+    [HttpGet("{scrapPostId:guid}/details")]
+    [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetScrapPostDetailById([FromRoute] Guid scrapPostId,
+        [FromQuery] int scrapCategoryId)
+    {
+        try
+        {
+            var detail = await scrapPostDetailService.GetScrapPostDetailById(scrapPostId, scrapCategoryId);
+            return Ok(detail);
+        }
+        catch (KeyNotFoundException e)
+        {
+            return NotFound(e.Message);
+        }
+    }
 
-    // [Authorize(Roles = "Household")]
-    // [HttpPost("{scrapPostId:guid}/details")]
-    // [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status201Created)]
-    // [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status404NotFound)]
-    // [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status401Unauthorized)]
-    // [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status400BadRequest)]
-    // [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status500InternalServerError)]
-    // public async Task<IActionResult> CreateScrapPostDetail([FromRoute] Guid scrapPostId,
-    //     [FromBody] ScrapPostDetailCreateModel scrapPostDetailCreateModel)
-    // {
-    //     try
-    //     {
-    //         var householdId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-    //         var detail = await scrapPostDetailService.CreateScrapPostDetail(Guid.Parse(householdId), scrapPostId,
-    //             scrapPostDetailCreateModel);
-    //         return CreatedAtAction(nameof(GetScrapPostDetailById),
-    //             new { scrapPostId, scrapCategoryId = detail.ScrapCategoryId }, detail);
-    //     }
-    //     catch (UnauthorizedAccessException e)
-    //     {
-    //         return Unauthorized(e.Message);
-    //     }
-    //     catch (InvalidOperationException e)
-    //     {
-    //         return BadRequest(e.Message);
-    //     }
-    //     catch (KeyNotFoundException e)
-    //     {
-    //         return NotFound(e.Message);
-    //     }
-    //     catch (Exception e)
-    //     {
-    //         return BadRequest(e.Message);
-    //     }
-    // }
+    [Authorize(Roles = "Household")]
+    [HttpPost("{scrapPostId:guid}/details")]
+    [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> CreateScrapPostDetail([FromRoute] Guid scrapPostId,
+        [FromBody] ScrapPostDetailCreateModel scrapPostDetailCreateModel)
+    {
+        try
+        {
+            var householdId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var detail = await scrapPostDetailService.CreateScrapPostDetail(Guid.Parse(householdId), scrapPostId,
+                scrapPostDetailCreateModel);
+            return CreatedAtAction(nameof(GetScrapPostDetailById),
+                new { scrapPostId, scrapCategoryId = detail.ScrapCategoryId }, detail);
+        }
+        catch (UnauthorizedAccessException e)
+        {
+            return Unauthorized(e.Message);
+        }
+        catch (InvalidOperationException e)
+        {
+            return BadRequest(e.Message);
+        }
+        catch (KeyNotFoundException e)
+        {
+            return NotFound(e.Message);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
 
-    // [Authorize(Roles = "Household")]
-    // [HttpPut("{scrapPostId:guid}/details")]
-    // [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status200OK)]
-    // [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status404NotFound)]
-    // [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status401Unauthorized)]
-    // [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status400BadRequest)]
-    // [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status500InternalServerError)]
-    // public async Task<IActionResult> UpdateScrapPostDetail([FromRoute] Guid scrapPostId,
-    //     [FromQuery] int scrapCategoryId,
-    //     [FromBody] ScrapPostDetailUpdateModel scrapPostDetailUpdateModel)
-    // {
-    //     try
-    //     {
-    //         var householdId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-    //         var detail = await scrapPostDetailService.UpdateScrapPostDetail(Guid.Parse(householdId), scrapPostId,
-    //             scrapCategoryId, scrapPostDetailUpdateModel);
-    //         return Ok(detail);
-    //     }
-    //     catch (UnauthorizedAccessException e)
-    //     {
-    //         return Unauthorized(e.Message);
-    //     }
-    //     catch (InvalidOperationException e)
-    //     {
-    //         return BadRequest(e.Message);
-    //     }
-    //     catch (KeyNotFoundException e)
-    //     {
-    //         return NotFound(e.Message);
-    //     }
-    //     catch (Exception e)
-    //     {
-    //         return BadRequest(e.Message);
-    //     }
-    // }
+    [Authorize(Roles = "Household")]
+    [HttpPut("{scrapPostId:guid}/details")]
+    [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> UpdateScrapPostDetail([FromRoute] Guid scrapPostId,
+        [FromQuery] int scrapCategoryId,
+        [FromBody] ScrapPostDetailUpdateModel scrapPostDetailUpdateModel)
+    {
+        try
+        {
+            var householdId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var detail = await scrapPostDetailService.UpdateScrapPostDetail(Guid.Parse(householdId), scrapPostId,
+                scrapCategoryId, scrapPostDetailUpdateModel);
+            return Ok(detail);
+        }
+        catch (UnauthorizedAccessException e)
+        {
+            return Unauthorized(e.Message);
+        }
+        catch (InvalidOperationException e)
+        {
+            return BadRequest(e.Message);
+        }
+        catch (KeyNotFoundException e)
+        {
+            return NotFound(e.Message);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
 
-    // [Authorize(Roles = "Household")]
-    // [HttpDelete("{scrapPostId:guid}/details")]
-    // [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status200OK)]
-    // [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status404NotFound)]
-    // [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status401Unauthorized)]
-    // [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status400BadRequest)]
-    // [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status500InternalServerError)]
-    // public async Task<IActionResult> DeleteScrapPostDetail([FromRoute] Guid scrapPostId,
-    //     [FromQuery] int scrapCategoryId)
-    // {
-    //     try
-    //     {
-    //         var householdId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-    //         var result =
-    //             await scrapPostDetailService.DeleteScrapPostDetail(Guid.Parse(householdId), scrapPostId,
-    //                 scrapCategoryId);
-    //         if (!result) return BadRequest("Failed to delete scrap post detail");
-    //         return Ok("Delete successfully");
-    //     }
-    //     catch (UnauthorizedAccessException e)
-    //     {
-    //         return Unauthorized(e.Message);
-    //     }
-    //     catch (KeyNotFoundException e)
-    //     {
-    //         return NotFound(e.Message);
-    //     }
-    //     catch (Exception e)
-    //     {
-    //         return BadRequest(e.Message);
-    //     }
-    // }
+    [Authorize(Roles = "Household")]
+    [HttpDelete("{scrapPostId:guid}/details")]
+    [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> DeleteScrapPostDetail([FromRoute] Guid scrapPostId,
+        [FromQuery] int scrapCategoryId)
+    {
+        try
+        {
+            var householdId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var result =
+                await scrapPostDetailService.DeleteScrapPostDetail(Guid.Parse(householdId), scrapPostId,
+                    scrapCategoryId);
+            if (!result) return BadRequest("Failed to delete scrap post detail");
+            return Ok("Delete successfully");
+        }
+        catch (UnauthorizedAccessException e)
+        {
+            return Unauthorized(e.Message);
+        }
+        catch (KeyNotFoundException e)
+        {
+            return NotFound(e.Message);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
 }

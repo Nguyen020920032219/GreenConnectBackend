@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using GreenConnectPlatform.Business.Models.ScrapPosts.ScrapPostDetails;
-using GreenConnectPlatform.Bussiness.Models.ScrapPosts;
 using GreenConnectPlatform.Data.Enums;
 
 namespace GreenConnectPlatform.Business.Models.ScrapPosts;

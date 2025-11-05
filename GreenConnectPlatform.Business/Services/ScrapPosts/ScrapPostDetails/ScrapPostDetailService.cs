@@ -1,12 +1,12 @@
 ﻿using AutoMapper;
-using GreenConnectPlatform.Bussiness.Models.ScrapPosts.ScrapPostDetails;
+using GreenConnectPlatform.Business.Models.ScrapPosts.ScrapPostDetails;
 using GreenConnectPlatform.Data.Entities;
 using GreenConnectPlatform.Data.Repositories.ScrapCategories;
 using GreenConnectPlatform.Data.Repositories.ScrapPosts;
 using GreenConnectPlatform.Data.Repositories.ScrapPosts.ScrapPostDetails;
 using Microsoft.EntityFrameworkCore;
 
-namespace GreenConnectPlatform.Bussiness.Services.ScrapPosts.ScrapPostDetails;
+namespace GreenConnectPlatform.Business.Services.ScrapPosts.ScrapPostDetails;
 
 public class ScrapPostDetailService : IScrapPostDetailService
 {

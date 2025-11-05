@@ -1,8 +1,7 @@
 using GreenConnectPlatform.Business.Models.ScrapPosts;
-using GreenConnectPlatform.Bussiness.Models.ScrapPosts;
 using GreenConnectPlatform.Data.Enums;
 
-namespace GreenConnectPlatform.Bussiness.Services.ScrapPosts;
+namespace GreenConnectPlatform.Business.Services.ScrapPosts;
 
 public interface IScrapPostService
 {

@@ -1,6 +1,6 @@
-﻿using GreenConnectPlatform.Bussiness.Models.ScrapPosts.ScrapPostDetails;
+﻿using GreenConnectPlatform.Business.Models.ScrapPosts.ScrapPostDetails;
 
-namespace GreenConnectPlatform.Bussiness.Services.ScrapPosts.ScrapPostDetails;
+namespace GreenConnectPlatform.Business.Services.ScrapPosts.ScrapPostDetails;
 
 public interface IScrapPostDetailService
 {

@@ -1,4 +1,4 @@
-﻿namespace GreenConnectPlatform.Bussiness.Models.Exceptions;
+﻿namespace GreenConnectPlatform.Business.Models.Exceptions;
 
 public class ApiExceptionModel : Exception
 {

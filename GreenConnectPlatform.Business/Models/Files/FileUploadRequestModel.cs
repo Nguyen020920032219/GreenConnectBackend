@@ -1,4 +1,4 @@
-namespace GreenConnectPlatform.Bussiness.Models.Files;
+namespace GreenConnectPlatform.Business.Models.Files;
 
 public class FileUploadRequestModel
 {

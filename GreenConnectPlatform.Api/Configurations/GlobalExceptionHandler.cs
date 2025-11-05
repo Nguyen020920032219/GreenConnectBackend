@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
-using GreenConnectPlatform.Bussiness.Models.Exceptions;
+using GreenConnectPlatform.Business.Models.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 
 namespace GreenConnectPlatform.Api.Configurations;

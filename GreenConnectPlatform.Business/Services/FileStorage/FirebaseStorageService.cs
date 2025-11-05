@@ -2,7 +2,7 @@ using Google;
 using Google.Cloud.Storage.V1;
 using Microsoft.Extensions.Configuration;
 
-namespace GreenConnectPlatform.Bussiness.Services.FileStorage;
+namespace GreenConnectPlatform.Business.Services.FileStorage;
 
 public class FirebaseStorageService : IFileStorageService
 {

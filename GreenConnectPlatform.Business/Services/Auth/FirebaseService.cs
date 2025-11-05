@@ -3,7 +3,7 @@ using FirebaseAdmin.Auth;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.Extensions.Logging;
 
-namespace GreenConnectPlatform.Bussiness.Services.Auth;
+namespace GreenConnectPlatform.Business.Services.Auth;
 
 public class FirebaseService
 {

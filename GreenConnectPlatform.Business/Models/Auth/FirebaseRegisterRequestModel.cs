@@ -1,4 +1,4 @@
-namespace GreenConnectPlatform.Bussiness.Models.Auth;
+namespace GreenConnectPlatform.Business.Models.Auth;
 
 public class FirebaseRegisterRequestModel
 {

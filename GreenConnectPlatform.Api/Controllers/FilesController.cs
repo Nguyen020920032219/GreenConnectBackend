@@ -1,6 +1,6 @@
 using System.Security.Claims;
-using GreenConnectPlatform.Bussiness.Models.Files;
-using GreenConnectPlatform.Bussiness.Services.FileStorage;
+using GreenConnectPlatform.Business.Models.Files;
+using GreenConnectPlatform.Business.Services.FileStorage;
 using GreenConnectPlatform.Data.Configurations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

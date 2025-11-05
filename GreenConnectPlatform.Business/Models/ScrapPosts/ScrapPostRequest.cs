@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
-using GreenConnectPlatform.Bussiness.Models.ScrapPosts.ScrapPostDetails;
+using GreenConnectPlatform.Business.Models.ScrapPosts.ScrapPostDetails;
 using GreenConnectPlatform.Data.Enums;
 
-namespace GreenConnectPlatform.Bussiness.Models.ScrapPosts;
+namespace GreenConnectPlatform.Business.Models.ScrapPosts;
 
 public class ScrapPostRequest
 {

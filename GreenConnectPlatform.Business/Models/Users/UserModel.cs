@@ -1,4 +1,4 @@
-namespace GreenConnectPlatform.Bussiness.Models.Users;
+namespace GreenConnectPlatform.Business.Models.Users;
 
 public class UserModel
 {

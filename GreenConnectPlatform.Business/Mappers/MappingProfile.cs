@@ -10,7 +10,7 @@ public class MappingProfile : Profile
     public MappingProfile()
     {
         CreateMap<ScrapPost, ScrapPostModel>();
-        CreateMap<ScrapPostCreateModel, ScrapPost>();
+        CreateMap<ScrapPostCreateModel, ScrapPost>().ForMember(dest => dest.Location, opt => opt.Ignore());;
         CreateMap<ScrapPost, ScrapPostOverralModel>();
         CreateMap<ScrapPostDetailCreateModel, ScrapPostDetail>();
         CreateMap<ScrapPostDetail, ScrapPostDetailModel>();

@@ -5,7 +5,6 @@ namespace GreenConnectPlatform.Data.Entities;
 public class CollectorVerificationInfo
 {
     public Guid UserId { get; set; }
-
     public VerificationStatus Status { get; set; } = VerificationStatus.NotSubmitted;
 
     public string? DocumentFrontUrl { get; set; }
@@ -13,7 +12,6 @@ public class CollectorVerificationInfo
     public string? DocumentBackUrl { get; set; }
 
     public DateTime? SubmittedAt { get; set; }
-
     public Guid? ReviewerId { get; set; }
 
     public DateTime? ReviewedAt { get; set; }

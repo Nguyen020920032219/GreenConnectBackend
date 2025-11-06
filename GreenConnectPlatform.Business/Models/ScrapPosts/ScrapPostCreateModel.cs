@@ -5,7 +5,7 @@ using GreenConnectPlatform.Data.Enums;
 
 namespace GreenConnectPlatform.Business.Models.ScrapPosts;
 
-public class ScrapPostRequest
+public class ScrapPostCreateModel
 {
     [JsonIgnore] public Guid ScrapPostId { get; set; }
 
@@ -26,6 +26,9 @@ public class ScrapPostRequest
     public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
 
     [JsonIgnore] public Guid HouseholdId { get; set; }
+    
+    [Required(ErrorMessage = "Location is required.")]
+    public LocationModel Location { get; set; } = null!;
 
-    public List<ScrapPostDetailRequest> ScrapPostDetails { get; set; } = new();
+    public List<ScrapPostDetailCreateModel> ScrapPostDetails { get; set; } = new();
 }

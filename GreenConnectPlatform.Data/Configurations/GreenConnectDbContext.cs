@@ -1,4 +1,5 @@
 ﻿using GreenConnectPlatform.Data.Entities;
+using GreenConnectPlatform.Data.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -50,11 +51,23 @@ public partial class GreenConnectDbContext : IdentityDbContext<User, IdentityRol
 
     public virtual DbSet<UserRewardRedemption> UserRewardRedemptions { get; set; }
 
+    public virtual DbSet<PaymentPackage> PaymentPackages { get; set; }
+
+    public virtual DbSet<UserPackage> UserPackages { get; set; }
+
+    public virtual DbSet<PaymentTransaction> PaymentTransactions { get; set; }
+
+    public virtual DbSet<ReferencePrice> ReferencePrices { get; set; }
+
+    public virtual DbSet<PointHistory> PointHistories { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.HasPostgresExtension("postgis");
+
+        modelBuilder.HasPostgresEnum<Gender>();
 
         modelBuilder.Entity<ChatParticipant>(entity =>
         {
@@ -214,10 +227,14 @@ public partial class GreenConnectDbContext : IdentityDbContext<User, IdentityRol
 
             entity.Property(e => e.ProfileId).ValueGeneratedNever();
             entity.Property(e => e.Address).HasMaxLength(255);
-            entity.Property(e => e.Gender).HasMaxLength(10);
+            entity.Property(e => e.Gender)
+                .HasConversion<string>();
             entity.Property(e => e.Location).HasColumnType("geometry(Point,4326)");
-            entity.Property(e => e.RewardPoint).HasDefaultValue(0);
-
+            entity.Property(e => e.PointBalance).HasDefaultValue(200);
+            entity.HasOne(d => d.Rank)
+                .WithMany(p => p.Profiles)
+                .HasForeignKey(d => d.RankId)
+                .OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(d => d.User).WithOne(p => p.Profile)
                 .HasForeignKey<Profile>(d => d.UserId)
                 .HasConstraintName("Profiles_UserId_fkey");
@@ -356,7 +373,49 @@ public partial class GreenConnectDbContext : IdentityDbContext<User, IdentityRol
                 .HasConstraintName("UserRewardRedemptions_UserId_fkey");
         });
 
-        OnModelCreatingPartial(modelBuilder);
+        modelBuilder.Entity<PaymentPackage>(entity =>
+        {
+            entity.HasKey(e => e.PackageId);
+            entity.Property(e => e.Price).HasPrecision(18, 2);
+        });
+
+        modelBuilder.Entity<UserPackage>(entity =>
+        {
+            entity.HasKey(e => e.UserPackageId);
+            entity.HasOne(d => d.User).WithMany().HasForeignKey(d => d.UserId);
+            entity.HasOne(d => d.Package).WithMany().HasForeignKey(d => d.PackageId);
+        });
+
+        modelBuilder.Entity<PaymentTransaction>(entity =>
+        {
+            entity.HasKey(e => e.PaymentId);
+            entity.Property(e => e.Status).HasConversion<string>();
+            entity.HasOne(d => d.User).WithMany().HasForeignKey(d => d.UserId);
+            entity.HasOne(d => d.Package).WithMany().HasForeignKey(d => d.PackageId).IsRequired(false);
+        });
+
+        modelBuilder.Entity<ReferencePrice>(entity =>
+        {
+            entity.HasKey(e => e.ReferencePriceId);
+            entity.Property(e => e.PricePerKg).HasPrecision(18, 2);
+            entity.HasOne(d => d.ScrapCategory).WithMany().HasForeignKey(d => d.ScrapCategoryId);
+            entity.HasOne(d => d.UpdatedByAdmin).WithMany().HasForeignKey(d => d.UpdatedByAdminId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<PointHistory>(entity =>
+        {
+            entity.HasKey(e => e.PointHistoryId);
+            entity.Property(e => e.Reason).HasMaxLength(255);
+            entity.HasOne(d => d.User).WithMany().HasForeignKey(d => d.UserId);
+        });
+
+        modelBuilder.Entity<Rank>(entity =>
+        {
+            entity.HasKey(e => e.RankId);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(50);
+            entity.HasIndex(e => e.MinPoints).IsUnique();
+        });
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);

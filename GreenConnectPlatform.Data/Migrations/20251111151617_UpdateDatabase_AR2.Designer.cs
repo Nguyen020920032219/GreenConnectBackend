@@ -3,6 +3,7 @@ using System;
 using GreenConnectPlatform.Data.Configurations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GreenConnectPlatform.Data.Migrations
 {
     [DbContext(typeof(GreenConnectDbContext))]
-    partial class GreenConnectDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251111151617_UpdateDatabase_AR2")]
+    partial class UpdateDatabase_AR2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

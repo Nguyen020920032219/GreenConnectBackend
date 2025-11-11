@@ -67,13 +67,6 @@ public class Program
             options.KnownNetworks.Clear();
             options.KnownProxies.Clear();
         });
-
-        builder.Services.AddSwaggerGen(c =>
-        {
-            var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
-            var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-            c.IncludeXmlComments(xmlPath);
-        });
         
         var app = builder.Build();
 

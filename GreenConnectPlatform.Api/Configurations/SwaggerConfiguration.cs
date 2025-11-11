@@ -38,12 +38,10 @@ public static class SwaggerConfiguration
                     Array.Empty<string>()
                 }
             });
-        });
-        services.AddSwaggerGen(c =>
-        {
             var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
             var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-            c.IncludeXmlComments(xmlPath);
+            options.IncludeXmlComments(xmlPath);
         });
+
     }
 }

@@ -8,5 +8,7 @@ public class ScrapPostOverralModel
     public string Title { get; set; } = null!;
     public string? Description { get; set; }
     public string? AvailableTimeRange { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
     public PostStatus Status { get; set; }
 }

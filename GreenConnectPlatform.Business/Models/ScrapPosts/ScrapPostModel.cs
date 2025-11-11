@@ -12,6 +12,7 @@ public class ScrapPostModel
     public string? AvailableTimeRange { get; set; }
     public PostStatus Status { get; set; }
     public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
     public Guid HouseholdId { get; set; }
     public List<ScrapPostDetailModel> ScrapPostDetails { get; set; } = new();
 }

@@ -31,7 +31,7 @@ public class Program
                     p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
             });
         });
-
+        
         var disableFirebase = builder.Configuration.GetValue<bool>("Testing:DisableFirebase");
 
         builder.Services.ConfigureAuthentication(builder.Configuration);
@@ -68,6 +68,13 @@ public class Program
             options.KnownProxies.Clear();
         });
 
+        builder.Services.AddSwaggerGen(c =>
+        {
+            var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+            var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+            c.IncludeXmlComments(xmlPath);
+        });
+        
         var app = builder.Build();
 
         using (var scope = app.Services.CreateScope())

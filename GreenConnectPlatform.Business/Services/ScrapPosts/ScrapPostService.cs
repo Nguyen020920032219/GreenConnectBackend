@@ -35,35 +35,61 @@ public class ScrapPostService : IScrapPostService
     public async Task<List<ScrapPostOverralModel>> GetPosts(
         int pageNumber,
         int pageSize,
-        Guid? userId,
+        Guid userId,
+        string userRole,
         string? categoryName,
-        bool sortByLocation = false)
+        PostStatus? status,
+        bool sortByLocation = false,
+        bool sortByCreateAt = false,
+        bool sortByUpdateAt = false)
     {
         Point? userLocation = null;
-        if (sortByLocation && userId.HasValue)
+        if (sortByLocation && userRole == "ScrapCollector")
         {
             var userProfile = await _profileRepository.DbSet().AsNoTracking()
                 .FirstOrDefaultAsync(u => u.UserId == userId);
             if (userProfile != null && userProfile.Location != null) userLocation = userProfile.Location;
         }
-
-        var query = _scrapPostRepository.DbSet()
-            .Where(s => s.Status == PostStatus.Open);
-
-        if (sortByLocation && userLocation != null)
-            query = query
-                .Where(post => post.Location != null)
-                .OrderBy(post => post.Location!.Distance(userLocation));
-        else
-            query = query.OrderByDescending(s => s.CreatedAt);
-
+        var query = _scrapPostRepository.DbSet().AsQueryable()
+            .AsNoTracking();
+        if (userRole == "ScrapCollector")
+        {
+            query = query.Where(s => s.Status == PostStatus.Open);
+        }
+        if(status != null && userRole == "Admin")
+        {
+            query = query.Where(s => s.Status == status);
+        }
         if (!string.IsNullOrWhiteSpace(categoryName))
             query = query
                 .Include(post => post.ScrapPostDetails)
                 .ThenInclude(detail => detail.ScrapCategory)
                 .Where(post => post.ScrapPostDetails.Any(detail =>
-                    detail.ScrapCategory.CategoryName.ToLower().Contains(categoryName.ToLower())));
+                    detail.ScrapCategory.CategoryName.Contains(categoryName, StringComparison.OrdinalIgnoreCase)));
+        
+        
+        if (sortByLocation && userLocation != null)
+            query = query
+                .Where(post => post.Location != null)
+                .OrderBy(post => post.Location!.Distance(userLocation));
+        else
+        {
+            IOrderedQueryable<ScrapPost> orderedQuery;
+            if (sortByCreateAt)
+            {
+                orderedQuery = query.OrderBy(s => s.CreatedAt);
+            }
+            else
+            {
+                orderedQuery = query.OrderByDescending(s => s.CreatedAt);
+            }
 
+            orderedQuery = sortByUpdateAt 
+                ? orderedQuery.ThenBy(s => s.UpdatedAt) 
+                : orderedQuery.ThenByDescending(s => s.UpdatedAt);
+            
+            query = orderedQuery;
+        }
         var scrapPosts = await query
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
@@ -86,6 +112,7 @@ public class ScrapPostService : IScrapPostService
         return _mapper.Map<List<ScrapPostOverralModel>>(scrapPosts);
     }
 
+    
     public async Task<ScrapPostModel> GetPost(Guid scrapPostId)
     {
         var scrapPost = await _scrapPostRepository.DbSet().Include(s => s.ScrapPostDetails)
@@ -153,24 +180,23 @@ public class ScrapPostService : IScrapPostService
             else
                 scrapPostUpdateModel.Location = null;
         }
-        else
-        {
-            location = scrapPost.Location;
-        }
 
         var result = await _scrapPostRepository.Update(scrapPost);
         if (result == null) throw new Exception("Scrap post not updated");
         return _mapper.Map<ScrapPostModel>(result);
     }
 
-    public async Task<bool> ToggleScrapPost(Guid userId, Guid scrapPostId)
+    public async Task<bool> ToggleScrapPost(Guid userId, Guid scrapPostId, string userRole)
     {
         var scrapPost = await _scrapPostRepository.DbSet()
             .FirstOrDefaultAsync(s => s.ScrapPostId == scrapPostId);
         if (scrapPost == null)
             throw new KeyNotFoundException("Scrap post not found");
-        if (scrapPost.HouseholdId != userId)
-            throw new UnauthorizedAccessException("You are not authorized to delete this scrap post");
+        if (userRole != "Admin")
+        {
+            if (scrapPost.HouseholdId != userId)
+                throw new UnauthorizedAccessException("You are not authorized to delete this scrap post");
+        }
         scrapPost.UpdatedAt = DateTime.UtcNow;
         if (scrapPost.Status != PostStatus.Canceled)
             scrapPost.Status = PostStatus.Canceled;

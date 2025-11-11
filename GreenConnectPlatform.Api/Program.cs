@@ -31,7 +31,7 @@ public class Program
                     p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
             });
         });
-
+        
         var disableFirebase = builder.Configuration.GetValue<bool>("Testing:DisableFirebase");
 
         builder.Services.ConfigureAuthentication(builder.Configuration);
@@ -67,7 +67,7 @@ public class Program
             options.KnownNetworks.Clear();
             options.KnownProxies.Clear();
         });
-
+        
         var app = builder.Build();
 
         using (var scope = app.Services.CreateScope())

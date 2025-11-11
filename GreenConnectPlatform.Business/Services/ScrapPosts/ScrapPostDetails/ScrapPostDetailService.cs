@@ -80,13 +80,16 @@ public class ScrapPostDetailService : IScrapPostDetailService
         return _mapper.Map<ScrapPostDetailModel>(result);
     }
 
-    public async Task<bool> DeleteScrapPostDetail(Guid userId, Guid scrapPostId, int scrapCategoryId)
+    public async Task<bool> DeleteScrapPostDetail(Guid userId, Guid scrapPostId,string userRole, int scrapCategoryId)
     {
         var scrapPost = await _scrapPostRepository.DbSet()
             .FirstOrDefaultAsync(s => s.ScrapPostId == scrapPostId);
         if (scrapPost == null) throw new KeyNotFoundException("Scrap post not found");
-        if (scrapPost.HouseholdId != userId)
-            throw new UnauthorizedAccessException("User is not authorized to add details to this scrap post");
+        if (userRole != "Admin")
+        {
+            if (scrapPost.HouseholdId != userId)
+                throw new UnauthorizedAccessException("User is not authorized to add details to this scrap post");
+        }
 
         var details = await _scrapPostDetailRepository.DbSet()
             .FirstOrDefaultAsync(d => d.ScrapPostId == scrapPostId && d.ScrapCategoryId == scrapCategoryId);

@@ -6,6 +6,5 @@ public class ScrapPostUpdateModel
     public string? Description { get; set; }
     public string? Address { get; set; }
     public string? AvailableTimeRange { get; set; }
-
     public LocationModel? Location { get; set; }
 }

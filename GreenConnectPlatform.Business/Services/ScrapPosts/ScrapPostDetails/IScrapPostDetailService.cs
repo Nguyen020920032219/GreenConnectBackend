@@ -12,5 +12,5 @@ public interface IScrapPostDetailService
     Task<ScrapPostDetailModel> UpdateScrapPostDetail(Guid userId, Guid scrapPostId, int scrapCategoryId,
         ScrapPostDetailUpdateModel scrapPostDetailCreateModel);
 
-    Task<bool> DeleteScrapPostDetail(Guid userId, Guid scrapPostId, int scrapCategoryId);
+    Task<bool> DeleteScrapPostDetail(Guid userId, Guid scrapPostId,string userRole, int scrapCategoryId);
 }

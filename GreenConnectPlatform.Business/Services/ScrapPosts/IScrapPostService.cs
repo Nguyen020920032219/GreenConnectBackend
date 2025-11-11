@@ -5,8 +5,8 @@ namespace GreenConnectPlatform.Business.Services.ScrapPosts;
 
 public interface IScrapPostService
 {
-    Task<List<ScrapPostOverralModel>> GetPosts(int pageNumber, int pageSize, Guid? userId, string? categoryName,
-        bool sortByLocation = false);
+    Task<List<ScrapPostOverralModel>> GetPosts(int pageNumber, int pageSize, Guid userId,string userRole, string? categoryName,PostStatus? status,
+        bool sortByLocation = false, bool sortByCreateAt = false, bool sortByUpdateAt = false);
 
     Task<List<ScrapPostOverralModel>> GetPostsByHousehold(int pageNumber, int pageSize, Guid? userId, string? title,
         PostStatus? status);
@@ -14,5 +14,5 @@ public interface IScrapPostService
     Task<ScrapPostModel> GetPost(Guid scrapPostId);
     Task<ScrapPostModel> CreateScrapPost(ScrapPostCreateModel scrapPostCreateModel);
     Task<ScrapPostModel> UpdateScrapPost(Guid userId, Guid scrapPostId, ScrapPostUpdateModel scrapPostRequestModel);
-    Task<bool> ToggleScrapPost(Guid userId, Guid scrapPostId);
+    Task<bool> ToggleScrapPost(Guid userId, Guid scrapPostId, string userRole);
 }

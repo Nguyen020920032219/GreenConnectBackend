@@ -15,6 +15,7 @@ public class MappingProfile : Profile
         CreateMap<ScrapPostDetailCreateModel, ScrapPostDetail>();
         CreateMap<ScrapPostDetail, ScrapPostDetailModel>();
         CreateMap<ScrapPostUpdateModel, ScrapPost>()
+            .ForMember(dest => dest.Location, opt => opt.Ignore())
             .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
         CreateMap<ScrapPostDetailUpdateModel, ScrapPostDetail>()
             .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));

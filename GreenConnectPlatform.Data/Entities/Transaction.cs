@@ -18,9 +18,7 @@ public class Transaction
 
     public DateTime? CheckInTime { get; set; }
 
-    public string? CheckInSelfieUrl { get; set; }
-
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public DateTime? UpdatedAt { get; set; }
 

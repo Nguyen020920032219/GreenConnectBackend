@@ -2,6 +2,7 @@
 using GreenConnectPlatform.Data.Configurations;
 using GreenConnectPlatform.Data.Enums;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Npgsql;
 using ConfigurationManager = Microsoft.Extensions.Configuration.ConfigurationManager;
 
@@ -27,32 +28,11 @@ public static class DatabaseConfiguration
 
             if (isDevelopment)
                 options.EnableSensitiveDataLogging();
+
+            options.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
         });
 
-        await ApplyEfMigrationsAsync(services, props);
-    }
-
-    private static async Task ApplyEfMigrationsAsync(IServiceCollection services, DbConnectionProps props)
-    {
-        try
-        {
-            Console.WriteLine($"[Database] Checking database '{props.Database}' on {props.DbHost}:{props.DbPort}...");
-
-            await CreateDbIfNotExistsAsync(props);
-
-            using var scope = services.BuildServiceProvider().CreateScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<GreenConnectDbContext>();
-
-            Console.WriteLine("[Database] Applying EF Core migrations...");
-            await dbContext.Database.MigrateAsync();
-            await dbContext.Database.ExecuteSqlRawAsync("CREATE EXTENSION IF NOT EXISTS postgis;");
-            Console.WriteLine("[Database] EF Core migrations applied successfully.");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[Database] Migration failed: {ex.Message}");
-            throw;
-        }
+        await CreateDbIfNotExistsAsync(props);
     }
 
     private static async Task CreateDbIfNotExistsAsync(DbConnectionProps props)
@@ -109,7 +89,10 @@ public static class DatabaseConfiguration
         NpgsqlConnection.GlobalTypeMapper.MapEnum<ComplaintStatus>("complaint_status");
         NpgsqlConnection.GlobalTypeMapper.MapEnum<ProposalStatus>("proposal_status");
         NpgsqlConnection.GlobalTypeMapper.MapEnum<VerificationStatus>("verification_status");
-
+        NpgsqlConnection.GlobalTypeMapper.MapEnum<Gender>("gender");
+        NpgsqlConnection.GlobalTypeMapper.MapEnum<PackageType>("package_type");
+        NpgsqlConnection.GlobalTypeMapper.MapEnum<PaymentStatus>("payment_status");
+        NpgsqlConnection.GlobalTypeMapper.MapEnum<BuyerType>("buyer_type");
         Console.WriteLine("[Database] PostgreSQL enums mapped successfully.");
     }
 }

@@ -8,19 +8,21 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GreenConnectPlatform.Api.Controllers;
+
 /// <summary>
-///  Everything about Scrap Posts and Scrap Post Details
+///     Everything about Scrap Posts and Scrap Post Details
 /// </summary>
 [Route("api/v1/posts")]
 [Tags("Scrap Posts")]
 [ApiController]
-public class ScrapPostController(IScrapPostService scrapPostService
-    , IScrapPostDetailService scrapPostDetailService
-    )
+public class ScrapPostController(
+    IScrapPostService scrapPostService,
+    IScrapPostDetailService scrapPostDetailService
+)
     : ControllerBase
 {
     /// <summary>
-    /// Get a list of scrap posts with pagination, filtering by category name and sorting by location options
+    ///     Get a list of scrap posts with pagination, filtering by category name and sorting by location options
     /// </summary>
     /// <param name="categoryName">Search by category name</param>
     /// <param name="status">Sort by status of scrap post, for only Admin</param>
@@ -44,14 +46,15 @@ public class ScrapPostController(IScrapPostService scrapPostService
         [FromQuery] int pageSize = 10)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        Guid userIdParsed = Guid.Parse(userId);
-        string userRole = User.FindFirstValue(ClaimTypes.Role);
-        var posts = await scrapPostService.GetPosts(pageNumber, pageSize, userIdParsed, userRole, categoryName,status, sortByLocation, sortByCreateAt, sortByUpdateAt);
+        var userIdParsed = Guid.Parse(userId);
+        var userRole = User.FindFirstValue(ClaimTypes.Role);
+        var posts = await scrapPostService.GetPosts(pageNumber, pageSize, userIdParsed, userRole, categoryName, status,
+            sortByLocation, sortByCreateAt, sortByUpdateAt);
         return Ok(posts);
     }
 
     /// <summary>
-    /// Get lists of your scrap posts with pagination, filter by category name and sort by position option
+    ///     Get lists of your scrap posts with pagination, filter by category name and sort by position option
     /// </summary>
     /// <param name="title"></param>
     /// <param name="status"></param>
@@ -74,8 +77,9 @@ public class ScrapPostController(IScrapPostService scrapPostService
         var posts = await scrapPostService.GetPostsByHousehold(pageNumber, pageSize, userIdParsed, title, status);
         return Ok(posts);
     }
+
     /// <summary>
-    /// Get scrap posts detail with id of scrap post
+    ///     Get scrap posts detail with id of scrap post
     /// </summary>
     /// <param name="postId">ID of scrap post</param>
     [HttpGet("{postId:guid}")]
@@ -95,8 +99,9 @@ public class ScrapPostController(IScrapPostService scrapPostService
             return NotFound(e.Message);
         }
     }
+
     /// <summary>
-    /// Create new Scrap Post with scrap post information and list of scrap post details
+    ///     Create new Scrap Post with scrap post information and list of scrap post details
     /// </summary>
     [Authorize(Roles = "Household")]
     [HttpPost]
@@ -127,8 +132,9 @@ public class ScrapPostController(IScrapPostService scrapPostService
             return BadRequest(e.Message);
         }
     }
+
     /// <summary>
-    /// Household Update base information of scrap post 
+    ///     Household Update base information of scrap post
     /// </summary>
     /// <param name="postId">ID of scrap post</param>
     /// <param name="scrapPostRequestModel">Base information of scrap post</param>
@@ -163,8 +169,9 @@ public class ScrapPostController(IScrapPostService scrapPostService
             return BadRequest(e.Message);
         }
     }
+
     /// <summary>
-    /// Admin and Household can toggle scrap post between Open and Closed status
+    ///     Admin and Household can toggle scrap post between Open and Closed status
     /// </summary>
     /// <param name="postId">ID of scrap post</param>
     [Authorize(Roles = "Household, Admin")]
@@ -178,7 +185,7 @@ public class ScrapPostController(IScrapPostService scrapPostService
         try
         {
             var householdId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            string userRole = User.FindFirstValue(ClaimTypes.Role);
+            var userRole = User.FindFirstValue(ClaimTypes.Role);
             var result = await scrapPostService.ToggleScrapPost(Guid.Parse(householdId), postId, userRole);
             if (!result) return BadRequest("Failed to delete scrap post");
             return Ok("Toggle successfully");
@@ -192,8 +199,9 @@ public class ScrapPostController(IScrapPostService scrapPostService
             return BadRequest(e.Message);
         }
     }
+
     /// <summary>
-    /// Can get scrap post detail by id of scrap post and scrap category
+    ///     Can get scrap post detail by id of scrap post and scrap category
     /// </summary>
     /// <param name="postId">ID of scrap post</param>
     /// <param name="scrapCategoryId">ID of scrap category</param>
@@ -213,8 +221,9 @@ public class ScrapPostController(IScrapPostService scrapPostService
             return NotFound(e.Message);
         }
     }
+
     /// <summary>
-    /// Household can create new scrap post detail for their scrap post
+    ///     Household can create new scrap post detail for their scrap post
     /// </summary>
     /// <param name="postId">ID of scrap post</param>
     /// <param name="scrapPostDetailCreateModel">New information for scrap post detail</param>
@@ -256,7 +265,7 @@ public class ScrapPostController(IScrapPostService scrapPostService
     }
 
     /// <summary>
-    /// Household can update base information of scrap post detail
+    ///     Household can update base information of scrap post detail
     /// </summary>
     /// <param name="postId">ID of scrap post</param>
     /// <param name="scrapCategoryId">ID of scrap category</param>
@@ -297,8 +306,9 @@ public class ScrapPostController(IScrapPostService scrapPostService
             return BadRequest(e.Message);
         }
     }
+
     /// <summary>
-    /// Admin and Household can delete scrap post detail
+    ///     Admin and Household can delete scrap post detail
     /// </summary>
     /// <param name="postId">ID of scrap post</param>
     /// <param name="scrapCategoryId">ID of scrap category</param>
@@ -316,9 +326,9 @@ public class ScrapPostController(IScrapPostService scrapPostService
         try
         {
             var householdId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            string userRole = User.FindFirstValue(ClaimTypes.Role);
+            var userRole = User.FindFirstValue(ClaimTypes.Role);
             var result =
-                await scrapPostDetailService.DeleteScrapPostDetail(Guid.Parse(householdId), postId,userRole,
+                await scrapPostDetailService.DeleteScrapPostDetail(Guid.Parse(householdId), postId, userRole,
                     scrapCategoryId);
             if (!result) return BadRequest("Failed to delete scrap post detail");
             return Ok("Delete successfully");

@@ -17,6 +17,4 @@ public class ScrapPostDetail
     public virtual ScrapCategory ScrapCategory { get; set; } = null!;
 
     public virtual ScrapPost ScrapPost { get; set; } = null!;
-
-    public virtual ICollection<CollectionOffer> CollectionOffers { get; set; } = new List<CollectionOffer>();
 }

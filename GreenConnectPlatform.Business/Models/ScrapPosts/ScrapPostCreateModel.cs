@@ -24,11 +24,11 @@ public class ScrapPostCreateModel
     [JsonIgnore] public PostStatus Status { get; private set; } = PostStatus.Open;
 
     public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
-    
+
     public DateTime? UpdatedAt { get; set; } = DateTime.UtcNow;
 
     [JsonIgnore] public Guid HouseholdId { get; set; }
-    
+
     [Required(ErrorMessage = "Location is required.")]
     public LocationModel Location { get; set; } = null!;
 

@@ -10,8 +10,6 @@ public class CollectionOffer
 
     public Guid ScrapCollectorId { get; set; }
 
-    public decimal ProposedPrice { get; set; }
-
     public OfferStatus Status { get; set; } = OfferStatus.Pending;
 
     public DateTime CreatedAt { get; set; }
@@ -22,5 +20,5 @@ public class CollectionOffer
 
     public virtual ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
 
-    public virtual ICollection<ScrapPostDetail> ScrapPostDetails { get; set; } = new List<ScrapPostDetail>();
+    public virtual ICollection<OfferDetail> OfferDetails { get; set; } = new List<OfferDetail>();
 }

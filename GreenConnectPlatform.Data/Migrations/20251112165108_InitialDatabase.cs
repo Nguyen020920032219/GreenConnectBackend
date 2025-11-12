@@ -42,6 +42,7 @@ namespace GreenConnectPlatform.Data.Migrations
                     PhoneNumber = table.Column<string>(type: "text", nullable: true),
                     OtpCode = table.Column<string>(type: "text", nullable: true),
                     OtpExpiredAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    BuyerType = table.Column<int>(type: "integer", nullable: true),
                     UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
@@ -59,6 +60,38 @@ namespace GreenConnectPlatform.Data.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PaymentPackages",
+                columns: table => new
+                {
+                    PackageId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    Price = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
+                    ConnectionAmount = table.Column<int>(type: "integer", nullable: true),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    PackageType = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PaymentPackages", x => x.PackageId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Ranks",
+                columns: table => new
+                {
+                    RankId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    MinPoints = table.Column<int>(type: "integer", nullable: false),
+                    BadgeImageUrl = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Ranks", x => x.RankId);
                 });
 
             migrationBuilder.CreateTable(
@@ -250,23 +283,20 @@ namespace GreenConnectPlatform.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Profiles",
+                name: "PointHistories",
                 columns: table => new
                 {
-                    ProfileId = table.Column<Guid>(type: "uuid", nullable: false),
+                    PointHistoryId = table.Column<Guid>(type: "uuid", nullable: false),
                     UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    DateOfBirth = table.Column<DateOnly>(type: "date", nullable: true),
-                    Address = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
-                    Gender = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: true),
-                    AvatarUrl = table.Column<string>(type: "text", nullable: true),
-                    RewardPoint = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
-                    Location = table.Column<Point>(type: "geometry(Point,4326)", nullable: true)
+                    PointChange = table.Column<int>(type: "integer", nullable: false),
+                    Reason = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("Profiles_pkey", x => x.ProfileId);
+                    table.PrimaryKey("PK_PointHistories", x => x.PointHistoryId);
                     table.ForeignKey(
-                        name: "Profiles_UserId_fkey",
+                        name: "FK_PointHistories_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
@@ -283,7 +313,7 @@ namespace GreenConnectPlatform.Data.Migrations
                     Description = table.Column<string>(type: "text", nullable: true),
                     Address = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     AvailableTimeRange = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
-                    Status = table.Column<string>(type: "text", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     Location = table.Column<Point>(type: "geometry(Point,4326)", nullable: true)
@@ -294,6 +324,94 @@ namespace GreenConnectPlatform.Data.Migrations
                     table.ForeignKey(
                         name: "ScrapPosts_HouseholdId_fkey",
                         column: x => x.HouseholdId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PaymentTransactions",
+                columns: table => new
+                {
+                    PaymentId = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    PackageId = table.Column<Guid>(type: "uuid", nullable: true),
+                    Amount = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
+                    PaymentGateway = table.Column<string>(type: "text", nullable: false),
+                    TransactionCode = table.Column<string>(type: "text", nullable: true),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PaymentTransactions", x => x.PaymentId);
+                    table.ForeignKey(
+                        name: "FK_PaymentTransactions_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_PaymentTransactions_PaymentPackages_PackageId",
+                        column: x => x.PackageId,
+                        principalTable: "PaymentPackages",
+                        principalColumn: "PackageId");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserPackages",
+                columns: table => new
+                {
+                    UserPackageId = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    PackageId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ActivationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ExpirationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    RemainingConnections = table.Column<int>(type: "integer", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserPackages", x => x.UserPackageId);
+                    table.ForeignKey(
+                        name: "FK_UserPackages_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_UserPackages_PaymentPackages_PackageId",
+                        column: x => x.PackageId,
+                        principalTable: "PaymentPackages",
+                        principalColumn: "PackageId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Profiles",
+                columns: table => new
+                {
+                    ProfileId = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    DateOfBirth = table.Column<DateOnly>(type: "date", nullable: true),
+                    Address = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
+                    Gender = table.Column<string>(type: "text", nullable: true),
+                    AvatarUrl = table.Column<string>(type: "text", nullable: true),
+                    PointBalance = table.Column<int>(type: "integer", nullable: false, defaultValue: 200),
+                    RankId = table.Column<int>(type: "integer", nullable: false),
+                    Location = table.Column<Point>(type: "geometry(Point,4326)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("Profiles_pkey", x => x.ProfileId);
+                    table.ForeignKey(
+                        name: "FK_Profiles_Ranks_RankId",
+                        column: x => x.RankId,
+                        principalTable: "Ranks",
+                        principalColumn: "RankId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "Profiles_UserId_fkey",
+                        column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -325,14 +443,40 @@ namespace GreenConnectPlatform.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ReferencePrices",
+                columns: table => new
+                {
+                    ReferencePriceId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ScrapCategoryId = table.Column<int>(type: "integer", nullable: false),
+                    PricePerKg = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
+                    LastUpdated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedByAdminId = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ReferencePrices", x => x.ReferencePriceId);
+                    table.ForeignKey(
+                        name: "FK_ReferencePrices_AspNetUsers_UpdatedByAdminId",
+                        column: x => x.UpdatedByAdminId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ReferencePrices_ScrapCategories_ScrapCategoryId",
+                        column: x => x.ScrapCategoryId,
+                        principalTable: "ScrapCategories",
+                        principalColumn: "ScrapCategoryId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "CollectionOffers",
                 columns: table => new
                 {
                     CollectionOfferId = table.Column<Guid>(type: "uuid", nullable: false),
                     ScrapPostId = table.Column<Guid>(type: "uuid", nullable: false),
                     ScrapCollectorId = table.Column<Guid>(type: "uuid", nullable: false),
-                    ProposedPrice = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
-                    Status = table.Column<string>(type: "text", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()")
                 },
                 constraints: table =>
@@ -380,6 +524,33 @@ namespace GreenConnectPlatform.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "OfferDetail",
+                columns: table => new
+                {
+                    OfferDetailId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CollectionOfferId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ScrapCategoryId = table.Column<int>(type: "integer", nullable: false),
+                    PricePerUnit = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
+                    Unit = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: false, defaultValue: "kg")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OfferDetail", x => x.OfferDetailId);
+                    table.ForeignKey(
+                        name: "FK_OfferDetail_CollectionOffers_CollectionOfferId",
+                        column: x => x.CollectionOfferId,
+                        principalTable: "CollectionOffers",
+                        principalColumn: "CollectionOfferId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_OfferDetail_ScrapCategories_ScrapCategoryId",
+                        column: x => x.ScrapCategoryId,
+                        principalTable: "ScrapCategories",
+                        principalColumn: "ScrapCategoryId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Transactions",
                 columns: table => new
                 {
@@ -390,7 +561,6 @@ namespace GreenConnectPlatform.Data.Migrations
                     Status = table.Column<string>(type: "text", nullable: false),
                     ScheduledTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     CheckInTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    CheckInSelfieUrl = table.Column<string>(type: "text", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
@@ -415,31 +585,6 @@ namespace GreenConnectPlatform.Data.Migrations
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "CollectionOfferScrapPostDetail",
-                columns: table => new
-                {
-                    CollectionOffersCollectionOfferId = table.Column<Guid>(type: "uuid", nullable: false),
-                    ScrapPostDetailsScrapPostId = table.Column<Guid>(type: "uuid", nullable: false),
-                    ScrapPostDetailsScrapCategoryId = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_CollectionOfferScrapPostDetail", x => new { x.CollectionOffersCollectionOfferId, x.ScrapPostDetailsScrapPostId, x.ScrapPostDetailsScrapCategoryId });
-                    table.ForeignKey(
-                        name: "FK_CollectionOfferScrapPostDetail_CollectionOffers_CollectionO~",
-                        column: x => x.CollectionOffersCollectionOfferId,
-                        principalTable: "CollectionOffers",
-                        principalColumn: "CollectionOfferId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_CollectionOfferScrapPostDetail_ScrapPostDetails_ScrapPostDe~",
-                        columns: x => new { x.ScrapPostDetailsScrapPostId, x.ScrapPostDetailsScrapCategoryId },
-                        principalTable: "ScrapPostDetails",
-                        principalColumns: new[] { "ScrapPostId", "ScrapCategoryId" },
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -567,8 +712,10 @@ namespace GreenConnectPlatform.Data.Migrations
                 {
                     TransactionId = table.Column<Guid>(type: "uuid", nullable: false),
                     ScrapCategoryId = table.Column<int>(type: "integer", nullable: false),
-                    ActualWeight = table.Column<float>(type: "real", nullable: false),
-                    ActualPrice = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false)
+                    PricePerUnit = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
+                    Unit = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: false, defaultValue: "kg"),
+                    Quantity = table.Column<float>(type: "real", nullable: false),
+                    FinalPrice = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -699,11 +846,6 @@ namespace GreenConnectPlatform.Data.Migrations
                 column: "ScrapPostId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_CollectionOfferScrapPostDetail_ScrapPostDetailsScrapPostId_~",
-                table: "CollectionOfferScrapPostDetail",
-                columns: new[] { "ScrapPostDetailsScrapPostId", "ScrapPostDetailsScrapCategoryId" });
-
-            migrationBuilder.CreateIndex(
                 name: "IX_CollectorVerificationInfos_ReviewerId",
                 table: "CollectorVerificationInfos",
                 column: "ReviewerId");
@@ -756,16 +898,62 @@ namespace GreenConnectPlatform.Data.Migrations
                 descending: new[] { false, true });
 
             migrationBuilder.CreateIndex(
+                name: "IX_OfferDetail_CollectionOfferId",
+                table: "OfferDetail",
+                column: "CollectionOfferId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OfferDetail_ScrapCategoryId",
+                table: "OfferDetail",
+                column: "ScrapCategoryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PaymentTransactions_PackageId",
+                table: "PaymentTransactions",
+                column: "PackageId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PaymentTransactions_UserId",
+                table: "PaymentTransactions",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PointHistories_UserId",
+                table: "PointHistories",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Profiles_Location",
                 table: "Profiles",
                 column: "Location")
                 .Annotation("Npgsql:IndexMethod", "gist");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Profiles_RankId",
+                table: "Profiles",
+                column: "RankId");
+
+            migrationBuilder.CreateIndex(
                 name: "Profiles_UserId_key",
                 table: "Profiles",
                 column: "UserId",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Ranks_MinPoints",
+                table: "Ranks",
+                column: "MinPoints",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ReferencePrices_ScrapCategoryId",
+                table: "ReferencePrices",
+                column: "ScrapCategoryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ReferencePrices_UpdatedByAdminId",
+                table: "ReferencePrices",
+                column: "UpdatedByAdminId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ScheduleProposals_ProposerId",
@@ -829,6 +1017,16 @@ namespace GreenConnectPlatform.Data.Migrations
                 columns: new[] { "Status", "ScrapCollectorId" });
 
             migrationBuilder.CreateIndex(
+                name: "IX_UserPackages_PackageId",
+                table: "UserPackages",
+                column: "PackageId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserPackages_UserId",
+                table: "UserPackages",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_UserRewardRedemptions_RewardItemId",
                 table: "UserRewardRedemptions",
                 column: "RewardItemId");
@@ -856,9 +1054,6 @@ namespace GreenConnectPlatform.Data.Migrations
                 name: "ChatParticipants");
 
             migrationBuilder.DropTable(
-                name: "CollectionOfferScrapPostDetail");
-
-            migrationBuilder.DropTable(
                 name: "CollectorVerificationInfos");
 
             migrationBuilder.DropTable(
@@ -874,13 +1069,31 @@ namespace GreenConnectPlatform.Data.Migrations
                 name: "Notifications");
 
             migrationBuilder.DropTable(
+                name: "OfferDetail");
+
+            migrationBuilder.DropTable(
+                name: "PaymentTransactions");
+
+            migrationBuilder.DropTable(
+                name: "PointHistories");
+
+            migrationBuilder.DropTable(
                 name: "Profiles");
+
+            migrationBuilder.DropTable(
+                name: "ReferencePrices");
 
             migrationBuilder.DropTable(
                 name: "ScheduleProposals");
 
             migrationBuilder.DropTable(
+                name: "ScrapPostDetails");
+
+            migrationBuilder.DropTable(
                 name: "TransactionDetails");
+
+            migrationBuilder.DropTable(
+                name: "UserPackages");
 
             migrationBuilder.DropTable(
                 name: "UserRewardRedemptions");
@@ -889,16 +1102,19 @@ namespace GreenConnectPlatform.Data.Migrations
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
-                name: "ScrapPostDetails");
-
-            migrationBuilder.DropTable(
                 name: "ChatRooms");
 
             migrationBuilder.DropTable(
-                name: "RewardItems");
+                name: "Ranks");
 
             migrationBuilder.DropTable(
                 name: "ScrapCategories");
+
+            migrationBuilder.DropTable(
+                name: "PaymentPackages");
+
+            migrationBuilder.DropTable(
+                name: "RewardItems");
 
             migrationBuilder.DropTable(
                 name: "Transactions");

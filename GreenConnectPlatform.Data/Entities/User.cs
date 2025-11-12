@@ -21,6 +21,8 @@ public class User : IdentityUser<Guid>
 
     public DateTime? OtpExpiredAt { get; set; }
 
+    public BuyerType? BuyerType { get; set; }
+
     public virtual ICollection<ChatParticipant> ChatParticipants { get; set; } = new List<ChatParticipant>();
 
     public virtual ICollection<CollectionOffer> CollectionOffers { get; set; } = new List<CollectionOffer>();

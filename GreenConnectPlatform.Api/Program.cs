@@ -1,8 +1,10 @@
 using System.Text.Json.Serialization;
 using DotNetEnv;
 using GreenConnectPlatform.Api.Configurations;
+using GreenConnectPlatform.Data.Configurations;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.EntityFrameworkCore;
 
 namespace GreenConnectPlatform.Api;
 
@@ -31,7 +33,7 @@ public class Program
                     p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
             });
         });
-        
+
         var disableFirebase = builder.Configuration.GetValue<bool>("Testing:DisableFirebase");
 
         builder.Services.ConfigureAuthentication(builder.Configuration);
@@ -41,9 +43,10 @@ public class Program
         builder.Services.ConfigureSwagger();
         builder.Services.AddAuthorization();
 
+        DatabaseConfiguration.MapPostgresEnums();
+
         await builder.Services.AddPostgresAsync(builder.Configuration, "DefaultConnection",
             builder.Environment.IsDevelopment());
-        DatabaseConfiguration.MapPostgresEnums();
 
         builder.Services.ConfigureServices();
         builder.Services.ConfigureRepositories();
@@ -67,14 +70,24 @@ public class Program
             options.KnownNetworks.Clear();
             options.KnownProxies.Clear();
         });
-        
+
         var app = builder.Build();
 
-        using (var scope = app.Services.CreateScope())
+        try
         {
-            await DataSeeder.SeedRolesAsync(scope.ServiceProvider);
-        }
+            using var scope = app.Services.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<GreenConnectDbContext>();
 
+            Console.WriteLine("[Database] Applying EF Core migrations...");
+            await dbContext.Database.ExecuteSqlRawAsync("CREATE EXTENSION IF NOT EXISTS postgis;");
+            await dbContext.Database.MigrateAsync();
+            Console.WriteLine("[Database] EF Core migrations applied successfully.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Database] Migration failed: {ex.Message}");
+            throw;
+        }
 
         app.UseForwardedHeaders();
 

@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GreenConnectPlatform.Data.Migrations
 {
     [DbContext(typeof(GreenConnectDbContext))]
-    [Migration("20251015081535_InitialDatabase")]
+    [Migration("20251112165108_InitialDatabase")]
     partial class InitialDatabase
     {
         /// <inheritdoc />
@@ -26,24 +26,6 @@ namespace GreenConnectPlatform.Data.Migrations
 
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "postgis");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("CollectionOfferScrapPostDetail", b =>
-                {
-                    b.Property<Guid>("CollectionOffersCollectionOfferId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("ScrapPostDetailsScrapPostId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("ScrapPostDetailsScrapCategoryId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("CollectionOffersCollectionOfferId", "ScrapPostDetailsScrapPostId", "ScrapPostDetailsScrapCategoryId");
-
-                    b.HasIndex("ScrapPostDetailsScrapPostId", "ScrapPostDetailsScrapCategoryId");
-
-                    b.ToTable("CollectionOfferScrapPostDetail");
-                });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.ChatParticipant", b =>
                 {
@@ -98,19 +80,14 @@ namespace GreenConnectPlatform.Data.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("now()");
 
-                    b.Property<decimal>("ProposedPrice")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
-
                     b.Property<Guid>("ScrapCollectorId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("ScrapPostId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
 
                     b.HasKey("CollectionOfferId")
                         .HasName("CollectionOffers_pkey");
@@ -308,6 +285,134 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.ToTable("Notifications");
                 });
 
+            modelBuilder.Entity("GreenConnectPlatform.Data.Entities.OfferDetail", b =>
+                {
+                    b.Property<Guid>("OfferDetailId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CollectionOfferId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("PricePerUnit")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<int>("ScrapCategoryId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasDefaultValue("kg");
+
+                    b.HasKey("OfferDetailId");
+
+                    b.HasIndex("CollectionOfferId");
+
+                    b.HasIndex("ScrapCategoryId");
+
+                    b.ToTable("OfferDetail");
+                });
+
+            modelBuilder.Entity("GreenConnectPlatform.Data.Entities.PaymentPackage", b =>
+                {
+                    b.Property<Guid>("PackageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("ConnectionAmount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("PackageType")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("Price")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.HasKey("PackageId");
+
+                    b.ToTable("PaymentPackages");
+                });
+
+            modelBuilder.Entity("GreenConnectPlatform.Data.Entities.PaymentTransaction", b =>
+                {
+                    b.Property<Guid>("PaymentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("PackageId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("PaymentGateway")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TransactionCode")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("PaymentId");
+
+                    b.HasIndex("PackageId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PaymentTransactions");
+                });
+
+            modelBuilder.Entity("GreenConnectPlatform.Data.Entities.PointHistory", b =>
+                {
+                    b.Property<Guid>("PointHistoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("PointChange")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("PointHistoryId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PointHistories");
+                });
+
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.Profile", b =>
                 {
                     b.Property<Guid>("ProfileId")
@@ -324,22 +429,26 @@ namespace GreenConnectPlatform.Data.Migrations
                         .HasColumnType("date");
 
                     b.Property<string>("Gender")
-                        .HasMaxLength(10)
-                        .HasColumnType("character varying(10)");
+                        .HasColumnType("text");
 
                     b.Property<Point>("Location")
                         .HasColumnType("geometry(Point,4326)");
 
-                    b.Property<int>("RewardPoint")
+                    b.Property<int>("PointBalance")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasDefaultValue(0);
+                        .HasDefaultValue(200);
+
+                    b.Property<int>("RankId")
+                        .HasColumnType("integer");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
                     b.HasKey("ProfileId")
                         .HasName("Profiles_pkey");
+
+                    b.HasIndex("RankId");
 
                     b.HasIndex(new[] { "Location" }, "IX_Profiles_Location");
 
@@ -349,6 +458,61 @@ namespace GreenConnectPlatform.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("Profiles");
+                });
+
+            modelBuilder.Entity("GreenConnectPlatform.Data.Entities.Rank", b =>
+                {
+                    b.Property<int>("RankId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("RankId"));
+
+                    b.Property<string>("BadgeImageUrl")
+                        .HasColumnType("text");
+
+                    b.Property<int>("MinPoints")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("RankId");
+
+                    b.HasIndex("MinPoints")
+                        .IsUnique();
+
+                    b.ToTable("Ranks");
+                });
+
+            modelBuilder.Entity("GreenConnectPlatform.Data.Entities.ReferencePrice", b =>
+                {
+                    b.Property<Guid>("ReferencePriceId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("LastUpdated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("PricePerKg")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<int>("ScrapCategoryId")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("UpdatedByAdminId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("ReferencePriceId");
+
+                    b.HasIndex("ScrapCategoryId");
+
+                    b.HasIndex("UpdatedByAdminId");
+
+                    b.ToTable("ReferencePrices");
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.RewardItem", b =>
@@ -462,9 +626,8 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.Property<Point>("Location")
                         .HasColumnType("geometry(Point,4326)");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -520,9 +683,6 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.Property<Guid>("TransactionId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("CheckInSelfieUrl")
-                        .HasColumnType("text");
-
                     b.Property<DateTime?>("CheckInTime")
                         .HasColumnType("timestamp with time zone");
 
@@ -574,12 +734,23 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.Property<int>("ScrapCategoryId")
                         .HasColumnType("integer");
 
-                    b.Property<decimal>("ActualPrice")
+                    b.Property<decimal>("FinalPrice")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
-                    b.Property<float>("ActualWeight")
+                    b.Property<decimal>("PricePerUnit")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<float>("Quantity")
                         .HasColumnType("real");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasDefaultValue("kg");
 
                     b.HasKey("TransactionId", "ScrapCategoryId")
                         .HasName("TransactionDetails_pkey");
@@ -596,6 +767,9 @@ namespace GreenConnectPlatform.Data.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<int>("AccessFailedCount")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("BuyerType")
                         .HasColumnType("integer");
 
                     b.Property<string>("ConcurrencyStamp")
@@ -670,6 +844,36 @@ namespace GreenConnectPlatform.Data.Migrations
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("GreenConnectPlatform.Data.Entities.UserPackage", b =>
+                {
+                    b.Property<Guid>("UserPackageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("ActivationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("ExpirationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("PackageId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("RemainingConnections")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("UserPackageId");
+
+                    b.HasIndex("PackageId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserPackages");
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.UserRewardRedemption", b =>
@@ -821,21 +1025,6 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
-                });
-
-            modelBuilder.Entity("CollectionOfferScrapPostDetail", b =>
-                {
-                    b.HasOne("GreenConnectPlatform.Data.Entities.CollectionOffer", null)
-                        .WithMany()
-                        .HasForeignKey("CollectionOffersCollectionOfferId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("GreenConnectPlatform.Data.Entities.ScrapPostDetail", null)
-                        .WithMany()
-                        .HasForeignKey("ScrapPostDetailsScrapPostId", "ScrapPostDetailsScrapCategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.ChatParticipant", b =>
@@ -1004,8 +1193,61 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.Navigation("Recipient");
                 });
 
+            modelBuilder.Entity("GreenConnectPlatform.Data.Entities.OfferDetail", b =>
+                {
+                    b.HasOne("GreenConnectPlatform.Data.Entities.CollectionOffer", "CollectionOffer")
+                        .WithMany("OfferDetails")
+                        .HasForeignKey("CollectionOfferId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("GreenConnectPlatform.Data.Entities.ScrapCategory", "ScrapCategory")
+                        .WithMany()
+                        .HasForeignKey("ScrapCategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CollectionOffer");
+
+                    b.Navigation("ScrapCategory");
+                });
+
+            modelBuilder.Entity("GreenConnectPlatform.Data.Entities.PaymentTransaction", b =>
+                {
+                    b.HasOne("GreenConnectPlatform.Data.Entities.PaymentPackage", "Package")
+                        .WithMany()
+                        .HasForeignKey("PackageId");
+
+                    b.HasOne("GreenConnectPlatform.Data.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Package");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("GreenConnectPlatform.Data.Entities.PointHistory", b =>
+                {
+                    b.HasOne("GreenConnectPlatform.Data.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.Profile", b =>
                 {
+                    b.HasOne("GreenConnectPlatform.Data.Entities.Rank", "Rank")
+                        .WithMany("Profiles")
+                        .HasForeignKey("RankId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("GreenConnectPlatform.Data.Entities.User", "User")
                         .WithOne("Profile")
                         .HasForeignKey("GreenConnectPlatform.Data.Entities.Profile", "UserId")
@@ -1013,7 +1255,28 @@ namespace GreenConnectPlatform.Data.Migrations
                         .IsRequired()
                         .HasConstraintName("Profiles_UserId_fkey");
 
+                    b.Navigation("Rank");
+
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("GreenConnectPlatform.Data.Entities.ReferencePrice", b =>
+                {
+                    b.HasOne("GreenConnectPlatform.Data.Entities.ScrapCategory", "ScrapCategory")
+                        .WithMany()
+                        .HasForeignKey("ScrapCategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("GreenConnectPlatform.Data.Entities.User", "UpdatedByAdmin")
+                        .WithMany()
+                        .HasForeignKey("UpdatedByAdminId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ScrapCategory");
+
+                    b.Navigation("UpdatedByAdmin");
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.ScheduleProposal", b =>
@@ -1121,6 +1384,25 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.Navigation("Transaction");
                 });
 
+            modelBuilder.Entity("GreenConnectPlatform.Data.Entities.UserPackage", b =>
+                {
+                    b.HasOne("GreenConnectPlatform.Data.Entities.PaymentPackage", "Package")
+                        .WithMany()
+                        .HasForeignKey("PackageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("GreenConnectPlatform.Data.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Package");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.UserRewardRedemption", b =>
                 {
                     b.HasOne("GreenConnectPlatform.Data.Entities.RewardItem", "RewardItem")
@@ -1202,7 +1484,14 @@ namespace GreenConnectPlatform.Data.Migrations
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.CollectionOffer", b =>
                 {
+                    b.Navigation("OfferDetails");
+
                     b.Navigation("Transactions");
+                });
+
+            modelBuilder.Entity("GreenConnectPlatform.Data.Entities.Rank", b =>
+                {
+                    b.Navigation("Profiles");
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.RewardItem", b =>

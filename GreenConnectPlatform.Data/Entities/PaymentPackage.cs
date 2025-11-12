@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using GreenConnectPlatform.Data.Enums;
 
 namespace GreenConnectPlatform.Data.Entities;

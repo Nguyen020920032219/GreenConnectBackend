@@ -17,7 +17,7 @@ public class Transaction
     public DateTime? ScheduledTime { get; set; }
 
     public DateTime? CheckInTime { get; set; }
-    
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public DateTime? UpdatedAt { get; set; }

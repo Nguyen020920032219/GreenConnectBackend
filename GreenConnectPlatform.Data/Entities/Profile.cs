@@ -22,7 +22,7 @@ public class Profile
     public int RankId { get; set; } = 1;
 
     public Point? Location { get; set; }
-    
+
     public virtual User User { get; set; } = null!;
     public virtual Rank Rank { get; set; } = null!;
 }

@@ -29,10 +29,10 @@ namespace GreenConnectPlatform.Data.Migrations
                 columns: new[] { "Id", "AccessFailedCount", "BuyerType", "ConcurrencyStamp", "CreatedAt", "Email", "EmailConfirmed", "FullName", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "OtpCode", "OtpExpiredAt", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "SecurityStamp", "Status", "TwoFactorEnabled", "UpdatedAt", "UserName" },
                 values: new object[,]
                 {
-                    { new Guid("a1b2c3d4-e5f6-7788-9900-aabbccddeeff"), 0, null, "c48c05df-0569-4bb6-9c05-6e7d9274dff8", new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), null, false, "Admin GreenConnect", false, null, null, "0900000000", null, null, null, "0900000000", true, null, 1, false, null, "0900000000" },
-                    { new Guid("b2c3d4e5-f6a1-8899-0011-bbccddeeff00"), 0, 0, "1b07ade3-dbcd-42cc-9c8d-52a1ec0e8df7", new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), null, false, "Anh Ba Ve Chai", false, null, null, "0911111111", null, null, null, "0911111111", true, null, 0, false, null, "0911111111" },
-                    { new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"), 0, null, "bb505749-6750-4104-9f7d-8838e9656b9f", new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), null, false, "Chị Tư Bán Ve Chai", false, null, null, "0922222222", null, null, null, "0922222222", true, null, 1, false, null, "0922222222" },
-                    { new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"), 0, 1, "4fdac1ae-e0db-42b4-a67c-0ac179583a32", new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), null, false, "Vựa Ve Chai ABC", false, null, null, "0988888888", null, null, null, "0988888888", true, null, 1, false, null, "0988888888" }
+                    { new Guid("a1b2c3d4-e5f6-7788-9900-aabbccddeeff"), 0, null, "8eb9776d-1cd1-421e-a1be-3e155eafbd3b", new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), null, false, "Admin GreenConnect", false, null, null, "0900000000", null, null, null, "0900000000", true, null, 1, false, null, "0900000000" },
+                    { new Guid("b2c3d4e5-f6a1-8899-0011-bbccddeeff00"), 0, 0, "96e577d7-24e8-4362-832f-71689f7afa34", new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), null, false, "Anh Ba Ve Chai", false, null, null, "0911111111", null, null, null, "0911111111", true, null, 0, false, null, "0911111111" },
+                    { new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"), 0, null, "980ff816-43ea-4a54-92b4-0fcdb77c661a", new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), null, false, "Chị Tư Bán Ve Chai", false, null, null, "0922222222", null, null, null, "0922222222", true, null, 1, false, null, "0922222222" },
+                    { new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"), 0, 1, "6804d83d-6195-45f7-8389-eaf53207cd87", new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), null, false, "Vựa Ve Chai ABC", false, null, null, "0988888888", null, null, null, "0988888888", true, null, 1, false, null, "0988888888" }
                 });
 
             migrationBuilder.InsertData(
@@ -139,11 +139,11 @@ namespace GreenConnectPlatform.Data.Migrations
 
             migrationBuilder.InsertData(
                 table: "ScrapPosts",
-                columns: new[] { "ScrapPostId", "Address", "AvailableTimeRange", "CreatedAt", "Description", "HouseholdId", "Location", "Status", "Title", "UpdatedAt" },
+                columns: new[] { "ScrapPostId", "Address", "AvailableTimeRange", "CreatedAt", "Description", "HouseholdId", "Location", "MustTakeAll", "Status", "Title", "UpdatedAt" },
                 values: new object[,]
                 {
-                    { new Guid("20000000-0000-0000-0000-000000000001"), "789 Household Ave, District 3, HCMC", "Chiều nay (14h-16h)", new DateTime(2025, 10, 9, 10, 0, 0, 0, DateTimeKind.Utc), "Khoảng 1 bao lớn, đã gom sạch sẽ.", new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"), null, 3, "Dọn nhà bếp, có chai nhựa và lon", null },
-                    { new Guid("20000000-0000-0000-0000-000000000003"), "456 Collector Rd, Binh Thanh, HCMC", null, new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), null, new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"), null, 3, "Đồ điện tử cũ", null }
+                    { new Guid("20000000-0000-0000-0000-000000000001"), "789 Household Ave, District 3, HCMC", "Chiều nay (14h-16h)", new DateTime(2025, 10, 9, 10, 0, 0, 0, DateTimeKind.Utc), "Khoảng 1 bao lớn, đã gom sạch sẽ.", new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"), null, false, 3, "Dọn nhà bếp, có chai nhựa và lon", null },
+                    { new Guid("20000000-0000-0000-0000-000000000003"), "456 Collector Rd, Binh Thanh, HCMC", null, new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), null, new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"), null, false, 3, "Đồ điện tử cũ", null }
                 });
 
             migrationBuilder.InsertData(

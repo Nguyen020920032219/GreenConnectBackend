@@ -17,7 +17,7 @@ public class Profile
 
     public string? AvatarUrl { get; set; }
 
-    public int PointBalance { get; set; } = 0;
+    public int PointBalance { get; set; } = 200;
 
     public int RankId { get; set; } = 1;
 

@@ -967,6 +967,9 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.Property<Point>("Location")
                         .HasColumnType("geometry(Point,4326)");
 
+                    b.Property<bool>("MustTakeAll")
+                        .HasColumnType("boolean");
+
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
@@ -1000,6 +1003,7 @@ namespace GreenConnectPlatform.Data.Migrations
                             CreatedAt = new DateTime(2025, 10, 9, 10, 0, 0, 0, DateTimeKind.Utc),
                             Description = "Khoảng 1 bao lớn, đã gom sạch sẽ.",
                             HouseholdId = new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"),
+                            MustTakeAll = false,
                             Status = 3,
                             Title = "Dọn nhà bếp, có chai nhựa và lon"
                         },
@@ -1009,6 +1013,7 @@ namespace GreenConnectPlatform.Data.Migrations
                             Address = "456 Collector Rd, Binh Thanh, HCMC",
                             CreatedAt = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc),
                             HouseholdId = new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"),
+                            MustTakeAll = false,
                             Status = 3,
                             Title = "Đồ điện tử cũ"
                         });
@@ -1287,7 +1292,7 @@ namespace GreenConnectPlatform.Data.Migrations
                         {
                             Id = new Guid("a1b2c3d4-e5f6-7788-9900-aabbccddeeff"),
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "c48c05df-0569-4bb6-9c05-6e7d9274dff8",
+                            ConcurrencyStamp = "8eb9776d-1cd1-421e-a1be-3e155eafbd3b",
                             CreatedAt = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc),
                             EmailConfirmed = false,
                             FullName = "Admin GreenConnect",
@@ -1304,7 +1309,7 @@ namespace GreenConnectPlatform.Data.Migrations
                             Id = new Guid("b2c3d4e5-f6a1-8899-0011-bbccddeeff00"),
                             AccessFailedCount = 0,
                             BuyerType = 0,
-                            ConcurrencyStamp = "1b07ade3-dbcd-42cc-9c8d-52a1ec0e8df7",
+                            ConcurrencyStamp = "96e577d7-24e8-4362-832f-71689f7afa34",
                             CreatedAt = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc),
                             EmailConfirmed = false,
                             FullName = "Anh Ba Ve Chai",
@@ -1320,7 +1325,7 @@ namespace GreenConnectPlatform.Data.Migrations
                         {
                             Id = new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"),
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "bb505749-6750-4104-9f7d-8838e9656b9f",
+                            ConcurrencyStamp = "980ff816-43ea-4a54-92b4-0fcdb77c661a",
                             CreatedAt = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc),
                             EmailConfirmed = false,
                             FullName = "Chị Tư Bán Ve Chai",
@@ -1337,7 +1342,7 @@ namespace GreenConnectPlatform.Data.Migrations
                             Id = new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"),
                             AccessFailedCount = 0,
                             BuyerType = 1,
-                            ConcurrencyStamp = "4fdac1ae-e0db-42b4-a67c-0ac179583a32",
+                            ConcurrencyStamp = "6804d83d-6195-45f7-8389-eaf53207cd87",
                             CreatedAt = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc),
                             EmailConfirmed = false,
                             FullName = "Vựa Ve Chai ABC",

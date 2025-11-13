@@ -1,73 +1,29 @@
+version: '3.8'
+
 services:
-  db:
-    image: postgis/postgis:15-3.4-alpine
-    container_name: greenconnect-db
+  greenconnect-api:
+    container_name: greenconnect-api-container
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:8080"
     environment:
-      - POSTGRES_DB=GreenConnectDb
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
-    volumes:
-      - pgdata:/var/lib/postgresql/data
+      DatabaseConnection__DefaultConnection__DbHost: host.docker.internal
+      
+      DatabaseConnection__DefaultConnection__DbUser: postgres
+      DatabaseConnection__DefaultConnection__DbPass: "password"
+      DatabaseConnection__DefaultConnection__Database: GreenConnectDb
+      DatabaseConnection__DefaultConnection__DbPort: 5432
     restart: unless-stopped
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres -d GreenConnectDb" ]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
-  api:
-    image: cucdang/greenconnect-platform:dev
-    container_name: greenconnect-api
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - DatabaseConnection__DefaultConnection__DbHost=db
-      - DatabaseConnection__DefaultConnection__DbPort=5432
-      - DatabaseConnection__DefaultConnection__DbUser=postgres
-      - DatabaseConnection__DefaultConnection__DbPass=${DB_PASSWORD}
-      - DatabaseConnection__DefaultConnection__Database=GreenConnectDb
-      - ASPNETCORE_URLS=http://+:8080
-    expose:
-      - "8080"
-    depends_on:
-      db:
-        condition: service_healthy
-    restart: unless-stopped
-
-#  api:
-#    build:
-#      context: .
-#      dockerfile: Dockerfile
-#    image: greenconnect-platform:prod
-#    container_name: greenconnect-api
-#    environment:
-#      - ASPNETCORE_ENVIRONMENT=Development
-#      - DatabaseConnection__DefaultConnection__DbHost=db
-#      - DatabaseConnection__DefaultConnection__DbPort=5432
-#      - DatabaseConnection__DefaultConnection__DbUser=postgres
-#      - DatabaseConnection__DefaultConnection__DbPass=${DB_PASSWORD}
-#      - DatabaseConnection__DefaultConnection__Database=GreenConnectDb
-#      - ASPNETCORE_URLS=http://+:8080
-#    expose:
-#      - "8080"
-#    volumes:
-#      - dataprotection:/root/.aspnet/DataProtection-Keys
-#    depends_on:
-#      db:
-#        condition: service_healthy
-#    restart: unless-stopped
-
+  
   nginx:
-    image: nginx:stable-alpine
-    container_name: greenconnect-nginx
+    image: nginx:alpine
+    container_name: greenconnect-nginx-container
     ports:
       - "80:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
-      - api
-    restart: unless-stopped
-
-volumes:
-  pgdata:
-  dataprotection:
-
+      - greenconnect-api
+    restart: always

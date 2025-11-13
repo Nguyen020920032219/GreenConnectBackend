@@ -22,7 +22,7 @@ public class GlobalExceptionHandler : IExceptionHandler
         _logger.LogError(exception, "An unhandled exception occurred: {Message}", exception.Message);
 
         var statusCode = StatusCodes.Status500InternalServerError;
-        var errorCode = "PR50001";
+        var errorCode = "500";
         var message = "An unexpected server error has occurred.";
 
         switch (exception)
@@ -35,19 +35,19 @@ public class GlobalExceptionHandler : IExceptionHandler
 
             case KeyNotFoundException:
                 statusCode = StatusCodes.Status404NotFound;
-                errorCode = "PR40401";
+                errorCode = "404";
                 message = "The requested resource was not found.";
                 break;
 
             case UnauthorizedAccessException:
                 statusCode = StatusCodes.Status403Forbidden;
-                errorCode = "PR40301";
+                errorCode = "403";
                 message = "You are not authorized to perform this action.";
                 break;
 
             case ValidationException ve:
                 statusCode = StatusCodes.Status400BadRequest;
-                errorCode = "PR40001";
+                errorCode = "400";
                 message = ve.Message;
                 break;
         }

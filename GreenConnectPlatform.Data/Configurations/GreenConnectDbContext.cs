@@ -522,10 +522,12 @@ public class GreenConnectDbContext : IdentityDbContext<User, IdentityRole<Guid>,
         );
 
         modelBuilder.Entity<User>().HasData(
+            //Email: admin@gmail.com,  Password: Admin@123
             new User
             {
-                Id = adminUserId, UserName = "0900000000", NormalizedUserName = "0900000000",
+                Id = adminUserId, UserName = "0900000000", Email = "admin@gmail.com", NormalizedUserName = "0900000000",
                 PhoneNumber = "0900000000", PhoneNumberConfirmed = true,
+                PasswordHash = "AQAAAAIAAYagAAAAEDmdqqVjPEcGnYT3hugAntBzyIN2dWsejrKbiqciN/LzWhifHV6aiV58TKe3h5J5Hg==",
                 FullName = "Admin GreenConnect", Status = UserStatus.Active, CreatedAt = seedDate,
                 BuyerType = null
             },

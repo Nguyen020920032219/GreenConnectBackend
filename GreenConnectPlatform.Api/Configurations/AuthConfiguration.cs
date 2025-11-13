@@ -56,7 +56,7 @@ public static class AuthConfiguration
 
                         var errorResponse = new
                         {
-                            errorCode = "PR40101",
+                            errorCode = "401",
                             message = "Authentication error. A valid token is required to access this resource."
                         };
 
@@ -70,7 +70,7 @@ public static class AuthConfiguration
 
                         var errorResponse = new
                         {
-                            errorCode = "PR40301",
+                            errorCode = "403",
                             message = "Not authorized. You do not have permission to access this resource."
                         };
 

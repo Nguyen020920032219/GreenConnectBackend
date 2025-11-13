@@ -316,7 +316,8 @@ namespace GreenConnectPlatform.Data.Migrations
                     Status = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    Location = table.Column<Point>(type: "geometry(Point,4326)", nullable: true)
+                    Location = table.Column<Point>(type: "geometry(Point,4326)", nullable: true),
+                    MustTakeAll = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {

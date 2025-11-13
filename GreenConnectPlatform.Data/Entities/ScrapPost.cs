@@ -25,6 +25,8 @@ public class ScrapPost
 
     public Point? Location { get; set; }
 
+    public bool MustTakeAll { get; set; } = false;
+
     public virtual ICollection<CollectionOffer> CollectionOffers { get; set; } = new List<CollectionOffer>();
 
     public virtual User Household { get; set; } = null!;

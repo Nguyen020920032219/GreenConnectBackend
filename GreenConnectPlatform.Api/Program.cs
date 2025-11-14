@@ -38,8 +38,9 @@ public class Program
 
         builder.Services.ConfigureAuthentication(builder.Configuration);
         if (!disableFirebase)
-            builder.Services.ConfigureFirebase(builder.Environment);
-
+        {
+            builder.Services.ConfigureFirebase(builder.Environment); 
+        }
         builder.Services.ConfigureSwagger();
         builder.Services.AddAuthorization();
 

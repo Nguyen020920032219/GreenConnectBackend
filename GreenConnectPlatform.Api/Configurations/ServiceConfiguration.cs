@@ -1,6 +1,7 @@
 using GreenConnectPlatform.Business.Mappers;
 using GreenConnectPlatform.Business.Services.Auth;
 using GreenConnectPlatform.Business.Services.FileStorage;
+using GreenConnectPlatform.Business.Services.Jwt;
 using GreenConnectPlatform.Business.Services.ScrapPosts;
 using GreenConnectPlatform.Business.Services.ScrapPosts.ScrapPostDetails;
 using GreenConnectPlatform.Data.Repositories.Profiles;
@@ -21,6 +22,7 @@ public static class ServiceConfiguration
         services.AddSingleton<FirebaseService>();
         services.AddSingleton<IFileStorageService, FirebaseStorageService>();
         services.AddScoped<IScrapPostDetailService, ScrapPostDetailService>();
+        services.AddScoped<IJwtService, JwtService>();
     }
 
     public static void ConfigureRepositories(this IServiceCollection services)

@@ -525,8 +525,8 @@ public class GreenConnectDbContext : IdentityDbContext<User, IdentityRole<Guid>,
             new User
             {
                 Id = adminUserId, UserName = "0900000000", Email = "admin@gmail.com", NormalizedUserName = "0900000000",
-                PhoneNumber = "0900000000", PhoneNumberConfirmed = true,
-                PasswordHash = "AQAAAAIAAYagAAAAEDmdqqVjPEcGnYT3hugAntBzyIN2dWsejrKbiqciN/LzWhifHV6aiV58TKe3h5J5Hg==",
+                PhoneNumber = "0900000000", PhoneNumberConfirmed = true, NormalizedEmail = "ADMIN@GMAIL.COM",
+                PasswordHash = "AQAAAAIAAYagAAAAELSd8S1/ERD0+I4lEAStNTTw/VOGuVVH8vE3SL92wYldv4i4XV78koh+GJ3GpdR05A==",
                 FullName = "Admin GreenConnect", Status = UserStatus.Active, CreatedAt = seedDate,
                 BuyerType = null
             },
@@ -536,7 +536,9 @@ public class GreenConnectDbContext : IdentityDbContext<User, IdentityRole<Guid>,
                 PhoneNumber = "0911111111", PhoneNumberConfirmed = true,
                 FullName = "Anh Ba Ve Chai", Status = UserStatus.PendingVerification,
                 CreatedAt = seedDate,
-                BuyerType = BuyerType.Individual
+                BuyerType = BuyerType.Individual,
+                Email = "collector@gmail.com", NormalizedEmail = "COLLECTOR@GMAIL.COM",
+                PasswordHash = "AQAAAAIAAYagAAAAELSd8S1/ERD0+I4lEAStNTTw/VOGuVVH8vE3SL92wYldv4i4XV78koh+GJ3GpdR05A=="
             },
             new User
             {
@@ -544,7 +546,9 @@ public class GreenConnectDbContext : IdentityDbContext<User, IdentityRole<Guid>,
                 PhoneNumber = "0922222222", PhoneNumberConfirmed = true,
                 FullName = "Chị Tư Bán Ve Chai", Status = UserStatus.Active,
                 CreatedAt = seedDate,
-                BuyerType = null
+                BuyerType = null,
+                Email = "household@gmail.com", NormalizedEmail = "HOUSEHOLD@GMAIL.COM",
+                PasswordHash = "AQAAAAIAAYagAAAAELSd8S1/ERD0+I4lEAStNTTw/VOGuVVH8vE3SL92wYldv4i4XV78koh+GJ3GpdR05A=="
             },
             new User
             {
@@ -552,7 +556,9 @@ public class GreenConnectDbContext : IdentityDbContext<User, IdentityRole<Guid>,
                 PhoneNumber = "0988888888", PhoneNumberConfirmed = true,
                 FullName = "Vựa Ve Chai ABC", Status = UserStatus.Active,
                 CreatedAt = seedDate,
-                BuyerType = BuyerType.Business
+                BuyerType = BuyerType.Business,
+                Email = "scrapyard@gmail.com", NormalizedEmail = "SCRAPYARD@GMAIL.COM",
+                PasswordHash = "AQAAAAIAAYagAAAAELSd8S1/ERD0+I4lEAStNTTw/VOGuVVH8vE3SL92wYldv4i4XV78koh+GJ3GpdR05A=="
             }
         );
 

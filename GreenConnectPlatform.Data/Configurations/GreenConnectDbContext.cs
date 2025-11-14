@@ -114,6 +114,11 @@ public class GreenConnectDbContext : IdentityDbContext<User, IdentityRole<Guid>,
                 .WithMany(p => p.CollectionOffers)
                 .HasForeignKey(d => d.ScrapCollectorId)
                 .HasConstraintName("CollectionOffers_ScrapCollectorId_fkey");
+
+            entity.HasMany(o => o.ScheduleProposals)
+                .WithOne(p => p.Offer)
+                .HasForeignKey(p => p.CollectionOfferId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<CollectorVerificationInfo>(entity =>
@@ -250,8 +255,6 @@ public class GreenConnectDbContext : IdentityDbContext<User, IdentityRole<Guid>,
         {
             entity.HasKey(e => e.ScheduleProposalId).HasName("ScheduleProposals_pkey");
 
-            entity.HasIndex(e => e.TransactionId, "IX_ScheduleProposals_TransactionId");
-
             entity.Property(e => e.ScheduleProposalId).ValueGeneratedNever();
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
             entity.Property(e => e.Status)
@@ -260,10 +263,6 @@ public class GreenConnectDbContext : IdentityDbContext<User, IdentityRole<Guid>,
             entity.HasOne(d => d.Proposer).WithMany(p => p.ScheduleProposals)
                 .HasForeignKey(d => d.ProposerId)
                 .HasConstraintName("ScheduleProposals_ProposerId_fkey");
-
-            entity.HasOne(d => d.Transaction).WithMany(p => p.ScheduleProposals)
-                .HasForeignKey(d => d.TransactionId)
-                .HasConstraintName("ScheduleProposals_TransactionId_fkey");
         });
 
         modelBuilder.Entity<ScrapCategory>(entity =>
@@ -893,8 +892,7 @@ public class GreenConnectDbContext : IdentityDbContext<User, IdentityRole<Guid>,
             new ScheduleProposal
             {
                 ScheduleProposalId = new Guid("13131313-0000-0000-0000-000000000001"),
-                TransactionId = sampleTxId,
-                ProposerId = buyerBussId,
+                CollectionOfferId = sampleOfferId, ProposerId = buyerBussId,
                 ProposedTime = seedDate.AddHours(4),
                 Status = ProposalStatus.Accepted,
                 CreatedAt = seedDate.AddDays(-1)

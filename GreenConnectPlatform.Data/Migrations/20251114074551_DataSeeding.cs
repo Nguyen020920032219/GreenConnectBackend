@@ -29,10 +29,10 @@ namespace GreenConnectPlatform.Data.Migrations
                 columns: new[] { "Id", "AccessFailedCount", "BuyerType", "ConcurrencyStamp", "CreatedAt", "Email", "EmailConfirmed", "FullName", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "OtpCode", "OtpExpiredAt", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "SecurityStamp", "Status", "TwoFactorEnabled", "UpdatedAt", "UserName" },
                 values: new object[,]
                 {
-                    { new Guid("a1b2c3d4-e5f6-7788-9900-aabbccddeeff"), 0, null, "5f1752c1-c363-46b6-9d3b-852257040f73", new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), "admin@gmail.com", false, "Admin GreenConnect", false, null, null, "0900000000", null, null, "AQAAAAIAAYagAAAAEDmdqqVjPEcGnYT3hugAntBzyIN2dWsejrKbiqciN/LzWhifHV6aiV58TKe3h5J5Hg==", "0900000000", true, null, 1, false, null, "0900000000" },
-                    { new Guid("b2c3d4e5-f6a1-8899-0011-bbccddeeff00"), 0, 0, "099ea22f-510e-447a-aebc-932d3901d82c", new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), null, false, "Anh Ba Ve Chai", false, null, null, "0911111111", null, null, null, "0911111111", true, null, 0, false, null, "0911111111" },
-                    { new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"), 0, null, "4c9c59db-7840-41c7-98f0-2b44661f4a74", new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), null, false, "Chị Tư Bán Ve Chai", false, null, null, "0922222222", null, null, null, "0922222222", true, null, 1, false, null, "0922222222" },
-                    { new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"), 0, 1, "9c2893bb-b992-4997-8132-bd0c0318cea7", new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), null, false, "Vựa Ve Chai ABC", false, null, null, "0988888888", null, null, null, "0988888888", true, null, 1, false, null, "0988888888" }
+                    { new Guid("a1b2c3d4-e5f6-7788-9900-aabbccddeeff"), 0, null, "b59df1b5-8308-41f7-9688-dbca0327cb50", new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), "admin@gmail.com", false, "Admin GreenConnect", false, null, null, "0900000000", null, null, "AQAAAAIAAYagAAAAEDmdqqVjPEcGnYT3hugAntBzyIN2dWsejrKbiqciN/LzWhifHV6aiV58TKe3h5J5Hg==", "0900000000", true, null, 1, false, null, "0900000000" },
+                    { new Guid("b2c3d4e5-f6a1-8899-0011-bbccddeeff00"), 0, 0, "790c3a0e-58dc-4be6-86a7-95076b94b888", new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), null, false, "Anh Ba Ve Chai", false, null, null, "0911111111", null, null, null, "0911111111", true, null, 0, false, null, "0911111111" },
+                    { new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"), 0, null, "71f5f4f4-1087-4ae6-af76-37875c78bc38", new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), null, false, "Chị Tư Bán Ve Chai", false, null, null, "0922222222", null, null, null, "0922222222", true, null, 1, false, null, "0922222222" },
+                    { new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"), 0, 1, "63040614-b36a-4108-b857-e2aaf75cfa34", new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), null, false, "Vựa Ve Chai ABC", false, null, null, "0988888888", null, null, null, "0988888888", true, null, 1, false, null, "0988888888" }
                 });
 
             migrationBuilder.InsertData(
@@ -190,6 +190,11 @@ namespace GreenConnectPlatform.Data.Migrations
                 });
 
             migrationBuilder.InsertData(
+                table: "ScheduleProposals",
+                columns: new[] { "ScheduleProposalId", "CollectionOfferId", "CreatedAt", "ProposedTime", "ProposerId", "ResponseMessage", "Status" },
+                values: new object[] { new Guid("13131313-0000-0000-0000-000000000001"), new Guid("30000000-0000-0000-0000-000000000001"), new DateTime(2025, 10, 9, 10, 0, 0, 0, DateTimeKind.Utc), new DateTime(2025, 10, 10, 14, 0, 0, 0, DateTimeKind.Utc), new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"), null, "Accepted" });
+
+            migrationBuilder.InsertData(
                 table: "Transactions",
                 columns: new[] { "TransactionId", "CheckInTime", "CreatedAt", "HouseholdId", "OfferId", "ScheduledTime", "ScrapCollectorId", "Status", "UpdatedAt" },
                 values: new object[,]
@@ -212,11 +217,6 @@ namespace GreenConnectPlatform.Data.Migrations
                 table: "Feedbacks",
                 columns: new[] { "FeedbackId", "Comment", "CreatedAt", "Rate", "RevieweeId", "ReviewerId", "TransactionId" },
                 values: new object[] { new Guid("44444444-0000-0000-0000-000000000001"), "Vựa thu gom nhanh, cân đo chính xác!", new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), 5, new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"), new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"), new Guid("40000000-0000-0000-0000-000000000001") });
-
-            migrationBuilder.InsertData(
-                table: "ScheduleProposals",
-                columns: new[] { "ScheduleProposalId", "CreatedAt", "ProposedTime", "ProposerId", "ResponseMessage", "Status", "TransactionId" },
-                values: new object[] { new Guid("13131313-0000-0000-0000-000000000001"), new DateTime(2025, 10, 9, 10, 0, 0, 0, DateTimeKind.Utc), new DateTime(2025, 10, 10, 14, 0, 0, 0, DateTimeKind.Utc), new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"), null, "Accepted", new Guid("40000000-0000-0000-0000-000000000001") });
 
             migrationBuilder.InsertData(
                 table: "TransactionDetails",

@@ -6,7 +6,7 @@ public class ScheduleProposal
 {
     public Guid ScheduleProposalId { get; set; }
 
-    public Guid TransactionId { get; set; }
+    public Guid CollectionOfferId { get; set; }
 
     public Guid ProposerId { get; set; }
 
@@ -14,11 +14,11 @@ public class ScheduleProposal
 
     public ProposalStatus Status { get; set; } = ProposalStatus.Pending;
 
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public string? ResponseMessage { get; set; }
 
     public virtual User Proposer { get; set; } = null!;
 
-    public virtual Transaction Transaction { get; set; } = null!;
+    public virtual CollectionOffer Offer { get; set; } = null!;
 }

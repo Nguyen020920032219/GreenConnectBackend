@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GreenConnectPlatform.Data.Migrations
 {
     [DbContext(typeof(GreenConnectDbContext))]
-    [Migration("20251113072519_InitialDatabase")]
+    [Migration("20251114074526_InitialDatabase")]
     partial class InitialDatabase
     {
         /// <inheritdoc />
@@ -545,6 +545,9 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.Property<Guid>("ScheduleProposalId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("CollectionOfferId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
@@ -563,15 +566,12 @@ namespace GreenConnectPlatform.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid>("TransactionId")
-                        .HasColumnType("uuid");
-
                     b.HasKey("ScheduleProposalId")
                         .HasName("ScheduleProposals_pkey");
 
-                    b.HasIndex("ProposerId");
+                    b.HasIndex("CollectionOfferId");
 
-                    b.HasIndex(new[] { "TransactionId" }, "IX_ScheduleProposals_TransactionId");
+                    b.HasIndex("ProposerId");
 
                     b.ToTable("ScheduleProposals");
                 });
@@ -1284,6 +1284,12 @@ namespace GreenConnectPlatform.Data.Migrations
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.ScheduleProposal", b =>
                 {
+                    b.HasOne("GreenConnectPlatform.Data.Entities.CollectionOffer", "Offer")
+                        .WithMany("ScheduleProposals")
+                        .HasForeignKey("CollectionOfferId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("GreenConnectPlatform.Data.Entities.User", "Proposer")
                         .WithMany("ScheduleProposals")
                         .HasForeignKey("ProposerId")
@@ -1291,16 +1297,9 @@ namespace GreenConnectPlatform.Data.Migrations
                         .IsRequired()
                         .HasConstraintName("ScheduleProposals_ProposerId_fkey");
 
-                    b.HasOne("GreenConnectPlatform.Data.Entities.Transaction", "Transaction")
-                        .WithMany("ScheduleProposals")
-                        .HasForeignKey("TransactionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("ScheduleProposals_TransactionId_fkey");
+                    b.Navigation("Offer");
 
                     b.Navigation("Proposer");
-
-                    b.Navigation("Transaction");
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.ScrapPost", b =>
@@ -1489,6 +1488,8 @@ namespace GreenConnectPlatform.Data.Migrations
                 {
                     b.Navigation("OfferDetails");
 
+                    b.Navigation("ScheduleProposals");
+
                     b.Navigation("Transactions");
                 });
 
@@ -1523,8 +1524,6 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.Navigation("Complaints");
 
                     b.Navigation("Feedbacks");
-
-                    b.Navigation("ScheduleProposals");
 
                     b.Navigation("TransactionDetails");
                 });

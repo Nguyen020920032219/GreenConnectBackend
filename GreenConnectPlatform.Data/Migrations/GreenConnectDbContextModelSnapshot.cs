@@ -843,6 +843,9 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.Property<Guid>("ScheduleProposalId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("CollectionOfferId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
@@ -861,15 +864,12 @@ namespace GreenConnectPlatform.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid>("TransactionId")
-                        .HasColumnType("uuid");
-
                     b.HasKey("ScheduleProposalId")
                         .HasName("ScheduleProposals_pkey");
 
-                    b.HasIndex("ProposerId");
+                    b.HasIndex("CollectionOfferId");
 
-                    b.HasIndex(new[] { "TransactionId" }, "IX_ScheduleProposals_TransactionId");
+                    b.HasIndex("ProposerId");
 
                     b.ToTable("ScheduleProposals");
 
@@ -877,11 +877,11 @@ namespace GreenConnectPlatform.Data.Migrations
                         new
                         {
                             ScheduleProposalId = new Guid("13131313-0000-0000-0000-000000000001"),
+                            CollectionOfferId = new Guid("30000000-0000-0000-0000-000000000001"),
                             CreatedAt = new DateTime(2025, 10, 9, 10, 0, 0, 0, DateTimeKind.Utc),
                             ProposedTime = new DateTime(2025, 10, 10, 14, 0, 0, 0, DateTimeKind.Utc),
                             ProposerId = new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"),
-                            Status = "Accepted",
-                            TransactionId = new Guid("40000000-0000-0000-0000-000000000001")
+                            Status = "Accepted"
                         });
                 });
 
@@ -1292,7 +1292,7 @@ namespace GreenConnectPlatform.Data.Migrations
                         {
                             Id = new Guid("a1b2c3d4-e5f6-7788-9900-aabbccddeeff"),
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "5f1752c1-c363-46b6-9d3b-852257040f73",
+                            ConcurrencyStamp = "b59df1b5-8308-41f7-9688-dbca0327cb50",
                             CreatedAt = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc),
                             Email = "admin@gmail.com",
                             EmailConfirmed = false,
@@ -1311,7 +1311,7 @@ namespace GreenConnectPlatform.Data.Migrations
                             Id = new Guid("b2c3d4e5-f6a1-8899-0011-bbccddeeff00"),
                             AccessFailedCount = 0,
                             BuyerType = 0,
-                            ConcurrencyStamp = "099ea22f-510e-447a-aebc-932d3901d82c",
+                            ConcurrencyStamp = "790c3a0e-58dc-4be6-86a7-95076b94b888",
                             CreatedAt = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc),
                             EmailConfirmed = false,
                             FullName = "Anh Ba Ve Chai",
@@ -1327,7 +1327,7 @@ namespace GreenConnectPlatform.Data.Migrations
                         {
                             Id = new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"),
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "4c9c59db-7840-41c7-98f0-2b44661f4a74",
+                            ConcurrencyStamp = "71f5f4f4-1087-4ae6-af76-37875c78bc38",
                             CreatedAt = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc),
                             EmailConfirmed = false,
                             FullName = "Chị Tư Bán Ve Chai",
@@ -1344,7 +1344,7 @@ namespace GreenConnectPlatform.Data.Migrations
                             Id = new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"),
                             AccessFailedCount = 0,
                             BuyerType = 1,
-                            ConcurrencyStamp = "9c2893bb-b992-4997-8132-bd0c0318cea7",
+                            ConcurrencyStamp = "63040614-b36a-4108-b857-e2aaf75cfa34",
                             CreatedAt = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc),
                             EmailConfirmed = false,
                             FullName = "Vựa Ve Chai ABC",
@@ -1867,6 +1867,12 @@ namespace GreenConnectPlatform.Data.Migrations
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.ScheduleProposal", b =>
                 {
+                    b.HasOne("GreenConnectPlatform.Data.Entities.CollectionOffer", "Offer")
+                        .WithMany("ScheduleProposals")
+                        .HasForeignKey("CollectionOfferId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("GreenConnectPlatform.Data.Entities.User", "Proposer")
                         .WithMany("ScheduleProposals")
                         .HasForeignKey("ProposerId")
@@ -1874,16 +1880,9 @@ namespace GreenConnectPlatform.Data.Migrations
                         .IsRequired()
                         .HasConstraintName("ScheduleProposals_ProposerId_fkey");
 
-                    b.HasOne("GreenConnectPlatform.Data.Entities.Transaction", "Transaction")
-                        .WithMany("ScheduleProposals")
-                        .HasForeignKey("TransactionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("ScheduleProposals_TransactionId_fkey");
+                    b.Navigation("Offer");
 
                     b.Navigation("Proposer");
-
-                    b.Navigation("Transaction");
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.ScrapPost", b =>
@@ -2072,6 +2071,8 @@ namespace GreenConnectPlatform.Data.Migrations
                 {
                     b.Navigation("OfferDetails");
 
+                    b.Navigation("ScheduleProposals");
+
                     b.Navigation("Transactions");
                 });
 
@@ -2106,8 +2107,6 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.Navigation("Complaints");
 
                     b.Navigation("Feedbacks");
-
-                    b.Navigation("ScheduleProposals");
 
                     b.Navigation("TransactionDetails");
                 });

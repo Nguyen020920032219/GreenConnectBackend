@@ -552,6 +552,35 @@ namespace GreenConnectPlatform.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ScheduleProposals",
+                columns: table => new
+                {
+                    ScheduleProposalId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CollectionOfferId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ProposerId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ProposedTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Status = table.Column<string>(type: "text", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
+                    ResponseMessage = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("ScheduleProposals_pkey", x => x.ScheduleProposalId);
+                    table.ForeignKey(
+                        name: "FK_ScheduleProposals_CollectionOffers_CollectionOfferId",
+                        column: x => x.CollectionOfferId,
+                        principalTable: "CollectionOffers",
+                        principalColumn: "CollectionOfferId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "ScheduleProposals_ProposerId_fkey",
+                        column: x => x.ProposerId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Transactions",
                 columns: table => new
                 {
@@ -672,35 +701,6 @@ namespace GreenConnectPlatform.Data.Migrations
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "Feedbacks_TransactionId_fkey",
-                        column: x => x.TransactionId,
-                        principalTable: "Transactions",
-                        principalColumn: "TransactionId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ScheduleProposals",
-                columns: table => new
-                {
-                    ScheduleProposalId = table.Column<Guid>(type: "uuid", nullable: false),
-                    TransactionId = table.Column<Guid>(type: "uuid", nullable: false),
-                    ProposerId = table.Column<Guid>(type: "uuid", nullable: false),
-                    ProposedTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Status = table.Column<string>(type: "text", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
-                    ResponseMessage = table.Column<string>(type: "text", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("ScheduleProposals_pkey", x => x.ScheduleProposalId);
-                    table.ForeignKey(
-                        name: "ScheduleProposals_ProposerId_fkey",
-                        column: x => x.ProposerId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "ScheduleProposals_TransactionId_fkey",
                         column: x => x.TransactionId,
                         principalTable: "Transactions",
                         principalColumn: "TransactionId",
@@ -957,14 +957,14 @@ namespace GreenConnectPlatform.Data.Migrations
                 column: "UpdatedByAdminId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ScheduleProposals_CollectionOfferId",
+                table: "ScheduleProposals",
+                column: "CollectionOfferId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ScheduleProposals_ProposerId",
                 table: "ScheduleProposals",
                 column: "ProposerId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ScheduleProposals_TransactionId",
-                table: "ScheduleProposals",
-                column: "TransactionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ScrapPostDetails_ScrapCategoryId",

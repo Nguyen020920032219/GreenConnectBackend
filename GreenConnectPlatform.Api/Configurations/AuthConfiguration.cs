@@ -93,13 +93,14 @@ public static class AuthConfiguration
                 {
                     Credential = GoogleCredential.FromFile(keyPath)
                 });
-
+                
                 Console.WriteLine("Firebase App '[DEFAULT]' initialized.");
             }
-
+            
             services.AddSingleton<FirebaseAuth>(FirebaseAuth.DefaultInstance);
             // services.AddSingleton<FirebaseStorage>(FirebaseStorage.DefaultInstance);
             // services.AddSingleton<FirebaseMessaging>(FirebaseMessaging.DefaultInstance);
+
         }
         catch (Exception ex)
         {

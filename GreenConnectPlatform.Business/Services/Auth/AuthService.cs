@@ -1,21 +1,24 @@
-using FirebaseAdmin.Auth;
-using GreenConnectPlatform.Business.Models.Auth;
-using GreenConnectPlatform.Business.Models.Users;
-using GreenConnectPlatform.Business.Services.Jwt;
+using GreenConnectPlatform.Data.Configurations;
 using GreenConnectPlatform.Data.Entities;
 using GreenConnectPlatform.Data.Enums;
-using GreenConnectPlatform.Data.Repositories.Profiles;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using FirebaseAdmin.Auth;
+using System.Security.Claims;
+using GreenConnectPlatform.Business.Models.Auth;
+using GreenConnectPlatform.Business.Models.Users;
+using GreenConnectPlatform.Business.Services.Auth;
+using GreenConnectPlatform.Business.Services.Jwt;
+using GreenConnectPlatform.Data.Repositories.Profiles;
 
 namespace GreenConnectPlatform.Business.Services.Auth;
 
 public class AuthService : IAuthService
 {
-    private readonly FirebaseAuth _firebaseAuth;
-    private readonly IJwtService _jwtService;
-    private readonly IProfileRepository _profileRepository;
     private readonly UserManager<User> _userManager;
+    private readonly IProfileRepository _profileRepository;
+    private readonly IJwtService _jwtService;
+    private readonly FirebaseAuth _firebaseAuth;
 
     public AuthService(
         UserManager<User> userManager,
@@ -29,7 +32,7 @@ public class AuthService : IAuthService
         _firebaseAuth = firebaseAuth;
     }
 
-    public async Task<(AuthResponse AuthResponse, bool IsNewUser)> LoginOrRegisterAsync(LoginOrRegisterRequest request)
+    public async Task<AuthResponse> LoginOrRegisterAsync(LoginOrRegisterRequest request)
     {
         FirebaseToken decodedToken;
         try
@@ -43,107 +46,69 @@ public class AuthService : IAuthService
 
         var phoneNumber = decodedToken.Claims.GetValueOrDefault("phone_number")?.ToString();
         if (string.IsNullOrEmpty(phoneNumber))
+        {
             throw new ApplicationException("Firebase token did not contain a phone number.");
-
-        var user = await GetUserWithProfile(phoneNumber);
-        var isNewUser = user == null;
-
-        if (isNewUser) user = await CreateNewHouseholdUserAsync(phoneNumber);
-
-        var roles = await _userManager.GetRolesAsync(user!);
-        if (!roles.Contains("Household") && user.Status == UserStatus.PendingVerification)
-            throw new UnauthorizedAccessException("Tài khoản của bạn đang chờ Admin xác minh!");
-
-        if (user.Status == UserStatus.Blocked) throw new UnauthorizedAccessException("Tài khoản của bạn đã bị khóa!");
-
-        var authResponse = await GenerateAuthResponse(user!, roles);
-
-        return (authResponse, isNewUser);
-    }
-
-    public async Task<AuthResponse> AdminLoginAsync(AdminLoginRequest request)
-    {
-        var testAccounts = new List<string> { "household@gmail.com", "collector@gmail.com", "scrapyard@gmail.com" };
-
-        if (testAccounts.Contains(request.Email) && request.Password == "@1")
-        {
-            var user = await _userManager.Users
-                .Include(u => u.Profile).ThenInclude(p => p.Rank)
-                .FirstOrDefaultAsync(u => u.NormalizedEmail == request.Email.ToUpper());
-
-            if (user == null) throw new UnauthorizedAccessException("Invalid username or password.");
-
-            var roles = await _userManager.GetRolesAsync(user);
-
-            return await GenerateAuthResponse(user, roles);
         }
-        else
+
+        var user = await _userManager.Users
+            .Include(u => u.Profile)
+            .ThenInclude(p => p.Rank)
+            .FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber);
+
+        bool isNewUser = false;
+
+        if (user == null)
         {
-            var user = await _userManager.Users
-                .Include(u => u.Profile).ThenInclude(p => p.Rank)
-                .FirstOrDefaultAsync(u => u.NormalizedUserName == request.Email.ToUpper() ||
-                                          u.NormalizedEmail == request.Email.ToUpper());
+            isNewUser = true;
+            var newUser = new User
+            {
+                Id = Guid.NewGuid(),
+                UserName = phoneNumber,
+                NormalizedUserName = phoneNumber,
+                PhoneNumber = phoneNumber,
+                PhoneNumberConfirmed = true,
+                Status = UserStatus.Active,
+                CreatedAt = DateTime.UtcNow,
+                BuyerType = null
+            };
 
-            if (user == null) throw new UnauthorizedAccessException("Invalid username or password.");
+            var result = await _userManager.CreateAsync(newUser);
+            if (!result.Succeeded)
+            {
+                throw new ApplicationException(
+                    $"Failed to create new user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+            }
 
-            var roles = await _userManager.GetRolesAsync(user);
-            if (!roles.Contains("Admin"))
-                throw new UnauthorizedAccessException("You do not have permission to access this portal.");
+            await _userManager.AddToRoleAsync(newUser, "Household");
 
-            if (!await _userManager.CheckPasswordAsync(user, request.Password))
-                throw new UnauthorizedAccessException("Invalid username or password.");
+            var newProfile = new Profile
+            {
+                ProfileId = Guid.NewGuid(),
+                UserId = newUser.Id,
+                PointBalance = 200,
+                RankId = 1
+            };
+            await _profileRepository.Add(newProfile);
+
+            user = newUser;
+            user.Profile = newProfile;
+        }
+
+        var roles = await _userManager.GetRolesAsync(user);
+
+        if (roles.Contains("IndividualCollector") || roles.Contains("BusinessCollector"))
+        {
+            if (user.Status == UserStatus.PendingVerification)
+            {
+                throw new UnauthorizedAccessException("Your account is  pending verification.");
+            }
 
             if (user.Status == UserStatus.Blocked)
-                throw new UnauthorizedAccessException("Your account has been blocked.");
-
-            return await GenerateAuthResponse(user, roles);
+            {
+                throw new UnauthorizedAccessException("Your account is blocked.");
+            }
         }
-    }
 
-    private async Task<User?> GetUserWithProfile(string phoneNumber)
-    {
-        return await _userManager.Users
-            .Include(u => u.Profile)
-            .ThenInclude(p => p!.Rank)
-            .FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber);
-    }
-
-    private async Task<User> CreateNewHouseholdUserAsync(string phoneNumber)
-    {
-        var newUser = new User
-        {
-            Id = Guid.NewGuid(),
-            UserName = phoneNumber,
-            NormalizedUserName = phoneNumber,
-            PhoneNumber = phoneNumber,
-            PhoneNumberConfirmed = true,
-            Status = UserStatus.Active,
-            CreatedAt = DateTime.UtcNow,
-            BuyerType = null
-        };
-
-        var result = await _userManager.CreateAsync(newUser);
-        if (!result.Succeeded)
-            throw new ApplicationException(
-                $"Failed to create new user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
-
-        await _userManager.AddToRoleAsync(newUser, "Household");
-
-        var newProfile = new Data.Entities.Profile
-        {
-            ProfileId = Guid.NewGuid(),
-            UserId = newUser.Id,
-            PointBalance = 200,
-            RankId = 1
-        };
-        await _profileRepository.Add(newProfile);
-
-        newUser.Profile = newProfile;
-        return newUser;
-    }
-
-    private async Task<AuthResponse> GenerateAuthResponse(User user, IList<string> roles)
-    {
         var accessToken = await _jwtService.CreateTokenAsync(user, roles);
 
         var userViewModel = new UserViewModel
@@ -152,7 +117,7 @@ public class AuthService : IAuthService
             FullName = user.FullName,
             PhoneNumber = user.PhoneNumber,
             AvatarUrl = user.Profile?.AvatarUrl,
-            PointBalance = user.Profile?.PointBalance ?? 0,
+            PointBalance = user.Profile?.PointBalance ?? 200,
             Rank = user.Profile?.Rank?.Name ?? "Bronze",
             Roles = roles
         };

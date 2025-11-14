@@ -3,6 +3,7 @@ using GreenConnectPlatform.Business.Services.Auth;
 using GreenConnectPlatform.Business.Services.CollectionOffers;
 using GreenConnectPlatform.Business.Services.CollectionOffers.OfferDetails;
 using GreenConnectPlatform.Business.Services.FileStorage;
+using GreenConnectPlatform.Business.Services.Jwt;
 using GreenConnectPlatform.Business.Services.ScheduleProposals;
 using GreenConnectPlatform.Business.Services.ScrapCategories;
 using GreenConnectPlatform.Business.Services.ScrapPosts;
@@ -32,6 +33,7 @@ public static class ServiceConfiguration
         services.AddSingleton<FirebaseService>();
         services.AddSingleton<IFileStorageService, FirebaseStorageService>();
         services.AddScoped<IScrapPostDetailService, ScrapPostDetailService>();
+        services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<ICollectionOfferService, CollectionOfferService>();
         services.AddScoped<IOfferDetailService, OfferDetailService>();
         services.AddScoped<IScheduleProposalService, ScheduleProposalService>();

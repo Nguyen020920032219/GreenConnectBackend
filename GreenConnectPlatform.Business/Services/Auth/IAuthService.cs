@@ -4,6 +4,5 @@ namespace GreenConnectPlatform.Business.Services.Auth;
 
 public interface IAuthService
 {
-    Task<AuthResultModel> LoginWithFirebaseAsync(FirebaseLoginRequestModel request);
-    Task<AuthResultModel> AdminLoginAsync(AdminLoginRequestModel request);
+    Task<AuthResponse> LoginOrRegisterAsync(LoginOrRegisterRequest request);
 }

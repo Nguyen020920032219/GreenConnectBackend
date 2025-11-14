@@ -1,154 +1,131 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using AutoMapper;
-using FirebaseAdmin.Auth;
-using GreenConnectPlatform.Business.Models.Auth;
-using GreenConnectPlatform.Business.Models.Users;
+using GreenConnectPlatform.Data.Configurations;
 using GreenConnectPlatform.Data.Entities;
+using GreenConnectPlatform.Data.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
+using FirebaseAdmin.Auth;
+using System.Security.Claims;
+using GreenConnectPlatform.Business.Models.Auth;
+using GreenConnectPlatform.Business.Models.Users;
+using GreenConnectPlatform.Business.Services.Auth;
+using GreenConnectPlatform.Business.Services.Jwt;
+using GreenConnectPlatform.Data.Repositories.Profiles;
 
 namespace GreenConnectPlatform.Business.Services.Auth;
 
 public class AuthService : IAuthService
 {
-    private readonly IConfiguration _configuration;
-    private readonly FirebaseService _firebase;
-    private readonly IMapper _mapper;
     private readonly UserManager<User> _userManager;
+    private readonly IProfileRepository _profileRepository;
+    private readonly IJwtService _jwtService;
+    private readonly FirebaseAuth _firebaseAuth;
 
-    public AuthService(UserManager<User> userManager, IConfiguration configuration, FirebaseService firebase,
-        IMapper mapper)
+    public AuthService(
+        UserManager<User> userManager,
+        IProfileRepository profileRepository,
+        IJwtService jwtService,
+        FirebaseAuth firebaseAuth)
     {
         _userManager = userManager;
-        _configuration = configuration;
-        _firebase = firebase;
-        _mapper = mapper;
+        _profileRepository = profileRepository;
+        _jwtService = jwtService;
+        _firebaseAuth = firebaseAuth;
     }
 
-    public async Task<AuthResultModel> LoginWithFirebaseAsync(FirebaseLoginRequestModel request)
+    public async Task<AuthResponse> LoginOrRegisterAsync(LoginOrRegisterRequest request)
     {
-        var (decodedToken, error) = await VerifyFirebaseTokenAndGetPhone(request.IdToken);
-        if (error != null) return error;
+        FirebaseToken decodedToken;
+        try
+        {
+            decodedToken = await _firebaseAuth.VerifyIdTokenAsync(request.FirebaseToken);
+        }
+        catch (Exception ex)
+        {
+            throw new UnauthorizedAccessException("Invalid Firebase Token. " + ex.Message);
+        }
 
-        var phoneNumber = decodedToken!.Claims["phone_number"].ToString()!;
+        var phoneNumber = decodedToken.Claims.GetValueOrDefault("phone_number")?.ToString();
+        if (string.IsNullOrEmpty(phoneNumber))
+        {
+            throw new ApplicationException("Firebase token did not contain a phone number.");
+        }
+
         var user = await _userManager.Users
             .Include(u => u.Profile)
+            .ThenInclude(p => p.Rank)
             .FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber);
+
+        bool isNewUser = false;
 
         if (user == null)
         {
-            user = new User
+            isNewUser = true;
+            var newUser = new User
             {
-                FullName = "Người dùng mới",
+                Id = Guid.NewGuid(),
                 UserName = phoneNumber,
+                NormalizedUserName = phoneNumber,
                 PhoneNumber = phoneNumber,
                 PhoneNumberConfirmed = true,
-                CreatedAt = DateTime.UtcNow
+                Status = UserStatus.Active,
+                CreatedAt = DateTime.UtcNow,
+                BuyerType = null
             };
-            var createResult = await _userManager.CreateAsync(user);
-            if (!createResult.Succeeded)
-                return new AuthResultModel
-                    { Success = false, Errors = createResult.Errors.Select(e => e.Description).ToList() };
 
-            await _userManager.AddToRoleAsync(user, "Household");
+            var result = await _userManager.CreateAsync(newUser);
+            if (!result.Succeeded)
+            {
+                throw new ApplicationException(
+                    $"Failed to create new user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+            }
+
+            await _userManager.AddToRoleAsync(newUser, "Household");
+
+            var newProfile = new Profile
+            {
+                ProfileId = Guid.NewGuid(),
+                UserId = newUser.Id,
+                PointBalance = 200,
+                RankId = 1
+            };
+            await _profileRepository.Add(newProfile);
+
+            user = newUser;
+            user.Profile = newProfile;
         }
-
-        return await GenerateSuccessfulAuthResult(user);
-    }
-
-    public async Task<AuthResultModel> AdminLoginAsync(AdminLoginRequestModel request)
-    {
-        var testAccounts = new List<string>() { "household@gmail.com", "collector@gmail.com", "scrapyard@gmail.com" };
-
-        if (testAccounts.Contains(request.Email) && request.Password == "@1")
-        {
-            var user = await _userManager.FindByEmailAsync(request.Email);
-            if (user == null)
-                return new AuthResultModel { Success = false, Errors = ["Email hoặc mật khẩu không đúng."] };
-
-            if (!await _userManager.CheckPasswordAsync(user, request.Password))
-                return new AuthResultModel { Success = false, Errors = ["Email hoặc mật khẩu không đúng."] };
-
-            var token = await GenerateJwtToken(user);
-            var userModel = await CreateUserModel(user);
-            return new AuthResultModel { Success = true, Token = token, User = userModel };
-        }
-        else
-        {
-            var user = await _userManager.FindByEmailAsync(request.Email);
-            if (user == null || !await _userManager.IsInRoleAsync(user, "Admin"))
-                return new AuthResultModel { Success = false, Errors = ["Email hoặc mật khẩu không đúng."] };
-
-            if (!await _userManager.CheckPasswordAsync(user, request.Password))
-                return new AuthResultModel { Success = false, Errors = ["Email hoặc mật khẩu không đúng."] };
-
-            var token = await GenerateJwtToken(user);
-            var userModel = await CreateUserModel(user);
-            return new AuthResultModel { Success = true, Token = token, User = userModel };
-        }
-    }
-
-    private async Task<(FirebaseToken? DecodedToken, AuthResultModel? Error)> VerifyFirebaseTokenAndGetPhone(
-        string idToken)
-    {
-        var decoded = await _firebase.VerifyFirebaseTokenAsync(idToken);
-        if (decoded == null)
-            return (null, new AuthResultModel { Success = false, Errors = ["Token không hợp lệ hoặc đã hết hạn."] });
-
-        if (!decoded.Claims.ContainsKey("phone_number") ||
-            string.IsNullOrEmpty(decoded.Claims["phone_number"]?.ToString()))
-            return (null,
-                new AuthResultModel { Success = false, Errors = ["Không tìm thấy số điện thoại trong token."] });
-
-        return (decoded, null);
-    }
-
-    private async Task<AuthResultModel> GenerateSuccessfulAuthResult(User user)
-    {
-        var token = await GenerateJwtToken(user);
-        var userModel = await CreateUserModel(user);
-        return new AuthResultModel { Success = true, Token = token, User = userModel };
-    }
-
-    private async Task<string> GenerateJwtToken(User user)
-    {
-        var jwtSettings = _configuration.GetSection("Jwt");
-        var secretKey = jwtSettings["Key"] ?? throw new InvalidOperationException("Missing JWT Key");
 
         var roles = await _userManager.GetRolesAsync(user);
-        var claims = new List<Claim>
+
+        if (roles.Contains("IndividualCollector") || roles.Contains("BusinessCollector"))
         {
-            new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new(JwtRegisteredClaimNames.UniqueName, user.UserName ?? string.Empty)
-        };
-        claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
+            if (user.Status == UserStatus.PendingVerification)
+            {
+                throw new UnauthorizedAccessException("Your account is  pending verification.");
+            }
 
-        var creds = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
-            SecurityAlgorithms.HmacSha256);
-        var token = new JwtSecurityToken(
-            jwtSettings["Issuer"],
-            jwtSettings["Audience"],
-            claims,
-            expires: DateTime.UtcNow.AddMinutes(Convert.ToDouble(jwtSettings["AccessTokenExpiryInMinutes"])),
-            signingCredentials: creds
-        );
-        return new JwtSecurityTokenHandler().WriteToken(token);
-    }
+            if (user.Status == UserStatus.Blocked)
+            {
+                throw new UnauthorizedAccessException("Your account is blocked.");
+            }
+        }
 
-    private async Task<UserModel> CreateUserModel(User user)
-    {
-        var roles = await _userManager.GetRolesAsync(user);
-        return new UserModel
+        var accessToken = await _jwtService.CreateTokenAsync(user, roles);
+
+        var userViewModel = new UserViewModel
         {
             Id = user.Id,
             FullName = user.FullName,
             PhoneNumber = user.PhoneNumber,
             AvatarUrl = user.Profile?.AvatarUrl,
-            Roles = roles.ToList()
+            PointBalance = user.Profile?.PointBalance ?? 200,
+            Rank = user.Profile?.Rank?.Name ?? "Bronze",
+            Roles = roles
+        };
+
+        return new AuthResponse
+        {
+            AccessToken = accessToken,
+            User = userViewModel
         };
     }
 }

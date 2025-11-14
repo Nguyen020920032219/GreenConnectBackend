@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using System.Text.Json;
 using FirebaseAdmin;
+using FirebaseAdmin.Auth;
 using Google.Apis.Auth.OAuth2;
 using GreenConnectPlatform.Data.Configurations;
 using GreenConnectPlatform.Data.Entities;
@@ -82,20 +83,29 @@ public static class AuthConfiguration
 
     public static void ConfigureFirebase(this IServiceCollection services, IWebHostEnvironment environment)
     {
-        var firebasePath = Path.Combine(environment.ContentRootPath, "Configs", "firebase-service-account.json");
-
-        if (!File.Exists(firebasePath))
-            throw new FileNotFoundException("Firebase config file not found.", firebasePath);
-
-        if (FirebaseApp.DefaultInstance == null)
+        try
         {
-            var credential = GoogleCredential.FromFile(firebasePath);
-            FirebaseApp.Create(new AppOptions
-            {
-                Credential = credential
-            });
-        }
+            var keyPath = Path.Combine(environment.ContentRootPath, "Configs", "firebase-service-account.json");
 
-        Console.WriteLine($"Firebase App '{FirebaseApp.DefaultInstance?.Name}' initialized.");
+            if (FirebaseApp.DefaultInstance == null)
+            {
+                FirebaseApp.Create(new AppOptions
+                {
+                    Credential = GoogleCredential.FromFile(keyPath)
+                });
+                
+                Console.WriteLine("Firebase App '[DEFAULT]' initialized.");
+            }
+            
+            services.AddSingleton<FirebaseAuth>(FirebaseAuth.DefaultInstance);
+            // services.AddSingleton<FirebaseStorage>(FirebaseStorage.DefaultInstance);
+            // services.AddSingleton<FirebaseMessaging>(FirebaseMessaging.DefaultInstance);
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error initializing Firebase: {ex.Message}");
+            throw;
+        }
     }
 }

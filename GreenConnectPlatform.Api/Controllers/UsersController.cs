@@ -91,7 +91,6 @@ public class UsersController : ControllerBase
         var userId = GetCurrentUserId();
         await _profileService.SubmitVerificationAsync(userId, request);
 
-        // Return 202 Accepted
         return Accepted(new { message = "Verification submitted. Please wait for Admin approval." });
     }
 }

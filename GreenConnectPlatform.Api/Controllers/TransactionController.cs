@@ -12,7 +12,9 @@ namespace GreenConnectPlatform.Api.Controllers;
 [Route("api/transactions")]
 [ApiController]
 [Tags("Transactions")]
-public class TransactionController(ITransactionService transactionService, ITransactionDetailService transactionDetailService) : ControllerBase
+public class TransactionController(
+    ITransactionService transactionService,
+    ITransactionDetailService transactionDetailService) : ControllerBase
 {
     /// <summary>
     ///     IndividualCollector, BusinessCollector can check in at the collection location for a transaction.
@@ -32,7 +34,7 @@ public class TransactionController(ITransactionService transactionService, ITran
         await transactionService.CheckIn(location, transactionId, Guid.Parse(userId));
         return Ok("Check-in successful");
     }
-    
+
     /// <summary>
     ///     User can get transaction by transactionId.
     /// </summary>
@@ -48,7 +50,7 @@ public class TransactionController(ITransactionService transactionService, ITran
         var transaction = await transactionService.GetTransaction(transactionId);
         return Ok(transaction);
     }
-    
+
     /// <summary>
     ///     IndividualCollector, BusinessCollector and Household can get transactions by userId with pagination and sorting.
     /// </summary>
@@ -73,8 +75,8 @@ public class TransactionController(ITransactionService transactionService, ITran
             Guid.Parse(userId), roleName, pageNumber, pageSize, sortByCreateAt, sortByUpdateAt);
         return Ok(transactions);
     }
-    
-    
+
+
     [HttpPatch("{transactionId:Guid}/accept-cancel")]
     [Authorize(Roles = "Household")]
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
@@ -84,8 +86,8 @@ public class TransactionController(ITransactionService transactionService, ITran
     [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CancelOrAcceptTransaction(
-        [FromRoute]Guid transactionId, 
-        [FromQuery]bool isAccept)
+        [FromRoute] Guid transactionId,
+        [FromQuery] bool isAccept)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (isAccept)
@@ -93,13 +95,11 @@ public class TransactionController(ITransactionService transactionService, ITran
             await transactionService.CancelOrAcceptTransaction(transactionId, Guid.Parse(userId), isAccept);
             return Ok("Transaction accepted successfully");
         }
-        else
-        {
-            await transactionService.CancelOrAcceptTransaction(transactionId, Guid.Parse(userId), isAccept);
-            return Ok("Transaction rejected successfully");
-        }
+
+        await transactionService.CancelOrAcceptTransaction(transactionId, Guid.Parse(userId), isAccept);
+        return Ok("Transaction rejected successfully");
     }
-    
+
     [HttpPatch("{transactionId:Guid}/toggle")]
     [Authorize(Roles = "IndividualCollector, BusinessCollector")]
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
@@ -109,13 +109,13 @@ public class TransactionController(ITransactionService transactionService, ITran
     [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CancelOrReopoenTransaction(
-        [FromRoute]Guid transactionId)
+        [FromRoute] Guid transactionId)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         await transactionService.CancelOrReopenTransaction(transactionId, Guid.Parse(userId));
         return Ok("Transaction status updated successfully");
     }
-    
+
     /// <summary>
     ///     IndividualCollector, BusinessCollector can submit transaction details for a transaction.
     /// </summary>
@@ -129,15 +129,15 @@ public class TransactionController(ITransactionService transactionService, ITran
     [ProducesResponseType(typeof(List<TransactionDetailModel>), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(List<TransactionDetailModel>), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> SubmitTransactionDetails(
-        [FromRoute]Guid transactionId, 
+        [FromRoute] Guid transactionId,
         [FromBody] List<TransactionDetailCreateModel> transactionDetailCreateModels)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var transactionDetails = await transactionDetailService.CreateTransactionDetails(
             transactionId, Guid.Parse(userId), transactionDetailCreateModels);
-        return CreatedAtAction(nameof(GetTransaction),new {transactionId}, transactionDetails);
+        return CreatedAtAction(nameof(GetTransaction), new { transactionId }, transactionDetails);
     }
-    
+
     /// <summary>
     ///     IndividualCollector, BusinessCollector can update transaction detail for a transaction.
     /// </summary>
@@ -151,7 +151,7 @@ public class TransactionController(ITransactionService transactionService, ITran
     [ProducesResponseType(typeof(TransactionDetailModel), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(TransactionDetailModel), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> UpdateTransactionDetail(
-        [FromRoute]Guid transactionId, 
+        [FromRoute] Guid transactionId,
         [FromQuery] int scrapCategoryId,
         [FromBody] TransactionDetailUpdateModel transactionDetailUpdateModel)
     {

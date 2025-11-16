@@ -7,7 +7,7 @@ public class ScheduleProposalModel
     public Guid ScheduleProposalId { get; set; }
 
     public Guid CollectionOfferId { get; set; }
-    
+
     public DateTime ProposedTime { get; set; }
 
     public ProposalStatus Status { get; set; }

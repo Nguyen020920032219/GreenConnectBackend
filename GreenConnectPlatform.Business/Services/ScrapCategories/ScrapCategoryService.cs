@@ -10,21 +10,22 @@ namespace GreenConnectPlatform.Business.Services.ScrapCategories;
 
 public class ScrapCategoryService : IScrapCategoryService
 {
-    private readonly IScrapCategoryRepository _scrapCategoryRepository;
     private readonly IMapper _mapper;
+    private readonly IScrapCategoryRepository _scrapCategoryRepository;
 
     public ScrapCategoryService(IScrapCategoryRepository scrapCategoryRepository, IMapper mapper)
     {
         _scrapCategoryRepository = scrapCategoryRepository;
         _mapper = mapper;
     }
-    
-    public async Task<PaginatedResult<ScrapCategoryModel>> GetScrapCategories(int pageNumber, int pageSize, string? categoryName)
+
+    public async Task<PaginatedResult<ScrapCategoryModel>> GetScrapCategories(int pageNumber, int pageSize,
+        string? categoryName)
     {
         var query = _scrapCategoryRepository.DbSet()
             .AsQueryable()
             .AsNoTracking();
-        if(categoryName != null)
+        if (categoryName != null)
             query = query.Where(x => x.CategoryName.ToLower().Contains(categoryName.ToLower()));
         var totalRecords = await query.CountAsync();
         var scrapCategories = await query
@@ -39,7 +40,7 @@ public class ScrapCategoryService : IScrapCategoryService
             CurrentPage = pageNumber,
             TotalPages = totalPages,
             NextPage = pageNumber < totalPages ? pageNumber + 1 : null,
-            PrevPage = pageNumber > 1 ? pageNumber - 1 : null,
+            PrevPage = pageNumber > 1 ? pageNumber - 1 : null
         };
         return new PaginatedResult<ScrapCategoryModel>
         {

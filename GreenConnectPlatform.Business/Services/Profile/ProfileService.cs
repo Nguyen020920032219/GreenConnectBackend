@@ -57,16 +57,15 @@ public class ProfileService : IProfileService
 
         if (user == null) throw new KeyNotFoundException("User not found.");
 
-        user.FullName = request.FullName ?? user.FullName;
+        user.FullName = string.IsNullOrEmpty(request.FullName) ? user.FullName : request.FullName;
 
         if (user.Profile != null)
         {
-            user.Profile.Address = request.Address ?? user.Profile.Address;
+            user.Profile.Address = string.IsNullOrEmpty(request.Address) ? user.Profile.Address : request.Address;
             user.Profile.Gender = request.Gender ?? user.Profile.Gender;
             user.Profile.DateOfBirth = request.DateOfBirth ?? user.Profile.DateOfBirth;
+            await _profileRepository.Update(user.Profile);
         }
-
-        await _userManager.UpdateAsync(user);
 
         return await GetMyProfileAsync(userId);
     }

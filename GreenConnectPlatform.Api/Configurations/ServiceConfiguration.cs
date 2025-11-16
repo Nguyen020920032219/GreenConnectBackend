@@ -21,7 +21,6 @@ public static class ServiceConfiguration
         services.AddScoped<IScrapPostService, ScrapPostService>();
         services.AddAutoMapper(typeof(MappingProfile));
         services.AddScoped<IAuthService, AuthService>();
-        services.AddSingleton<FirebaseService>();
         services.AddSingleton<IFileStorageService, FirebaseStorageService>();
         services.AddScoped<IScrapPostDetailService, ScrapPostDetailService>();
         services.AddScoped<IJwtService, JwtService>();

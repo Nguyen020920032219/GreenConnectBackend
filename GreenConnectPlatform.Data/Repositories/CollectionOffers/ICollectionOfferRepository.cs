@@ -5,5 +5,4 @@ namespace GreenConnectPlatform.Data.Repositories.CollectionOffers;
 
 public interface ICollectionOfferRepository : IBaseRepository<CollectionOffer, Guid>
 {
-    
 }

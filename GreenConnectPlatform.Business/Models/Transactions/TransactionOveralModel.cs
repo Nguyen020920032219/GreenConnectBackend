@@ -18,7 +18,7 @@ public class TransactionOveralModel
 
     public DateTime? CheckInTime { get; set; }
 
-    public DateTime CreatedAt { get; set; } 
+    public DateTime CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
 }

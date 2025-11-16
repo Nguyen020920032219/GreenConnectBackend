@@ -5,5 +5,4 @@ namespace GreenConnectPlatform.Data.Repositories.Transactions;
 
 public interface ITransactionRepository : IBaseRepository<Transaction, Guid>
 {
-    
 }

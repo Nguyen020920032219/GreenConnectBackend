@@ -10,7 +10,8 @@ public interface IScrapPostService
         string? categoryName, PostStatus? status,
         bool sortByLocation = false, bool sortByCreateAt = false, bool sortByUpdateAt = false);
 
-    Task<PaginatedResult<ScrapPostOverralModel>> GetPostsByHousehold(int pageNumber, int pageSize, Guid? userId, string? title,
+    Task<PaginatedResult<ScrapPostOverralModel>> GetPostsByHousehold(int pageNumber, int pageSize, Guid? userId,
+        string? title,
         PostStatus? status);
 
     Task<ScrapPostModel> GetPost(Guid scrapPostId);

@@ -16,6 +16,7 @@ public class MappingProfile : Profile
     public MappingProfile()
     {
         #region ScrapPost, ScrapPostDetail
+
         CreateMap<ScrapPost, ScrapPostModel>();
         CreateMap<ScrapPostCreateModel, ScrapPost>().ForMember(dest => dest.Location, opt => opt.Ignore());
         ;
@@ -27,16 +28,18 @@ public class MappingProfile : Profile
             .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
         CreateMap<ScrapPostDetailUpdateModel, ScrapPostDetail>()
             .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
+
         #endregion
 
         #region CollectionOffer, OfferDetail
+
         CreateMap<CollectionOffer, CollectionOfferModel>();
         CreateMap<CollectionOffer, CollectionOfferOveralForCollectorModel>();
         CreateMap<CollectionOffer, CollectionOfferOveralForHouseModel>();
         CreateMap<CollectionOfferCreateModel, CollectionOffer>()
             .ForMember(
                 dest => dest.ScheduleProposals,
-                opt => opt.MapFrom(src => 
+                opt => opt.MapFrom(src =>
                     new List<ScheduleProposalCreateModel> { src.ScheduleProposal }
                 )
             );
@@ -44,6 +47,7 @@ public class MappingProfile : Profile
         CreateMap<OfferDetail, OfferDetailModel>();
         CreateMap<OfferDetailUpdateModel, OfferDetail>()
             .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
+
         #endregion
 
         #region ScheduleProposal
@@ -66,7 +70,8 @@ public class MappingProfile : Profile
         CreateMap<TransactionDetail, TransactionDetailModel>();
         CreateMap<TransactionDetailCreateModel, TransactionDetail>();
         CreateMap<TransactionDetailUpdateModel, TransactionDetail>()
-            .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null)); ;
+            .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
+        ;
 
         #endregion
     }

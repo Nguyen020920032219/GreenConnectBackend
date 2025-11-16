@@ -34,7 +34,8 @@ public class ScrapPostDetailService : IScrapPostDetailService
     {
         var detail = await _scrapPostDetailRepository.DbSet()
             .FirstOrDefaultAsync(d => d.ScrapPostId == scrapPostId && d.ScrapCategoryId == scrapCategoryId);
-        if (detail == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Scrap post detail not found");
+        if (detail == null)
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Scrap post detail not found");
         return _mapper.Map<ScrapPostDetailModel>(detail);
     }
 
@@ -43,11 +44,14 @@ public class ScrapPostDetailService : IScrapPostDetailService
     {
         var scrapPost = await _scrapPostRepository.DbSet()
             .FirstOrDefaultAsync(s => s.ScrapPostId == scrapPostId);
-        if (scrapPost == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Scrap post not found");
+        if (scrapPost == null)
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Scrap post not found");
         if (scrapPost.HouseholdId != userId)
-            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "You can not add details to this scrap post");
-        if(scrapPost.Status == PostStatus.Completed)
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Cannot add details to a completed scrap post");
+            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403",
+                "You can not add details to this scrap post");
+        if (scrapPost.Status == PostStatus.Completed)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "Cannot add details to a completed scrap post");
         var scrapPostDetails = await _scrapPostDetailRepository.DbSet()
             .FirstOrDefaultAsync(d =>
                 d.ScrapPostId == scrapPostId && d.ScrapCategoryId == scrapPostDetailCreateModel.ScrapCategoryId);
@@ -57,12 +61,14 @@ public class ScrapPostDetailService : IScrapPostDetailService
         var scrapCategory = await _scrapCategoryRepository.DbSet()
             .FirstOrDefaultAsync(c => c.ScrapCategoryId == scrapPostDetailCreateModel.ScrapCategoryId);
 
-        if (scrapCategory == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Scrap post category not found");
+        if (scrapCategory == null)
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Scrap post category not found");
 
         scrapPostDetailCreateModel.ScrapPostId = scrapPostId;
         var newScrapDetail = _mapper.Map<ScrapPostDetail>(scrapPostDetailCreateModel);
         var result = await _scrapPostDetailRepository.Add(newScrapDetail);
-        if (result == null) throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Failed to create scrap post detail");
+        if (result == null)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Failed to create scrap post detail");
         return _mapper.Map<ScrapPostDetailModel>(result);
     }
 
@@ -71,20 +77,26 @@ public class ScrapPostDetailService : IScrapPostDetailService
     {
         var scrapPost = await _scrapPostRepository.DbSet()
             .FirstOrDefaultAsync(s => s.ScrapPostId == scrapPostId);
-        if (scrapPost == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Scrap post not found");
+        if (scrapPost == null)
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Scrap post not found");
         if (scrapPost.HouseholdId != userId)
-            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "You can not update details of this scrap post");
-        if(scrapPost.Status == PostStatus.Completed)
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Cannot update details to a completed scrap post");
+            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403",
+                "You can not update details of this scrap post");
+        if (scrapPost.Status == PostStatus.Completed)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "Cannot update details to a completed scrap post");
         var scrapPostDetails = await _scrapPostDetailRepository.DbSet()
             .FirstOrDefaultAsync(d => d.ScrapPostId == scrapPostId && d.ScrapCategoryId == scrapCategoryId);
-        if (scrapPostDetails == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Scrap post detail does not exist");
-        
-        if (scrapPostDetails.Status != PostDetailStatus.Available) 
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Only available scrap post details can be updated");
+        if (scrapPostDetails == null)
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Scrap post detail does not exist");
+
+        if (scrapPostDetails.Status != PostDetailStatus.Available)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "Only available scrap post details can be updated");
         _mapper.Map(scrapPostDetailUpdateModel, scrapPostDetails);
         var result = await _scrapPostDetailRepository.Update(scrapPostDetails);
-        if (result == null) throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Failed to update scrap post detail");
+        if (result == null)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Failed to update scrap post detail");
         return _mapper.Map<ScrapPostDetailModel>(result);
     }
 
@@ -92,17 +104,21 @@ public class ScrapPostDetailService : IScrapPostDetailService
     {
         var scrapPost = await _scrapPostRepository.DbSet()
             .FirstOrDefaultAsync(s => s.ScrapPostId == scrapPostId);
-        if (scrapPost == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Scrap post not found");
+        if (scrapPost == null)
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Scrap post not found");
         if (userRole != "Admin")
             if (scrapPost.HouseholdId != userId)
                 throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "You can not delete this details");
-        if(scrapPost.Status == PostStatus.Completed)
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Cannot delete details to a completed scrap post");
+        if (scrapPost.Status == PostStatus.Completed)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "Cannot delete details to a completed scrap post");
         var details = await _scrapPostDetailRepository.DbSet()
             .FirstOrDefaultAsync(d => d.ScrapPostId == scrapPostId && d.ScrapCategoryId == scrapCategoryId);
-        if (details == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Scrap post detail does not exist");
-        if(details.Status == PostDetailStatus.Booked)
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Cannot delete a scrap post detail that is booked");
+        if (details == null)
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Scrap post detail does not exist");
+        if (details.Status == PostDetailStatus.Booked)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "Cannot delete a scrap post detail that is booked");
         await _scrapPostDetailRepository.Delete(details);
     }
 }

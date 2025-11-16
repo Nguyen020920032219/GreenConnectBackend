@@ -31,7 +31,7 @@ public class Transaction
     public virtual User Household { get; set; } = null!;
 
     public virtual CollectionOffer Offer { get; set; } = null!;
-    
+
     public virtual User ScrapCollector { get; set; } = null!;
 
     public virtual ICollection<TransactionDetail> TransactionDetails { get; set; } = new List<TransactionDetail>();

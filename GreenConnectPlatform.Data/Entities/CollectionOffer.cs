@@ -21,6 +21,6 @@ public class CollectionOffer
     public virtual ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
 
     public virtual ICollection<ScheduleProposal> ScheduleProposals { get; set; } = new List<ScheduleProposal>();
-    
+
     public virtual ICollection<OfferDetail> OfferDetails { get; set; } = new List<OfferDetail>();
 }

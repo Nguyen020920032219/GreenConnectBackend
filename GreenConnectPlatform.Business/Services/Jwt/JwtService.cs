@@ -23,10 +23,7 @@ public class JwtService : IJwtService
         var issuer = jwtSettings["Issuer"];
         var audience = jwtSettings["Audience"];
 
-        if (string.IsNullOrEmpty(secretKey))
-        {
-            throw new InvalidOperationException("Missing JWT Key in configuration!");
-        }
+        if (string.IsNullOrEmpty(secretKey)) throw new InvalidOperationException("Missing JWT Key in configuration!");
 
         var claims = new List<Claim>
         {
@@ -39,10 +36,7 @@ public class JwtService : IJwtService
             new(ClaimTypes.MobilePhone, user.PhoneNumber ?? "")
         };
 
-        foreach (var role in roles)
-        {
-            claims.Add(new Claim(ClaimTypes.Role, role));
-        }
+        foreach (var role in roles) claims.Add(new Claim(ClaimTypes.Role, role));
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -50,9 +44,9 @@ public class JwtService : IJwtService
             DateTime.UtcNow.AddMinutes(Convert.ToDouble(jwtSettings["AccessTokenExpiryInMinutes"] ?? "60"));
 
         var token = new JwtSecurityToken(
-            issuer: issuer,
-            audience: audience,
-            claims: claims,
+            issuer,
+            audience,
+            claims,
             expires: expiredTime,
             signingCredentials: creds
         );

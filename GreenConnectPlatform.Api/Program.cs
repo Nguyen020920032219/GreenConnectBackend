@@ -37,10 +37,7 @@ public class Program
         var disableFirebase = builder.Configuration.GetValue<bool>("Testing:DisableFirebase");
 
         builder.Services.ConfigureAuthentication(builder.Configuration);
-        if (!disableFirebase)
-        {
-            builder.Services.ConfigureFirebase(builder.Environment); 
-        }
+        if (!disableFirebase) builder.Services.ConfigureFirebase(builder.Environment);
         builder.Services.ConfigureSwagger();
         builder.Services.AddAuthorization();
 

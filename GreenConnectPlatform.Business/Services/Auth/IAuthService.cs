@@ -4,5 +4,6 @@ namespace GreenConnectPlatform.Business.Services.Auth;
 
 public interface IAuthService
 {
-    Task<AuthResponse> LoginOrRegisterAsync(LoginOrRegisterRequest request);
+    Task<(AuthResponse AuthResponse, bool IsNewUser)> LoginOrRegisterAsync(LoginOrRegisterRequest request);
+    Task<AuthResponse> AdminLoginAsync(AdminLoginRequest request);
 }

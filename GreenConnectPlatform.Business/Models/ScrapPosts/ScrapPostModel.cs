@@ -14,5 +14,6 @@ public class ScrapPostModel
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public Guid HouseholdId { get; set; }
+    public bool MustTakeAll { get; set; }
     public List<ScrapPostDetailModel> ScrapPostDetails { get; set; } = new();
 }

@@ -1,10 +1,13 @@
 ﻿using AutoMapper;
+using GreenConnectPlatform.Business.Models.Exceptions;
+using GreenConnectPlatform.Business.Models.Paging;
 using GreenConnectPlatform.Business.Models.ScrapPosts;
 using GreenConnectPlatform.Data.Entities;
 using GreenConnectPlatform.Data.Enums;
 using GreenConnectPlatform.Data.Repositories.Profiles;
 using GreenConnectPlatform.Data.Repositories.ScrapCategories;
 using GreenConnectPlatform.Data.Repositories.ScrapPosts;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
@@ -32,7 +35,7 @@ public class ScrapPostService : IScrapPostService
         _geometryFactory = NtsGeometryServices.Instance.CreateGeometryFactory(4326);
     }
 
-    public async Task<List<ScrapPostOverralModel>> GetPosts(
+    public async Task<PaginatedResult<ScrapPostOverralModel>> GetPosts(
         int pageNumber,
         int pageSize,
         Guid userId,
@@ -44,7 +47,7 @@ public class ScrapPostService : IScrapPostService
         bool sortByUpdateAt = false)
     {
         Point? userLocation = null;
-        if (sortByLocation && userRole == "ScrapCollector")
+        if (sortByLocation && userRole == "IndividualCollector, BusinessCollector")
         {
             var userProfile = await _profileRepository.DbSet().AsNoTracking()
                 .FirstOrDefaultAsync(u => u.UserId == userId);
@@ -53,7 +56,7 @@ public class ScrapPostService : IScrapPostService
 
         var query = _scrapPostRepository.DbSet().AsQueryable()
             .AsNoTracking();
-        if (userRole == "ScrapCollector") query = query.Where(s => s.Status == PostStatus.Open);
+        if (userRole == "IndividualCollector" || userRole == "BusinessCollector") query = query.Where(s => s.Status == PostStatus.Open && s.Status == PostStatus.PartiallyBooked);
         if (status != null && userRole == "Admin") query = query.Where(s => s.Status == status);
         if (!string.IsNullOrWhiteSpace(categoryName))
             query = query
@@ -62,7 +65,7 @@ public class ScrapPostService : IScrapPostService
                 .Where(post => post.ScrapPostDetails.Any(detail =>
                     detail.ScrapCategory.CategoryName.Contains(categoryName, StringComparison.OrdinalIgnoreCase)));
 
-
+        var totalRecords = await query.CountAsync();
         if (sortByLocation && userLocation != null)
         {
             query = query
@@ -88,10 +91,24 @@ public class ScrapPostService : IScrapPostService
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
-        return _mapper.Map<List<ScrapPostOverralModel>>(scrapPosts);
+        var scrapPostModels = _mapper.Map<List<ScrapPostOverralModel>>(scrapPosts);
+        var totalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
+        var paginationModel = new PaginationModel
+        {
+            TotalRecords = totalRecords,
+            CurrentPage = pageNumber,
+            TotalPages = totalPages,
+            NextPage = pageNumber < totalPages ? pageNumber + 1 : null,
+            PrevPage = pageNumber > 1 ? pageNumber - 1 : null,
+        };
+        return new PaginatedResult<ScrapPostOverralModel>
+        {
+            Data = scrapPostModels,
+            Pagination = paginationModel
+        };
     }
 
-    public async Task<List<ScrapPostOverralModel>> GetPostsByHousehold(int pageNumber, int pageSize, Guid? userId,
+    public async Task<PaginatedResult<ScrapPostOverralModel>> GetPostsByHousehold(int pageNumber, int pageSize, Guid? userId,
         string? title, PostStatus? status)
     {
         var query = _scrapPostRepository.DbSet()
@@ -99,11 +116,26 @@ public class ScrapPostService : IScrapPostService
         if (!string.IsNullOrWhiteSpace(title)) query = query.Where(s => s.Title.ToLower().Contains(title.ToLower()));
 
         if (status != null) query = query.Where(s => s.Status == status);
+        var totalRecords = await query.CountAsync();
         var scrapPosts = await query
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
-        return _mapper.Map<List<ScrapPostOverralModel>>(scrapPosts);
+        var scrapPostModel = _mapper.Map<List<ScrapPostOverralModel>>(scrapPosts);
+        var totalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
+        var paginationModel = new PaginationModel
+        {
+            TotalRecords = totalRecords,
+            CurrentPage = pageNumber,
+            TotalPages = totalPages,
+            NextPage = pageNumber < totalPages ? pageNumber + 1 : null,
+            PrevPage = pageNumber > 1 ? pageNumber - 1 : null,
+        };
+        return new PaginatedResult<ScrapPostOverralModel>
+        {
+            Data = scrapPostModel,
+            Pagination = paginationModel
+        };
     }
 
 
@@ -112,7 +144,7 @@ public class ScrapPostService : IScrapPostService
         var scrapPost = await _scrapPostRepository.DbSet().Include(s => s.ScrapPostDetails)
             .FirstOrDefaultAsync(s => s.ScrapPostId == scrapPostId);
         if (scrapPost == null)
-            throw new KeyNotFoundException("Scrap post not found");
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Scrap post not found");
         return _mapper.Map<ScrapPostModel>(scrapPost);
     }
 
@@ -127,13 +159,15 @@ public class ScrapPostService : IScrapPostService
             var distinctCategoryIds = category.Distinct().ToList();
 
             if (distinctCategoryIds.Count != category.Count)
-                throw new ArgumentException("Scrap category IDs in the details list cannot be duplicated.");
+                throw new ApiExceptionModel(StatusCodes.Status409Conflict, "409",
+                    "Scrap category IDs in the details list cannot be duplicated.");
 
             var existingCategoryCount = await _scrapCategoryRepository.DbSet()
                 .CountAsync(c => distinctCategoryIds.Contains(c.ScrapCategoryId));
 
             if (existingCategoryCount != distinctCategoryIds.Count)
-                throw new KeyNotFoundException("One or more scrap categories do not exist");
+                throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404",
+                    "One or more scrap categories do not exist");
         }
 
         var scrapPost = _mapper.Map<ScrapPost>(scrapPostCreateModel);
@@ -145,7 +179,7 @@ public class ScrapPostService : IScrapPostService
         scrapPost.ScrapPostId = Guid.NewGuid();
         scrapPost.CreatedAt = DateTime.UtcNow;
         var result = await _scrapPostRepository.Add(scrapPost);
-        if (result == null) throw new Exception("Scrap post not created");
+        if (result == null) throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Scrap post not created");
         return _mapper.Map<ScrapPostModel>(result);
     }
 
@@ -157,11 +191,13 @@ public class ScrapPostService : IScrapPostService
             .FirstOrDefaultAsync(s => s.ScrapPostId == scrapPostId);
 
         if (scrapPost == null)
-            throw new KeyNotFoundException("Scrap post not found");
-
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound,"404","Scrap post not found");
+        
         if (scrapPost.HouseholdId != userId)
-            throw new UnauthorizedAccessException("You are not authorized to update this scrap post");
+            throw new ApiExceptionModel(StatusCodes.Status403Forbidden,"403", message: "You can not update this scrap post");
 
+        if(scrapPost.Status != PostStatus.Open)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest,"400", message: "Only posts with status Open can be updated.");
         _mapper.Map(scrapPostUpdateModel, scrapPost);
         scrapPost.UpdatedAt = DateTime.UtcNow;
         Point? location;
@@ -176,7 +212,7 @@ public class ScrapPostService : IScrapPostService
         }
 
         var result = await _scrapPostRepository.Update(scrapPost);
-        if (result == null) throw new Exception("Scrap post not updated");
+        if (result == null) throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Scrap post not updated");
         return _mapper.Map<ScrapPostModel>(result);
     }
 
@@ -185,11 +221,13 @@ public class ScrapPostService : IScrapPostService
         var scrapPost = await _scrapPostRepository.DbSet()
             .FirstOrDefaultAsync(s => s.ScrapPostId == scrapPostId);
         if (scrapPost == null)
-            throw new KeyNotFoundException("Scrap post not found");
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Scrap post not found");
         if (userRole != "Admin")
             if (scrapPost.HouseholdId != userId)
-                throw new UnauthorizedAccessException("You are not authorized to delete this scrap post");
+                throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "You can not toggle this scrap post");
         scrapPost.UpdatedAt = DateTime.UtcNow;
+        if(scrapPost.Status != PostStatus.Open && scrapPost.Status != PostStatus.Canceled)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Only posts with status Open or Canceled can be toggled.");
         if (scrapPost.Status != PostStatus.Canceled)
             scrapPost.Status = PostStatus.Canceled;
         else

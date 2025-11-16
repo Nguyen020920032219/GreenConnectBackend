@@ -31,6 +31,8 @@ public class ScrapPostCreateModel
 
     [Required(ErrorMessage = "Location is required.")]
     public LocationModel Location { get; set; } = null!;
+    
+    public bool MustTakeAll { get; set; }
 
     public List<ScrapPostDetailCreateModel> ScrapPostDetails { get; set; } = new();
 }

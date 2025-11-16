@@ -1,3 +1,4 @@
+using GreenConnectPlatform.Business.Models.Paging;
 using GreenConnectPlatform.Business.Models.ScrapPosts;
 using GreenConnectPlatform.Data.Enums;
 
@@ -5,11 +6,11 @@ namespace GreenConnectPlatform.Business.Services.ScrapPosts;
 
 public interface IScrapPostService
 {
-    Task<List<ScrapPostOverralModel>> GetPosts(int pageNumber, int pageSize, Guid userId, string userRole,
+    Task<PaginatedResult<ScrapPostOverralModel>> GetPosts(int pageNumber, int pageSize, Guid userId, string userRole,
         string? categoryName, PostStatus? status,
         bool sortByLocation = false, bool sortByCreateAt = false, bool sortByUpdateAt = false);
 
-    Task<List<ScrapPostOverralModel>> GetPostsByHousehold(int pageNumber, int pageSize, Guid? userId, string? title,
+    Task<PaginatedResult<ScrapPostOverralModel>> GetPostsByHousehold(int pageNumber, int pageSize, Guid? userId, string? title,
         PostStatus? status);
 
     Task<ScrapPostModel> GetPost(Guid scrapPostId);

@@ -276,7 +276,7 @@ public class ScrapPostController(
     /// </summary>
     /// <param name="postId">ID of scrap post</param>
     /// <param name="offerId">ID of collection offer</param>
-    [HttpGet("{postId:guid}/offers{offerId:guid}")]
+    [HttpGet("{postId:guid}/offers/{offerId:guid}")]
     [Authorize]
     [ProducesResponseType(typeof(CollectionOfferModel), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(CollectionOfferModel), StatusCodes.Status401Unauthorized)]

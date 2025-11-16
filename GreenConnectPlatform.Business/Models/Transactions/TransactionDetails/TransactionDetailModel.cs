@@ -3,7 +3,7 @@
 public class TransactionDetailModel
 {
     public Guid TransactionId { get; set; }
-    
+
     public int ScrapCategoryId { get; set; }
 
     public decimal PricePerUnit { get; set; }

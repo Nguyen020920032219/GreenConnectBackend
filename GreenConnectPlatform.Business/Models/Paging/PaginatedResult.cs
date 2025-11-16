@@ -5,6 +5,7 @@ public class PaginatedResult<T>
     public List<T> Data { get; set; } = new();
     public PaginationModel Pagination { get; set; } = new();
 }
+
 public class PaginationModel
 {
     public int TotalRecords { get; set; }

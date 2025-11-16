@@ -109,10 +109,10 @@ public class ScrapPostController(
     [ProducesResponseType(typeof(ScrapPostModel), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CreateScrapPost([FromBody] ScrapPostCreateModel scrapPostCreateModel)
     {
-            var householdId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            scrapPostCreateModel.HouseholdId = Guid.Parse(householdId);
-            var post = await scrapPostService.CreateScrapPost(scrapPostCreateModel);
-            return CreatedAtAction(nameof(GetPost), new { postId = post.ScrapPostId }, post);
+        var householdId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        scrapPostCreateModel.HouseholdId = Guid.Parse(householdId);
+        var post = await scrapPostService.CreateScrapPost(scrapPostCreateModel);
+        return CreatedAtAction(nameof(GetPost), new { postId = post.ScrapPostId }, post);
     }
 
     /// <summary>
@@ -198,7 +198,7 @@ public class ScrapPostController(
         var householdId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var detail = await scrapPostDetailService.AddScrapPostDetail(Guid.Parse(householdId), postId,
             scrapPostDetailCreateModel);
-        return CreatedAtAction(nameof(GetScrapPostDetailById), 
+        return CreatedAtAction(nameof(GetScrapPostDetailById),
             new { postId, scrapCategoryId = detail.ScrapCategoryId }, detail);
     }
 
@@ -245,9 +245,8 @@ public class ScrapPostController(
         var householdId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var userRole = User.FindFirstValue(ClaimTypes.Role);
         await scrapPostDetailService.DeleteScrapPostDetail(Guid.Parse(householdId), postId, userRole,
-                    scrapCategoryId);
+            scrapCategoryId);
         return Ok("Delete successfully");
-
     }
 
     /// <summary>
@@ -268,10 +267,12 @@ public class ScrapPostController(
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10)
     {
-        return Ok(await collectionOfferService.GetCollectionOffersForHousehold(pageNumber, pageSize, offerStatus, postId));
+        return Ok(await collectionOfferService.GetCollectionOffersForHousehold(pageNumber, pageSize, offerStatus,
+            postId));
     }
+
     /// <summary>
-    ///    User can get detail collection offers
+    ///     User can get detail collection offers
     /// </summary>
     /// <param name="postId">ID of scrap post</param>
     /// <param name="offerId">ID of collection offer</param>
@@ -288,7 +289,7 @@ public class ScrapPostController(
         var offer = await collectionOfferService.GetCollectionOffer(postId, offerId);
         return Ok(offer);
     }
-    
+
     /// <summary>
     ///     IndividualCollector, BusinessCollector can create a collection offer for scrap post
     /// </summary>
@@ -308,10 +309,11 @@ public class ScrapPostController(
         [FromBody] CollectionOfferCreateModel collectionOfferCreateModel)
     {
         var collectorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var offer = await collectionOfferService.CreateCollectionOffer(postId,Guid.Parse(collectorId),  collectionOfferCreateModel);
-        return CreatedAtAction(nameof(GetCollectionOffers), new { postId, offerId = offer.CollectionOfferId}, offer);
+        var offer = await collectionOfferService.CreateCollectionOffer(postId, Guid.Parse(collectorId),
+            collectionOfferCreateModel);
+        return CreatedAtAction(nameof(GetCollectionOffers), new { postId, offerId = offer.CollectionOfferId }, offer);
     }
-    
+
     /// <summary>
     ///     Household can accept or reject collection offer for their scrap post
     /// </summary>
@@ -333,13 +335,13 @@ public class ScrapPostController(
         var householdId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (isAccepted)
         {
-            await collectionOfferService.RejectOrAcceptCollectionOffer(offerId, postId, Guid.Parse(householdId), isAccepted);
+            await collectionOfferService.RejectOrAcceptCollectionOffer(offerId, postId, Guid.Parse(householdId),
+                isAccepted);
             return Ok("Collection offer accepted successfully");
         }
-        else
-        {
-            await collectionOfferService.RejectOrAcceptCollectionOffer(offerId, postId, Guid.Parse(householdId), isAccepted);
-            return Ok("Collection offer rejected successfully");
-        }
+
+        await collectionOfferService.RejectOrAcceptCollectionOffer(offerId, postId, Guid.Parse(householdId),
+            isAccepted);
+        return Ok("Collection offer rejected successfully");
     }
 }

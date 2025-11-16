@@ -13,7 +13,8 @@ namespace GreenConnectPlatform.Api.Controllers;
 public class ScheduleProposalController(IScheduleProposalService scheduleProposalService) : ControllerBase
 {
     /// <summary>
-    ///   IndividualCollector and BusinessCollector can get all schedule proposals they made for collection offer with pagination and filtering by offer status.
+    ///     IndividualCollector and BusinessCollector can get all schedule proposals they made for collection offer with
+    ///     pagination and filtering by offer status.
     /// </summary>
     /// <param name="status">Status of offer for a schedule proposal</param>
     /// <param name="sortByCreateAt">Household can sort asc or des list schedule by create date</param>
@@ -26,19 +27,21 @@ public class ScheduleProposalController(IScheduleProposalService scheduleProposa
     [ProducesResponseType(typeof(List<ScheduleProposalModel>), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(List<ScheduleProposalModel>), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetScheduleProposalsByCollectorId(
-        [FromQuery] ProposalStatus? status, 
+        [FromQuery] ProposalStatus? status,
         [FromQuery] bool? sortByCreateAt = true,
-        [FromQuery] int pageNumber = 1, 
+        [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var userIdParsed = Guid.Parse(userId);
-        var result = await scheduleProposalService.GetScheduleProposalsByCollectorId(pageNumber, pageSize, status, sortByCreateAt, userIdParsed);
+        var result =
+            await scheduleProposalService.GetScheduleProposalsByCollectorId(pageNumber, pageSize, status,
+                sortByCreateAt, userIdParsed);
         return Ok(result);
     }
-    
+
     /// <summary>
-    ///   IndividualCollector and BusinessCollector can update information of a schedule proposal they made.
+    ///     IndividualCollector and BusinessCollector can update information of a schedule proposal they made.
     /// </summary>
     /// <param name="scheduleId">ID of a schedule proposal</param>
     /// <param name="proposedTime">Time you want to update for this schedule</param>
@@ -58,12 +61,14 @@ public class ScheduleProposalController(IScheduleProposalService scheduleProposa
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var userIdParsed = Guid.Parse(userId);
-        var result = await scheduleProposalService.UpdateScheduleProposal(userIdParsed, scheduleId, proposedTime, responseMessage);
+        var result =
+            await scheduleProposalService.UpdateScheduleProposal(userIdParsed, scheduleId, proposedTime,
+                responseMessage);
         return Ok(result);
     }
-    
+
     /// <summary>
-    ///   IndividualCollector and BusinessCollector can cancel or reopen of a schedule proposal they made.
+    ///     IndividualCollector and BusinessCollector can cancel or reopen of a schedule proposal they made.
     /// </summary>
     /// <param name="scheduleId">ID of a schedule proposal</param>
     [HttpPatch("{scheduleId:Guid}/toggle")]

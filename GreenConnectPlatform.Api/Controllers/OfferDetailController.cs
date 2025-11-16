@@ -12,7 +12,7 @@ namespace GreenConnectPlatform.Api.Controllers;
 public class OfferDetailController(IOfferDetailService offerDetailService) : ControllerBase
 {
     /// <summary>
-    ///    Crap Collector can update offers detail to their collection offer.
+    ///     Crap Collector can update offers detail to their collection offer.
     /// </summary>
     /// <param name="offerDetailId">ID of offer detail</param>
     /// <param name="offerDetailUpdateModel">Information of offer detail</param>
@@ -29,11 +29,13 @@ public class OfferDetailController(IOfferDetailService offerDetailService) : Con
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var userIdParsed = Guid.Parse(userId);
-        var updatedOfferDetail = await offerDetailService.UpdateOfferDetail(userIdParsed, offerDetailId, offerDetailUpdateModel);
+        var updatedOfferDetail =
+            await offerDetailService.UpdateOfferDetail(userIdParsed, offerDetailId, offerDetailUpdateModel);
         return Ok(updatedOfferDetail);
     }
+
     /// <summary>
-    ///    Crap Collector can delete offer detail to their collection offer.
+    ///     Crap Collector can delete offer detail to their collection offer.
     /// </summary>
     /// <param name="offerDetailId">ID of collection offer</param>
     [HttpDelete("{offerDetailId:Guid}")]

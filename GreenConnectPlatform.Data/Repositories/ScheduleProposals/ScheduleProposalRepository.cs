@@ -4,7 +4,8 @@ using GreenConnectPlatform.Data.Repositories.Base;
 
 namespace GreenConnectPlatform.Data.Repositories.ScheduleProposals;
 
-public class ScheduleProposalRepository : BaseRepository<GreenConnectDbContext, ScheduleProposal, Guid>, IScheduleProposalRepository
+public class ScheduleProposalRepository : BaseRepository<GreenConnectDbContext, ScheduleProposal, Guid>,
+    IScheduleProposalRepository
 {
     public ScheduleProposalRepository(GreenConnectDbContext dbContext) : base(dbContext)
     {

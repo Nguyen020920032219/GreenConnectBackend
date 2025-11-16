@@ -72,7 +72,7 @@ public class CollectionOfferController(
     /// </summary>
     /// <param name="offerId">ID of collection offer</param>
     /// <param name="offerDetailId">ID of offer detail</param>
-    [HttpGet("{offerId:Guid}/details{offerDetailId:Guid}")]
+    [HttpGet("{offerId:Guid}/details/{offerDetailId:Guid}")]
     [Authorize]
     [ProducesResponseType(typeof(OfferDetailModel), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(OfferDetailModel), StatusCodes.Status404NotFound)]

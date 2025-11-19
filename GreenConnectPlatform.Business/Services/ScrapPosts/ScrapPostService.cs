@@ -57,7 +57,7 @@ public class ScrapPostService : IScrapPostService
         var query = _scrapPostRepository.DbSet().AsQueryable()
             .AsNoTracking();
         if (userRole == "IndividualCollector" || userRole == "BusinessCollector")
-            query = query.Where(s => s.Status == PostStatus.Open && s.Status == PostStatus.PartiallyBooked);
+            query = query.Where(s => s.Status == PostStatus.Open || s.Status == PostStatus.PartiallyBooked);
         if (status != null && userRole == "Admin") query = query.Where(s => s.Status == status);
         if (!string.IsNullOrWhiteSpace(categoryName))
             query = query
@@ -89,6 +89,7 @@ public class ScrapPostService : IScrapPostService
         }
 
         var scrapPosts = await query
+            .Include(s => s.Household)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
@@ -120,6 +121,7 @@ public class ScrapPostService : IScrapPostService
         if (status != null) query = query.Where(s => s.Status == status);
         var totalRecords = await query.CountAsync();
         var scrapPosts = await query
+            .Include(s => s.Household)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
@@ -143,7 +145,10 @@ public class ScrapPostService : IScrapPostService
 
     public async Task<ScrapPostModel> GetPost(Guid scrapPostId)
     {
-        var scrapPost = await _scrapPostRepository.DbSet().Include(s => s.ScrapPostDetails)
+        var scrapPost = await _scrapPostRepository.DbSet()
+            .Include(s => s.Household)
+            .Include(s => s.ScrapPostDetails)
+            .ThenInclude(s => s.ScrapCategory)
             .FirstOrDefaultAsync(s => s.ScrapPostId == scrapPostId);
         if (scrapPost == null)
             throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Scrap post not found");

@@ -33,6 +33,7 @@ public class ScrapPostDetailService : IScrapPostDetailService
     public async Task<ScrapPostDetailModel> GetScrapPostDetailById(Guid scrapPostId, int scrapCategoryId)
     {
         var detail = await _scrapPostDetailRepository.DbSet()
+            .Include(s => s.ScrapCategory)
             .FirstOrDefaultAsync(d => d.ScrapPostId == scrapPostId && d.ScrapCategoryId == scrapCategoryId);
         if (detail == null)
             throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Scrap post detail not found");

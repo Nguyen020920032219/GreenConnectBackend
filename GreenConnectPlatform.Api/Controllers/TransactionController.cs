@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using GreenConnectPlatform.Business.Models.Exceptions;
 using GreenConnectPlatform.Business.Models.ScrapPosts;
 using GreenConnectPlatform.Business.Models.Transactions;
 using GreenConnectPlatform.Business.Models.Transactions.TransactionDetails;
@@ -9,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace GreenConnectPlatform.Api.Controllers;
 
-[Route("api/transactions")]
+[Route("api/v1/transactions")]
 [ApiController]
 [Tags("Transactions")]
 public class TransactionController(
@@ -24,10 +25,10 @@ public class TransactionController(
     [HttpPatch("{transactionId:Guid}/check-in")]
     [Authorize(Roles = "IndividualCollector, BusinessCollector")]
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CheckIn(Guid transactionId, LocationModel location)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -42,9 +43,9 @@ public class TransactionController(
     [HttpGet("{transactionId:Guid}")]
     [Authorize]
     [ProducesResponseType(typeof(TransactionModel), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetTransaction(Guid transactionId)
     {
         var transaction = await transactionService.GetTransaction(transactionId);
@@ -61,8 +62,8 @@ public class TransactionController(
     [HttpGet]
     [Authorize]
     [ProducesResponseType(typeof(List<TransactionOveralModel>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetTransactionsByUserId(
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10,
@@ -80,11 +81,11 @@ public class TransactionController(
     [HttpPatch("{transactionId:Guid}/accept-cancel")]
     [Authorize(Roles = "Household")]
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CancelOrAcceptTransaction(
         [FromRoute] Guid transactionId,
         [FromQuery] bool isAccept)
@@ -103,11 +104,11 @@ public class TransactionController(
     [HttpPatch("{transactionId:Guid}/toggle")]
     [Authorize(Roles = "IndividualCollector, BusinessCollector")]
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CancelOrReopoenTransaction(
         [FromRoute] Guid transactionId)
     {
@@ -124,10 +125,10 @@ public class TransactionController(
     [HttpPost("{transactionId:Guid}/submit-details")]
     [Authorize(Roles = "IndividualCollector, BusinessCollector")]
     [ProducesResponseType(typeof(List<TransactionDetailModel>), StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(List<TransactionDetailModel>), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(List<TransactionDetailModel>), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(List<TransactionDetailModel>), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(List<TransactionDetailModel>), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> SubmitTransactionDetails(
         [FromRoute] Guid transactionId,
         [FromBody] List<TransactionDetailCreateModel> transactionDetailCreateModels)
@@ -147,9 +148,9 @@ public class TransactionController(
     [HttpPatch("{transactionId:Guid}/details")]
     [Authorize(Roles = "IndividualCollector, BusinessCollector")]
     [ProducesResponseType(typeof(TransactionDetailModel), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(TransactionDetailModel), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(TransactionDetailModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(TransactionDetailModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> UpdateTransactionDetail(
         [FromRoute] Guid transactionId,
         [FromQuery] int scrapCategoryId,

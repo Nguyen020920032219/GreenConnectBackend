@@ -1,10 +1,11 @@
-﻿using GreenConnectPlatform.Business.Models.ScrapCategories;
+﻿using GreenConnectPlatform.Business.Models.Exceptions;
+using GreenConnectPlatform.Business.Models.ScrapCategories;
 using GreenConnectPlatform.Business.Services.ScrapCategories;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GreenConnectPlatform.Api.Controllers;
 
-[Route("api/categories")]
+[Route("api/v1/categories")]
 [ApiController]
 [Tags("Scrap Categories")]
 public class ScrapCategoryController(IScrapCategoryService scrapCategoryService) : ControllerBase
@@ -18,7 +19,7 @@ public class ScrapCategoryController(IScrapCategoryService scrapCategoryService)
     /// <param name="pageSize"></param>
     [HttpGet]
     [ProducesResponseType(typeof(ScrapCategoryModel), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ScrapCategoryModel), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetScrapCategories(
         [FromQuery] string? categoryName,
         [FromQuery] int pageNumber = 1,
@@ -35,8 +36,8 @@ public class ScrapCategoryController(IScrapCategoryService scrapCategoryService)
     /// <param name="categoryId">ID of scrap category</param>
     [HttpGet("{categoryId:int}")]
     [ProducesResponseType(typeof(ScrapCategoryModel), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ScrapCategoryModel), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ScrapCategoryModel), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetScrapCategory([FromRoute] int categoryId)
     {
         var result = await scrapCategoryService.GetScrapCategory(categoryId);

@@ -33,6 +33,7 @@ public class OfferDetailService : IOfferDetailService
     public async Task<OfferDetailModel> GetOfferDetail(Guid offerDetailId, Guid offerId)
     {
         var offerDetail = await _offerDetailRepository.DbSet()
+            .Include(o => o.ScrapCategory)
             .FirstOrDefaultAsync(o => o.OfferDetailId == offerDetailId && o.CollectionOfferId == offerId);
         if (offerDetail == null)
             throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Offer detail does not exist");

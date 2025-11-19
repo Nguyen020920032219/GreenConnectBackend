@@ -73,6 +73,13 @@ public class TransactionService : ITransactionService
     {
         var transaction = await _transactionRepository.DbSet()
             .Include(t => t.TransactionDetails)
+            .ThenInclude(t => t.ScrapCategory)
+            .Include(q => q.Household)
+            .Include(q => q.ScrapCollector)
+            .Include(q => q.Offer)
+            .ThenInclude(o => o.OfferDetails)
+            .Include(q => q.Offer)
+            .ThenInclude(o => o.ScheduleProposals)
             .FirstOrDefaultAsync(t => t.TransactionId == transactionId);
         if (transaction == null)
             throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Transaction does not exist");
@@ -103,6 +110,12 @@ public class TransactionService : ITransactionService
         query = orderedQuery;
 
         var transactions = await query
+            .Include(q => q.Household)
+            .Include(q => q.ScrapCollector)
+            .Include(q => q.Offer)
+            .ThenInclude(o => o.OfferDetails)
+            .Include(q => q.Offer)
+            .ThenInclude(o => o.ScheduleProposals)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();

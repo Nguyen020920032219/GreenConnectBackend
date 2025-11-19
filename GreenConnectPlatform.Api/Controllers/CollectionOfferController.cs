@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using GreenConnectPlatform.Business.Models.CollectionOffers;
 using GreenConnectPlatform.Business.Models.CollectionOffers.OfferDetails;
+using GreenConnectPlatform.Business.Models.Exceptions;
 using GreenConnectPlatform.Business.Models.ScheduleProposals;
 using GreenConnectPlatform.Business.Services.CollectionOffers;
 using GreenConnectPlatform.Business.Services.CollectionOffers.OfferDetails;
@@ -11,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace GreenConnectPlatform.Api.Controllers;
 
-[Route("api/offers")]
+[Route("api/v1/offers")]
 [ApiController]
 [Tags("Collection Offers")]
 public class CollectionOfferController(
@@ -31,8 +32,8 @@ public class CollectionOfferController(
     [HttpGet]
     [Authorize(Roles = "IndividualCollector, BusinessCollector")]
     [ProducesResponseType(typeof(CollectionOfferOveralForCollectorModel), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(CollectionOfferOveralForCollectorModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(CollectionOfferOveralForCollectorModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetCollectionOffersForCollector(
         [FromQuery] OfferStatus? offerStatus,
         [FromQuery] bool? sortByCreateAt = false,
@@ -53,11 +54,11 @@ public class CollectionOfferController(
     [HttpPatch("{offerId:Guid}")]
     [Authorize(Roles = "IndividualCollector, BusinessCollector")]
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CancelOrReopenCollectionOffer(
         [FromRoute] Guid offerId)
     {
@@ -75,9 +76,9 @@ public class CollectionOfferController(
     [HttpGet("{offerId:Guid}/details/{offerDetailId:Guid}")]
     [Authorize]
     [ProducesResponseType(typeof(OfferDetailModel), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(OfferDetailModel), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(OfferDetailModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(OfferDetailModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetOfferDetail(
         [FromRoute] Guid offerId,
         [FromRoute] Guid offerDetailId)
@@ -94,11 +95,11 @@ public class CollectionOfferController(
     [HttpPost("{offerId:Guid}/details")]
     [Authorize(Roles = "IndividualCollector, BusinessCollector")]
     [ProducesResponseType(typeof(OfferDetailModel), StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(OfferDetailModel), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(OfferDetailModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(OfferDetailModel), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(OfferDetailModel), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(OfferDetailModel), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status409Conflict)]
     public async Task<ActionResult> AddOfferDetail(
         [FromRoute] Guid offerId,
         [FromBody] OfferDetailCreateModel offerDetailCreateModel)
@@ -122,9 +123,9 @@ public class CollectionOfferController(
     [HttpGet("{offerId:Guid}/schedules")]
     [Authorize(Roles = "Household")]
     [ProducesResponseType(typeof(List<ScheduleProposalModel>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(List<ScheduleProposalModel>), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(List<ScheduleProposalModel>), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(List<ScheduleProposalModel>), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetScheduleProposalsForOffer(
         [FromRoute] Guid offerId,
         [FromQuery] ProposalStatus? status,
@@ -146,10 +147,10 @@ public class CollectionOfferController(
     [HttpGet("{offerId:Guid}/schedules/{scheduleId:Guid}")]
     [Authorize(Roles = "Household, IndividualCollector, BusinessCollector")]
     [ProducesResponseType(typeof(ScheduleProposalModel), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ScheduleProposalModel), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ScheduleProposalModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ScheduleProposalModel), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(ScheduleProposalModel), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetScheduleProposalForOffer(
         [FromRoute] Guid offerId,
         [FromRoute] Guid scheduleId)
@@ -166,11 +167,11 @@ public class CollectionOfferController(
     [HttpPost("{offerId:Guid}/reschedules")]
     [Authorize(Roles = "Household, IndividualCollector, BusinessCollector")]
     [ProducesResponseType(typeof(ScheduleProposalModel), StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(ScheduleProposalModel), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ScheduleProposalModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ScheduleProposalModel), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(ScheduleProposalModel), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ScheduleProposalModel), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> ReScheduleProposalForOffer(
         [FromRoute] Guid offerId,
         [FromBody] ScheduleProposalCreateModel model)
@@ -190,6 +191,12 @@ public class CollectionOfferController(
     /// <param name="isAccepted">True is Household accept schedule, False is Household reject schedule </param>
     [HttpPatch("{offerId:Guid}/schedules/{scheduleId:Guid}")]
     [Authorize(Roles = "Household")]
+    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> AcceptOrRejectScheduleProposal([FromRoute] Guid offerId,
         [FromRoute] Guid scheduleId,
         [FromQuery] bool isAccepted)

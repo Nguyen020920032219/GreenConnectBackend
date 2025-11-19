@@ -6,6 +6,7 @@ using GreenConnectPlatform.Business.Models.ScrapPosts;
 using GreenConnectPlatform.Business.Models.ScrapPosts.ScrapPostDetails;
 using GreenConnectPlatform.Business.Models.Transactions;
 using GreenConnectPlatform.Business.Models.Transactions.TransactionDetails;
+using GreenConnectPlatform.Business.Models.Users;
 using GreenConnectPlatform.Data.Entities;
 using Profile = AutoMapper.Profile;
 
@@ -72,6 +73,12 @@ public class MappingProfile : Profile
         CreateMap<TransactionDetailUpdateModel, TransactionDetail>()
             .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
         ;
+
+        #endregion
+
+        #region User
+
+        CreateMap<User, UserViewModel>();
 
         #endregion
     }

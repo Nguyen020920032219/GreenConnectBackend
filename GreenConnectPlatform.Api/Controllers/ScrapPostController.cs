@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using GreenConnectPlatform.Business.Models.CollectionOffers;
+using GreenConnectPlatform.Business.Models.Exceptions;
 using GreenConnectPlatform.Business.Models.ScrapPosts;
 using GreenConnectPlatform.Business.Models.ScrapPosts.ScrapPostDetails;
 using GreenConnectPlatform.Business.Services.CollectionOffers;
@@ -37,8 +38,8 @@ public class ScrapPostController(
     [HttpGet]
     [Authorize(Roles = "Admin, IndividualCollector, BusinessCollector")]
     [ProducesResponseType(typeof(ScrapPostOverralModel), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ScrapPostOverralModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ScrapPostOverralModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetPosts(
         [FromQuery] string? categoryName,
         [FromQuery] PostStatus? status,
@@ -66,8 +67,8 @@ public class ScrapPostController(
     [HttpGet("my-posts")]
     [Authorize(Roles = "Household")]
     [ProducesResponseType(typeof(ScrapPostOverralModel), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ScrapPostOverralModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ScrapPostOverralModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetPostsByHousehold(
         [FromQuery] string? title,
         [FromQuery] PostStatus? status,
@@ -88,8 +89,8 @@ public class ScrapPostController(
     [HttpGet("{postId:guid}")]
     [Authorize]
     [ProducesResponseType(typeof(ScrapPostModel), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ScrapPostModel), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ScrapPostModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetPost([FromRoute] Guid postId)
     {
         var post = await scrapPostService.GetPost(postId);
@@ -102,11 +103,11 @@ public class ScrapPostController(
     [Authorize(Roles = "Household")]
     [HttpPost]
     [ProducesResponseType(typeof(ScrapPostModel), StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(ScrapPostModel), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ScrapPostModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ScrapPostModel), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(ScrapPostModel), StatusCodes.Status409Conflict)]
-    [ProducesResponseType(typeof(ScrapPostModel), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CreateScrapPost([FromBody] ScrapPostCreateModel scrapPostCreateModel)
     {
         var householdId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -123,11 +124,11 @@ public class ScrapPostController(
     [Authorize(Roles = "Household")]
     [HttpPatch("{postId:guid}")]
     [ProducesResponseType(typeof(ScrapPostModel), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ScrapPostModel), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ScrapPostModel), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ScrapPostModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ScrapPostModel), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(ScrapPostModel), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> UpdateScrapPost([FromRoute] Guid postId,
         [FromBody] ScrapPostUpdateModel scrapPostRequestModel)
     {
@@ -144,9 +145,9 @@ public class ScrapPostController(
     [Authorize(Roles = "Household, Admin")]
     [HttpPatch("{postId:guid}/toggle")]
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> ToggleScrapPost([FromRoute] Guid postId)
     {
         var householdId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -163,7 +164,7 @@ public class ScrapPostController(
     /// <param name="scrapCategoryId">ID of scrap category</param>
     [HttpGet("{postId:guid}/details")]
     [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetScrapPostDetailById([FromRoute] Guid postId,
         [FromQuery] int scrapCategoryId)
     {
@@ -186,12 +187,12 @@ public class ScrapPostController(
     [Authorize(Roles = "Household")]
     [HttpPost("{postId:guid}/details")]
     [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status409Conflict)]
-    [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CreateScrapPostDetail([FromRoute] Guid postId,
         [FromBody] ScrapPostDetailCreateModel scrapPostDetailCreateModel)
     {
@@ -211,11 +212,11 @@ public class ScrapPostController(
     [Authorize(Roles = "Household")]
     [HttpPatch("{postId:guid}/details")]
     [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> UpdateScrapPostDetail([FromRoute] Guid postId,
         [FromQuery] int scrapCategoryId,
         [FromBody] ScrapPostDetailUpdateModel scrapPostDetailUpdateModel)
@@ -234,11 +235,11 @@ public class ScrapPostController(
     [Authorize(Roles = "Household, Admin")]
     [HttpDelete("{postId:guid}/details")]
     [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ScrapPostDetailModel), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> DeleteScrapPostDetail([FromRoute] Guid postId,
         [FromQuery] int scrapCategoryId)
     {
@@ -259,8 +260,8 @@ public class ScrapPostController(
     [HttpGet("{postId:guid}/offers")]
     [Authorize(Roles = "Household")]
     [ProducesResponseType(typeof(CollectionOfferOveralForHouseModel), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(CollectionOfferOveralForHouseModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(CollectionOfferOveralForHouseModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetCollectionOffers(
         [FromRoute] Guid postId,
         [FromQuery] OfferStatus? offerStatus,
@@ -279,9 +280,9 @@ public class ScrapPostController(
     [HttpGet("{postId:guid}/offers/{offerId:guid}")]
     [Authorize]
     [ProducesResponseType(typeof(CollectionOfferModel), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(CollectionOfferModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(CollectionOfferModel), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(CollectionOfferModel), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetCollectionOffer(
         [FromRoute] Guid postId,
         [FromRoute] Guid offerId)
@@ -298,12 +299,12 @@ public class ScrapPostController(
     [HttpPost("{postId:guid}/offers")]
     [Authorize(Roles = "IndividualCollector, BusinessCollector")]
     [ProducesResponseType(typeof(CollectionOfferModel), StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(CollectionOfferModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(CollectionOfferModel), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(CollectionOfferModel), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(CollectionOfferModel), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(CollectionOfferModel), StatusCodes.Status409Conflict)]
-    [ProducesResponseType(typeof(CollectionOfferModel), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> CreateCollectionOffer(
         [FromRoute] Guid postId,
         [FromBody] CollectionOfferCreateModel collectionOfferCreateModel)
@@ -323,10 +324,10 @@ public class ScrapPostController(
     [HttpPatch("{postId:guid}/offers/{offerId:guid}")]
     [Authorize(Roles = "Household")]
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> RejectOrAcceptCollectionOffer(
         [FromRoute] Guid postId,
         [FromRoute] Guid offerId,

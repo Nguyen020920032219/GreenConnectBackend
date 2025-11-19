@@ -59,6 +59,11 @@ public class CollectionOfferService : ICollectionOfferService
             query = query.OrderBy(o => o.CreatedAt);
         var totalRecords = await query.CountAsync();
         var collectionOffers = await query
+            .Include(c => c.ScrapPost)
+            .ThenInclude(s => s.Household)
+            .Include(c => c.ScrapPost)
+            .ThenInclude(s => s.ScrapPostDetails)
+            .Include(c => c.ScrapCollector)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
@@ -93,6 +98,11 @@ public class CollectionOfferService : ICollectionOfferService
         var totalRecords = await query.CountAsync();
 
         var collectionOffers = await query
+            .Include(c => c.ScrapPost)
+            .ThenInclude(s => s.Household)
+            .Include(c => c.ScrapPost)
+            .ThenInclude(s => s.ScrapPostDetails)
+            .Include(c => c.ScrapCollector)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
@@ -117,6 +127,10 @@ public class CollectionOfferService : ICollectionOfferService
     public async Task<CollectionOfferModel> GetCollectionOffer(Guid scrapPostId, Guid collectionOfferId)
     {
         var collectionOffer = await _collectionOfferRepository.DbSet()
+            .Include(o => o.ScrapPost)
+            .ThenInclude(s => s.Household)
+            .Include(o => o.ScrapPost)
+            .ThenInclude(s => s.ScrapPostDetails)
             .Include(o => o.OfferDetails)
             .Include(o => o.ScheduleProposals)
             .FirstOrDefaultAsync(o => o.CollectionOfferId == collectionOfferId && o.ScrapPostId == scrapPostId);

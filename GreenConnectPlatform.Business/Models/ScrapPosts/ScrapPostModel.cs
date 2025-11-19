@@ -1,4 +1,5 @@
 ﻿using GreenConnectPlatform.Business.Models.ScrapPosts.ScrapPostDetails;
+using GreenConnectPlatform.Business.Models.Users;
 using GreenConnectPlatform.Data.Enums;
 
 namespace GreenConnectPlatform.Business.Models.ScrapPosts;
@@ -14,6 +15,7 @@ public class ScrapPostModel
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public Guid HouseholdId { get; set; }
+    public UserViewModel Household { get; set; } = new ();
     public bool MustTakeAll { get; set; }
     public List<ScrapPostDetailModel> ScrapPostDetails { get; set; } = new();
 }

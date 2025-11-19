@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using GreenConnectPlatform.Business.Models.Exceptions;
 using GreenConnectPlatform.Business.Models.ScheduleProposals;
 using GreenConnectPlatform.Business.Services.ScheduleProposals;
 using GreenConnectPlatform.Data.Enums;
@@ -7,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace GreenConnectPlatform.Api.Controllers;
 
-[Route("api/schedules")]
+[Route("api/v1/schedules")]
 [ApiController]
 [Tags("Schedule Proposals")]
 public class ScheduleProposalController(IScheduleProposalService scheduleProposalService) : ControllerBase
@@ -23,9 +24,9 @@ public class ScheduleProposalController(IScheduleProposalService scheduleProposa
     [HttpGet]
     [Authorize(Roles = "IndividualCollector, BusinessCollector")]
     [ProducesResponseType(typeof(List<ScheduleProposalModel>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(List<ScheduleProposalModel>), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(List<ScheduleProposalModel>), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(List<ScheduleProposalModel>), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetScheduleProposalsByCollectorId(
         [FromQuery] ProposalStatus? status,
         [FromQuery] bool? sortByCreateAt = true,
@@ -49,11 +50,11 @@ public class ScheduleProposalController(IScheduleProposalService scheduleProposa
     [HttpPatch("{scheduleId:Guid}")]
     [Authorize(Roles = "IndividualCollector, BusinessCollector")]
     [ProducesResponseType(typeof(ScheduleProposalModel), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ScheduleProposalModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ScheduleProposalModel), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(ScheduleProposalModel), StatusCodes.Status500InternalServerError)]
-    [ProducesResponseType(typeof(ScheduleProposalModel), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ScheduleProposalModel), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateScheduleProposal(
         [FromRoute] Guid scheduleId,
         [FromQuery] DateTime? proposedTime,
@@ -74,11 +75,11 @@ public class ScheduleProposalController(IScheduleProposalService scheduleProposa
     [HttpPatch("{scheduleId:Guid}/toggle")]
     [Authorize(Roles = "IndividualCollector, BusinessCollector")]
     [ProducesResponseType(typeof(ScheduleProposalModel), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ScheduleProposalModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ScheduleProposalModel), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(ScheduleProposalModel), StatusCodes.Status500InternalServerError)]
-    [ProducesResponseType(typeof(ScheduleProposalModel), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ScheduleProposalModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CancelOrReopenScheduleProposal(
         [FromRoute] Guid scheduleId)
     {

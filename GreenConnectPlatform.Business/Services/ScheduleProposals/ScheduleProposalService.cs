@@ -41,6 +41,7 @@ public class ScheduleProposalService : IScheduleProposalService
             query = query.OrderBy(c => c.CreatedAt);
         var totalRecords = await query.CountAsync();
         var scheduleProposals = await query
+            .Include(s => s.Offer)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
@@ -77,6 +78,7 @@ public class ScheduleProposalService : IScheduleProposalService
             query = query.OrderBy(c => c.CreatedAt);
         var totalRecords = await query.CountAsync();
         var scheduleProposals = await query
+            .Include(s => s.Offer)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
@@ -101,6 +103,7 @@ public class ScheduleProposalService : IScheduleProposalService
     public async Task<ScheduleProposalModel> GetScheduleProposal(Guid collectionOfferId, Guid scheduleProposalId)
     {
         var proposal = await _scheduleProposalRepository.DbSet()
+            .Include(s => s.Offer)
             .FirstOrDefaultAsync(p =>
                 p.CollectionOfferId == collectionOfferId && p.ScheduleProposalId == scheduleProposalId);
         if (proposal == null)

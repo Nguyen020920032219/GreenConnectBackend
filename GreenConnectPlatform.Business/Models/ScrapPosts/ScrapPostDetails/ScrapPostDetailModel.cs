@@ -1,11 +1,13 @@
-﻿using GreenConnectPlatform.Data.Enums;
+﻿using GreenConnectPlatform.Business.Models.ScrapCategories;
+using GreenConnectPlatform.Data.Enums;
 
 namespace GreenConnectPlatform.Business.Models.ScrapPosts.ScrapPostDetails;
 
 public class ScrapPostDetailModel
 {
     public int ScrapCategoryId { get; set; }
-
+    public ScrapCategoryModel ScrapCategory { get; set; } = new ();
+    
     public string? AmountDescription { get; set; }
 
     public string? ImageUrl { get; set; }

@@ -8,7 +8,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GreenConnectPlatform.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialDatabase : Migration
+    public partial class Initial_Database : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -591,6 +591,7 @@ namespace GreenConnectPlatform.Data.Migrations
                     Status = table.Column<string>(type: "text", nullable: false),
                     ScheduledTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     CheckInTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CheckInLocation = table.Column<Point>(type: "geometry(Point,4326)", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },

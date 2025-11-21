@@ -1,4 +1,5 @@
 ﻿using GreenConnectPlatform.Data.Enums;
+using NetTopologySuite.Geometries;
 
 namespace GreenConnectPlatform.Data.Entities;
 
@@ -17,6 +18,8 @@ public class Transaction
     public DateTime? ScheduledTime { get; set; }
 
     public DateTime? CheckInTime { get; set; }
+
+    public Point? CheckInLocation { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

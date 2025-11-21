@@ -1074,6 +1074,9 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.Property<Guid>("TransactionId")
                         .HasColumnType("uuid");
 
+                    b.Property<Point>("CheckInLocation")
+                        .HasColumnType("geometry(Point,4326)");
+
                     b.Property<DateTime?>("CheckInTime")
                         .HasColumnType("timestamp with time zone");
 
@@ -1292,7 +1295,7 @@ namespace GreenConnectPlatform.Data.Migrations
                         {
                             Id = new Guid("a1b2c3d4-e5f6-7788-9900-aabbccddeeff"),
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "c35852df-a095-462a-95ca-3f6da16cca3b",
+                            ConcurrencyStamp = "52b88c4d-29ff-4466-8489-70129fa1551a",
                             CreatedAt = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc),
                             Email = "admin@gmail.com",
                             EmailConfirmed = false,
@@ -1312,7 +1315,7 @@ namespace GreenConnectPlatform.Data.Migrations
                             Id = new Guid("b2c3d4e5-f6a1-8899-0011-bbccddeeff00"),
                             AccessFailedCount = 0,
                             BuyerType = 0,
-                            ConcurrencyStamp = "79ed0353-266c-45c6-8c2f-0ec95a233c46",
+                            ConcurrencyStamp = "192d8ce0-0135-4c72-a02d-2ec5749bdc9e",
                             CreatedAt = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc),
                             Email = "collector@gmail.com",
                             EmailConfirmed = false,
@@ -1331,7 +1334,7 @@ namespace GreenConnectPlatform.Data.Migrations
                         {
                             Id = new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"),
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "04bb9be3-c453-4ca8-85ee-352a7b0864ad",
+                            ConcurrencyStamp = "c9fae739-de7c-4f87-b7ef-7f97b8fb8bcd",
                             CreatedAt = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc),
                             Email = "household@gmail.com",
                             EmailConfirmed = false,
@@ -1351,7 +1354,7 @@ namespace GreenConnectPlatform.Data.Migrations
                             Id = new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"),
                             AccessFailedCount = 0,
                             BuyerType = 1,
-                            ConcurrencyStamp = "b32d3334-52b3-491b-b2fc-50f7eed6b4eb",
+                            ConcurrencyStamp = "4bb1ed8a-2549-4f6f-898f-5755842fdb8a",
                             CreatedAt = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc),
                             Email = "scrapyard@gmail.com",
                             EmailConfirmed = false,

@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace GreenConnectPlatform.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class DataSeeding : Migration
+    public partial class Seeding_Database : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -29,10 +29,10 @@ namespace GreenConnectPlatform.Data.Migrations
                 columns: new[] { "Id", "AccessFailedCount", "BuyerType", "ConcurrencyStamp", "CreatedAt", "Email", "EmailConfirmed", "FullName", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "OtpCode", "OtpExpiredAt", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "SecurityStamp", "Status", "TwoFactorEnabled", "UpdatedAt", "UserName" },
                 values: new object[,]
                 {
-                    { new Guid("a1b2c3d4-e5f6-7788-9900-aabbccddeeff"), 0, null, "c35852df-a095-462a-95ca-3f6da16cca3b", new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), "admin@gmail.com", false, "Admin GreenConnect", false, null, "ADMIN@GMAIL.COM", "0900000000", null, null, "AQAAAAIAAYagAAAAELSd8S1/ERD0+I4lEAStNTTw/VOGuVVH8vE3SL92wYldv4i4XV78koh+GJ3GpdR05A==", "0900000000", true, null, 1, false, null, "0900000000" },
-                    { new Guid("b2c3d4e5-f6a1-8899-0011-bbccddeeff00"), 0, 0, "79ed0353-266c-45c6-8c2f-0ec95a233c46", new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), "collector@gmail.com", false, "Anh Ba Ve Chai", false, null, "COLLECTOR@GMAIL.COM", "0911111111", null, null, "AQAAAAIAAYagAAAAELSd8S1/ERD0+I4lEAStNTTw/VOGuVVH8vE3SL92wYldv4i4XV78koh+GJ3GpdR05A==", "0911111111", true, null, 0, false, null, "0911111111" },
-                    { new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"), 0, null, "04bb9be3-c453-4ca8-85ee-352a7b0864ad", new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), "household@gmail.com", false, "Chị Tư Bán Ve Chai", false, null, "HOUSEHOLD@GMAIL.COM", "0922222222", null, null, "AQAAAAIAAYagAAAAELSd8S1/ERD0+I4lEAStNTTw/VOGuVVH8vE3SL92wYldv4i4XV78koh+GJ3GpdR05A==", "0922222222", true, null, 1, false, null, "0922222222" },
-                    { new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"), 0, 1, "b32d3334-52b3-491b-b2fc-50f7eed6b4eb", new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), "scrapyard@gmail.com", false, "Vựa Ve Chai ABC", false, null, "SCRAPYARD@GMAIL.COM", "0988888888", null, null, "AQAAAAIAAYagAAAAELSd8S1/ERD0+I4lEAStNTTw/VOGuVVH8vE3SL92wYldv4i4XV78koh+GJ3GpdR05A==", "0988888888", true, null, 1, false, null, "0988888888" }
+                    { new Guid("a1b2c3d4-e5f6-7788-9900-aabbccddeeff"), 0, null, "52b88c4d-29ff-4466-8489-70129fa1551a", new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), "admin@gmail.com", false, "Admin GreenConnect", false, null, "ADMIN@GMAIL.COM", "0900000000", null, null, "AQAAAAIAAYagAAAAELSd8S1/ERD0+I4lEAStNTTw/VOGuVVH8vE3SL92wYldv4i4XV78koh+GJ3GpdR05A==", "0900000000", true, null, 1, false, null, "0900000000" },
+                    { new Guid("b2c3d4e5-f6a1-8899-0011-bbccddeeff00"), 0, 0, "192d8ce0-0135-4c72-a02d-2ec5749bdc9e", new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), "collector@gmail.com", false, "Anh Ba Ve Chai", false, null, "COLLECTOR@GMAIL.COM", "0911111111", null, null, "AQAAAAIAAYagAAAAELSd8S1/ERD0+I4lEAStNTTw/VOGuVVH8vE3SL92wYldv4i4XV78koh+GJ3GpdR05A==", "0911111111", true, null, 0, false, null, "0911111111" },
+                    { new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"), 0, null, "c9fae739-de7c-4f87-b7ef-7f97b8fb8bcd", new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), "household@gmail.com", false, "Chị Tư Bán Ve Chai", false, null, "HOUSEHOLD@GMAIL.COM", "0922222222", null, null, "AQAAAAIAAYagAAAAELSd8S1/ERD0+I4lEAStNTTw/VOGuVVH8vE3SL92wYldv4i4XV78koh+GJ3GpdR05A==", "0922222222", true, null, 1, false, null, "0922222222" },
+                    { new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"), 0, 1, "4bb1ed8a-2549-4f6f-898f-5755842fdb8a", new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), "scrapyard@gmail.com", false, "Vựa Ve Chai ABC", false, null, "SCRAPYARD@GMAIL.COM", "0988888888", null, null, "AQAAAAIAAYagAAAAELSd8S1/ERD0+I4lEAStNTTw/VOGuVVH8vE3SL92wYldv4i4XV78koh+GJ3GpdR05A==", "0988888888", true, null, 1, false, null, "0988888888" }
                 });
 
             migrationBuilder.InsertData(
@@ -196,11 +196,11 @@ namespace GreenConnectPlatform.Data.Migrations
 
             migrationBuilder.InsertData(
                 table: "Transactions",
-                columns: new[] { "TransactionId", "CheckInTime", "CreatedAt", "HouseholdId", "OfferId", "ScheduledTime", "ScrapCollectorId", "Status", "UpdatedAt" },
+                columns: new[] { "TransactionId", "CheckInLocation", "CheckInTime", "CreatedAt", "HouseholdId", "OfferId", "ScheduledTime", "ScrapCollectorId", "Status", "UpdatedAt" },
                 values: new object[,]
                 {
-                    { new Guid("40000000-0000-0000-0000-000000000001"), new DateTime(2025, 10, 10, 14, 0, 0, 0, DateTimeKind.Utc), new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"), new Guid("30000000-0000-0000-0000-000000000001"), new DateTime(2025, 10, 10, 14, 0, 0, 0, DateTimeKind.Utc), new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"), "Completed", null },
-                    { new Guid("40000000-0000-0000-0000-000000000002"), null, new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"), new Guid("30000000-0000-0000-0000-000000000002"), null, new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"), "Completed", null }
+                    { new Guid("40000000-0000-0000-0000-000000000001"), null, new DateTime(2025, 10, 10, 14, 0, 0, 0, DateTimeKind.Utc), new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"), new Guid("30000000-0000-0000-0000-000000000001"), new DateTime(2025, 10, 10, 14, 0, 0, 0, DateTimeKind.Utc), new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"), "Completed", null },
+                    { new Guid("40000000-0000-0000-0000-000000000002"), null, null, new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"), new Guid("30000000-0000-0000-0000-000000000002"), null, new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"), "Completed", null }
                 });
 
             migrationBuilder.InsertData(

@@ -322,6 +322,8 @@ public class GreenConnectDbContext : IdentityDbContext<User, IdentityRole<Guid>,
             entity.Property(e => e.Status)
                 .HasConversion<string>();
 
+            entity.Property(e => e.CheckInLocation).HasColumnType("geometry(Point,4326)");
+
             entity.HasOne(d => d.Household).WithMany(p => p.TransactionHouseholds)
                 .HasForeignKey(d => d.HouseholdId)
                 .OnDelete(DeleteBehavior.Restrict)

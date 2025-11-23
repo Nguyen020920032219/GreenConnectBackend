@@ -7,210 +7,134 @@ using GreenConnectPlatform.Data.Enums;
 using GreenConnectPlatform.Data.Repositories.CollectionOffers;
 using GreenConnectPlatform.Data.Repositories.ScheduleProposals;
 using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
 
 namespace GreenConnectPlatform.Business.Services.ScheduleProposals;
 
 public class ScheduleProposalService : IScheduleProposalService
 {
-    private readonly ICollectionOfferRepository _collectionOfferRepository;
     private readonly IMapper _mapper;
-    private readonly IScheduleProposalRepository _scheduleProposalRepository;
+    private readonly ICollectionOfferRepository _offerRepository;
+    private readonly IScheduleProposalRepository _proposalRepository;
 
-    public ScheduleProposalService(IScheduleProposalRepository scheduleProposalRepository,
-        ICollectionOfferRepository collectionOfferRepository, IMapper mapper)
+    public ScheduleProposalService(
+        IScheduleProposalRepository proposalRepository,
+        ICollectionOfferRepository offerRepository,
+        IMapper mapper)
     {
-        _scheduleProposalRepository = scheduleProposalRepository;
-        _collectionOfferRepository = collectionOfferRepository;
+        _proposalRepository = proposalRepository;
+        _offerRepository = offerRepository;
         _mapper = mapper;
     }
 
-    public async Task<PaginatedResult<ScheduleProposalModel>> GetScheduleProposalsByCollectionOfferId(int pageNumber,
-        int pageSize, ProposalStatus? proposalStatus,
-        bool? sortByCreateAt, Guid collectionOfferId)
+    public async Task<PaginatedResult<ScheduleProposalModel>> GetByOfferAsync(
+        int pageNumber, int pageSize, ProposalStatus? status, bool sortByCreateAtDesc, Guid offerId)
     {
-        var query = _scheduleProposalRepository.DbSet()
-            .Where(x => x.CollectionOfferId == collectionOfferId)
-            .AsQueryable()
-            .AsNoTracking();
-        if (proposalStatus != null)
-            query = query.Where(x => x.Status == proposalStatus.Value);
-        if (sortByCreateAt == true)
-            query = query.OrderByDescending(c => c.CreatedAt);
-        else
-            query = query.OrderBy(c => c.CreatedAt);
-        var totalRecords = await query.CountAsync();
-        var scheduleProposals = await query
-            .Include(s => s.Offer)
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
-        var scheduleModel = _mapper.Map<List<ScheduleProposalModel>>(scheduleProposals);
-        var totalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
-        var paginationModel = new PaginationModel
-        {
-            TotalRecords = totalRecords,
-            CurrentPage = pageNumber,
-            TotalPages = totalPages,
-            NextPage = pageNumber < totalPages ? pageNumber + 1 : null,
-            PrevPage = pageNumber > 1 ? pageNumber - 1 : null
-        };
+        var (items, total) =
+            await _proposalRepository.GetByOfferAsync(offerId, status, sortByCreateAtDesc, pageNumber, pageSize);
+        var data = _mapper.Map<List<ScheduleProposalModel>>(items);
         return new PaginatedResult<ScheduleProposalModel>
-        {
-            Data = scheduleModel,
-            Pagination = paginationModel
-        };
+            { Data = data, Pagination = new PaginationModel(total, pageNumber, pageSize) };
     }
 
-    public async Task<PaginatedResult<ScheduleProposalModel>> GetScheduleProposalsByCollectorId(int pageNumber,
-        int pageSize, ProposalStatus? proposalStatus,
-        bool? sortByCreateAt, Guid collectorId)
+    public async Task<PaginatedResult<ScheduleProposalModel>> GetByCollectorAsync(
+        int pageNumber, int pageSize, ProposalStatus? status, bool sortByCreateAtDesc, Guid collectorId)
     {
-        var query = _scheduleProposalRepository.DbSet()
-            .Where(x => x.ProposerId == collectorId)
-            .AsQueryable()
-            .AsNoTracking();
-        if (proposalStatus != null)
-            query = query.Where(x => x.Status == proposalStatus.Value);
-        if (sortByCreateAt == true)
-            query = query.OrderByDescending(c => c.CreatedAt);
-        else
-            query = query.OrderBy(c => c.CreatedAt);
-        var totalRecords = await query.CountAsync();
-        var scheduleProposals = await query
-            .Include(s => s.Offer)
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
-
-        var scheduleModel = _mapper.Map<List<ScheduleProposalModel>>(scheduleProposals);
-        var totalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
-        var paginationModel = new PaginationModel
-        {
-            TotalRecords = totalRecords,
-            CurrentPage = pageNumber,
-            TotalPages = totalPages,
-            NextPage = pageNumber < totalPages ? pageNumber + 1 : null,
-            PrevPage = pageNumber > 1 ? pageNumber - 1 : null
-        };
+        var (items, total) =
+            await _proposalRepository.GetByCollectorAsync(collectorId, status, sortByCreateAtDesc, pageNumber,
+                pageSize);
+        var data = _mapper.Map<List<ScheduleProposalModel>>(items);
         return new PaginatedResult<ScheduleProposalModel>
-        {
-            Data = scheduleModel,
-            Pagination = paginationModel
-        };
+            { Data = data, Pagination = new PaginationModel(total, pageNumber, pageSize) };
     }
 
-    public async Task<ScheduleProposalModel> GetScheduleProposal(Guid collectionOfferId, Guid scheduleProposalId)
+    public async Task<ScheduleProposalModel> GetByIdAsync(Guid id)
     {
-        var proposal = await _scheduleProposalRepository.DbSet()
-            .Include(s => s.Offer)
-            .FirstOrDefaultAsync(p =>
-                p.CollectionOfferId == collectionOfferId && p.ScheduleProposalId == scheduleProposalId);
+        var proposal = await _proposalRepository.GetByIdWithDetailsAsync(id);
         if (proposal == null)
-            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Schedule proposal does not exist");
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Schedule proposal not found.");
         return _mapper.Map<ScheduleProposalModel>(proposal);
     }
 
-    public async Task<ScheduleProposalModel> ReScheduleProposal(Guid collectionOfferId, Guid userId,
-        ScheduleProposalCreateModel model)
+    public async Task<ScheduleProposalModel> CreateAsync(Guid collectorId, Guid offerId,
+        ScheduleProposalCreateModel request)
     {
-        var collectionOffer = await _scheduleProposalRepository.DbSet()
-            .FirstOrDefaultAsync(c => c.CollectionOfferId == collectionOfferId);
-        if (collectionOffer == null)
-            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Schedule proposal does not exist");
-        if (collectionOffer.Status != ProposalStatus.Pending)
+        var offer = await _offerRepository.GetByIdWithDetailsAsync(offerId);
+        if (offer == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Offer not found.");
+
+        if (offer.ScrapCollectorId != collectorId)
+            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Not authorized.");
+
+        if (offer.Status != OfferStatus.Pending)
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
-                "You can only create schedule proposal to pending collection offer");
-        var proposal = _mapper.Map<ScheduleProposal>(model);
+                "Can only reschedule for Pending offers.");
+
+        var proposal = _mapper.Map<ScheduleProposal>(request);
         proposal.ScheduleProposalId = Guid.NewGuid();
-        proposal.CollectionOfferId = collectionOfferId;
-        proposal.ProposerId = userId;
+        proposal.CollectionOfferId = offerId;
+        proposal.ProposerId = collectorId;
         proposal.Status = ProposalStatus.Pending;
         proposal.CreatedAt = DateTime.UtcNow;
-        var result = await _scheduleProposalRepository.Add(proposal);
-        if (result == null)
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Failed to create schedule proposal");
-        return _mapper.Map<ScheduleProposalModel>(result);
+
+        await _proposalRepository.AddAsync(proposal);
+        return _mapper.Map<ScheduleProposalModel>(proposal);
     }
 
-    public async Task<ScheduleProposalModel> UpdateScheduleProposal(Guid scrapCollectorId, Guid scheduleProposalId,
-        DateTime? proposedTime,
-        string? responseMessage)
+    public async Task<ScheduleProposalModel> UpdateAsync(Guid collectorId, Guid proposalId, DateTime? proposedTime,
+        string? message)
     {
-        var proposal = await _scheduleProposalRepository.DbSet()
-            .FirstOrDefaultAsync(p => p.ScheduleProposalId == scheduleProposalId && p.ProposerId == scrapCollectorId);
-        if (proposal == null)
-            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Schedule proposal does not exist");
+        var proposal = await _proposalRepository.GetByIdWithDetailsAsync(proposalId);
+        if (proposal == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Proposal not found.");
+
+        if (proposal.ProposerId != collectorId)
+            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Not authorized.");
+
         if (proposal.Status == ProposalStatus.Accepted)
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
-                "You can not update schedule proposal that has been accepted");
-        if (proposedTime != null) proposal.ProposedTime = proposedTime.Value;
-        // else proposal.ProposedTime = proposal.ProposedTime;
-        if (responseMessage != null) proposal.ResponseMessage = responseMessage;
-        // else proposal.ResponseMessage = proposal.ResponseMessage;
-        var result = await _scheduleProposalRepository.Update(proposal);
-        if (result == null)
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Failed to update schedule proposal");
-        return _mapper.Map<ScheduleProposalModel>(result);
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Cannot update accepted proposal.");
+
+        if (proposedTime.HasValue) proposal.ProposedTime = proposedTime.Value;
+        if (!string.IsNullOrEmpty(message)) proposal.ResponseMessage = message;
+
+        await _proposalRepository.UpdateAsync(proposal);
+        return _mapper.Map<ScheduleProposalModel>(proposal);
     }
 
-    public async Task RejectOrAcceptScheduleProposal(Guid scheduleProposalId, Guid collectionOfferId, Guid householdId,
-        bool isAccepted)
+    public async Task ToggleCancelAsync(Guid collectorId, Guid proposalId)
     {
-        var scheduleProposal = await _scheduleProposalRepository.DbSet()
-            .Include(s => s.Offer)
-            .ThenInclude(s => s.ScrapPost)
-            .ThenInclude(s => s.Household)
-            .FirstOrDefaultAsync(s =>
-                s.ScheduleProposalId == scheduleProposalId && s.CollectionOfferId == collectionOfferId);
-        if (scheduleProposal == null)
-            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Schedule proposal does not exist");
-        if (scheduleProposal.Offer.ScrapPost.HouseholdId != householdId)
-            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403",
-                "You can not reject or accept this schedule proposal");
-        if (scheduleProposal.Status != ProposalStatus.Pending)
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
-                "You can only reject or accept pending schedule proposal");
-        if (isAccepted)
-        {
-            scheduleProposal.Status = ProposalStatus.Accepted;
-            var scheduleIsPending = await _scheduleProposalRepository.DbSet()
-                .Where(s => s.Status == ProposalStatus.Pending && s.CollectionOfferId == collectionOfferId &&
-                            s.ScheduleProposalId != scheduleProposalId).ToListAsync();
-            foreach (var schedule in scheduleIsPending) schedule.Status = ProposalStatus.Canceled;
-        }
+        var proposal = await _proposalRepository.GetByIdWithDetailsAsync(proposalId);
+        if (proposal == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Proposal not found.");
+
+        if (proposal.ProposerId != collectorId)
+            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Not authorized.");
+
+        if (proposal.Status == ProposalStatus.Accepted)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Cannot cancel accepted proposal.");
+
+        if (proposal.Status == ProposalStatus.Pending) proposal.Status = ProposalStatus.Canceled;
+        else if (proposal.Status == ProposalStatus.Canceled) proposal.Status = ProposalStatus.Pending;
         else
-        {
-            scheduleProposal.Status = ProposalStatus.Rejected;
-        }
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "Can only toggle between Pending and Canceled.");
 
-        await _scheduleProposalRepository.Update(scheduleProposal);
+        await _proposalRepository.UpdateAsync(proposal);
     }
 
-    public async Task CancelOrReopenScheduleProposal(Guid scheduleProposalId, Guid collectorId)
+    public async Task ProcessProposalAsync(Guid householdId, Guid proposalId, bool isAccepted)
     {
-        var scheduleProposal = await _scheduleProposalRepository.DbSet()
-            .Include(s => s.Offer)
-            .FirstOrDefaultAsync(s => s.ScheduleProposalId == scheduleProposalId);
-        if (scheduleProposal == null)
-            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Schedule proposal does not exist");
-        if (scheduleProposal.ProposerId != collectorId)
+        var proposal = await _proposalRepository.GetByIdWithDetailsAsync(proposalId);
+        if (proposal == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Proposal not found.");
+
+        if (proposal.Offer.ScrapPost.HouseholdId != householdId)
             throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403",
-                "You can not cancel or reopen this schedule proposal");
-        if (scheduleProposal.Status == ProposalStatus.Accepted)
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
-                "You can not cancel or reopen accepted schedule proposal");
+                "Only the post owner can accept/reject schedule.");
 
-        if (scheduleProposal.Status == ProposalStatus.Canceled || scheduleProposal.Status == ProposalStatus.Rejected)
-            if (scheduleProposal.Offer.Status == OfferStatus.Pending)
-                scheduleProposal.Status = ProposalStatus.Pending;
-            else
-                throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
-                    "You can only reopen schedule proposal if the related collection offer is still pending");
+        if (proposal.Status != ProposalStatus.Pending)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Can only process Pending proposals.");
 
-        else if (scheduleProposal.Status == ProposalStatus.Pending)
-            scheduleProposal.Status = ProposalStatus.Canceled;
+        if (isAccepted)
+            proposal.Status = ProposalStatus.Accepted;
+        else
+            proposal.Status = ProposalStatus.Rejected;
 
-        await _scheduleProposalRepository.Update(scheduleProposal);
+        await _proposalRepository.UpdateAsync(proposal);
     }
 }

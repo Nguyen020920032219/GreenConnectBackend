@@ -1,4 +1,5 @@
 ﻿using GreenConnectPlatform.Business.Models.CollectionOffers;
+using GreenConnectPlatform.Business.Models.CollectionOffers.OfferDetails;
 using GreenConnectPlatform.Business.Models.Paging;
 using GreenConnectPlatform.Data.Enums;
 
@@ -6,17 +7,17 @@ namespace GreenConnectPlatform.Business.Services.CollectionOffers;
 
 public interface ICollectionOfferService
 {
-    Task<PaginatedResult<CollectionOfferOveralForCollectorModel>> GetCollectionOffersForCollector(int pageNumber,
-        int pageSize, OfferStatus? offerStatus, bool? sortByCreateAt, Guid collectorId);
+    Task<PaginatedResult<CollectionOfferOveralForCollectorModel>> GetByCollectorAsync(
+        int pageNumber, int pageSize, OfferStatus? status, bool sortByCreateAtDesc, Guid collectorId);
 
-    Task<PaginatedResult<CollectionOfferOveralForHouseModel>> GetCollectionOffersForHousehold(int pageNumber,
-        int pageSize, OfferStatus? offerStatus, Guid scrapPostId);
+    Task<PaginatedResult<CollectionOfferOveralForHouseModel>> GetByPostAsync(
+        int pageNumber, int pageSize, OfferStatus? status, Guid postId);
 
-    Task<CollectionOfferModel> GetCollectionOffer(Guid scrapPostId, Guid collectionOfferId);
-
-    Task<CollectionOfferModel> CreateCollectionOffer(Guid scrapPostId, Guid scrapCollectorId,
-        CollectionOfferCreateModel model);
-
-    Task RejectOrAcceptCollectionOffer(Guid collectionOfferId, Guid scrapPostId, Guid householdId, bool isAccepted);
-    Task CancelOrReopenCollectionOffer(Guid collectionOfferId, Guid collectorId);
+    Task<CollectionOfferModel> GetByIdAsync(Guid id);
+    Task<CollectionOfferModel> CreateAsync(Guid collectorId, Guid postId, CollectionOfferCreateModel request);
+    Task ProcessOfferAsync(Guid householdId, Guid offerId, bool isAccepted);
+    Task ToggleCancelAsync(Guid collectorId, Guid offerId);
+    Task AddDetailAsync(Guid collectorId, Guid offerId, OfferDetailCreateModel detailRequest);
+    Task UpdateDetailAsync(Guid collectorId, Guid offerId, Guid detailId, OfferDetailUpdateModel detailRequest);
+    Task DeleteDetailAsync(Guid collectorId, Guid offerId, Guid detailId);
 }

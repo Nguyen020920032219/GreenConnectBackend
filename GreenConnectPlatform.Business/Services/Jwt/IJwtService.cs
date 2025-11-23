@@ -4,5 +4,5 @@ namespace GreenConnectPlatform.Business.Services.Jwt;
 
 public interface IJwtService
 {
-    Task<string> CreateTokenAsync(User user, IList<string> roles);
+    Task<string> GenerateAccessTokenAsync(User user, IList<string> roles);
 }

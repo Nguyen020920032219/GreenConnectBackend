@@ -1,21 +1,28 @@
 using GreenConnectPlatform.Business.Models.Paging;
 using GreenConnectPlatform.Business.Models.ScrapPosts;
+using GreenConnectPlatform.Business.Models.ScrapPosts.ScrapPostDetails;
 using GreenConnectPlatform.Data.Enums;
 
 namespace GreenConnectPlatform.Business.Services.ScrapPosts;
 
 public interface IScrapPostService
 {
-    Task<PaginatedResult<ScrapPostOverralModel>> GetPosts(int pageNumber, int pageSize, Guid userId, string userRole,
+    Task<PaginatedResult<ScrapPostOverralModel>> SearchPostsAsync(
+        int pageNumber, int pageSize,
         string? categoryName, PostStatus? status,
-        bool sortByLocation = false, bool sortByCreateAt = false, bool sortByUpdateAt = false);
+        bool sortByLocation, bool sortByCreateAt,
+        Guid currentUserId);
 
-    Task<PaginatedResult<ScrapPostOverralModel>> GetPostsByHousehold(int pageNumber, int pageSize, Guid? userId,
-        string? title,
-        PostStatus? status);
+    Task<PaginatedResult<ScrapPostOverralModel>> GetMyPostsAsync(
+        int pageNumber, int pageSize,
+        string? title, PostStatus? status,
+        Guid householdId);
 
-    Task<ScrapPostModel> GetPost(Guid scrapPostId);
-    Task<ScrapPostModel> CreateScrapPost(ScrapPostCreateModel scrapPostCreateModel);
-    Task<ScrapPostModel> UpdateScrapPost(Guid userId, Guid scrapPostId, ScrapPostUpdateModel scrapPostRequestModel);
-    Task<bool> ToggleScrapPost(Guid userId, Guid scrapPostId, string userRole);
+    Task<ScrapPostModel> GetByIdAsync(Guid id);
+    Task<ScrapPostModel> CreateAsync(Guid householdId, ScrapPostCreateModel request);
+    Task<ScrapPostModel> UpdateAsync(Guid householdId, Guid postId, ScrapPostUpdateModel request);
+    Task ToggleStatusAsync(Guid userId, Guid postId, string userRole);
+    Task AddDetailAsync(Guid householdId, Guid postId, ScrapPostDetailCreateModel detailRequest);
+    Task UpdateDetailAsync(Guid householdId, Guid postId, int categoryId, ScrapPostDetailUpdateModel detailRequest);
+    Task DeleteDetailAsync(Guid userId, Guid postId, int categoryId, string userRole);
 }

@@ -2,10 +2,8 @@
 using GreenConnectPlatform.Business.Models.CollectionOffers;
 using GreenConnectPlatform.Business.Models.CollectionOffers.OfferDetails;
 using GreenConnectPlatform.Business.Models.Exceptions;
-using GreenConnectPlatform.Business.Models.ScheduleProposals;
+using GreenConnectPlatform.Business.Models.Paging;
 using GreenConnectPlatform.Business.Services.CollectionOffers;
-using GreenConnectPlatform.Business.Services.CollectionOffers.OfferDetails;
-using GreenConnectPlatform.Business.Services.ScheduleProposals;
 using GreenConnectPlatform.Data.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,202 +12,185 @@ namespace GreenConnectPlatform.Api.Controllers;
 
 [Route("api/v1/offers")]
 [ApiController]
-[Tags("Collection Offers")]
-public class CollectionOfferController(
-    ICollectionOfferService collectionOfferService,
-    IOfferDetailService offerDetailService,
-    IScheduleProposalService scheduleProposalService
-) : ControllerBase
+[Tags("5. Collection Offers")]
+public class CollectionOfferController : ControllerBase
 {
+    private readonly ICollectionOfferService _service;
+
+    public CollectionOfferController(ICollectionOfferService service)
+    {
+        _service = service;
+    }
+
     /// <summary>
-    ///     Scrap Collector can get all collection offers they made for scrap posts with pagination and filtering by offer
-    ///     status.
+    ///     (Collector) Lấy lịch sử các đề nghị thu gom đã gửi.
     /// </summary>
-    /// <param name="offerStatus">Status of offer for scrap post</param>
-    /// <param name="sortByCreateAt">Collector can sort asc or des list offer by create date</param>
-    /// <param name="pageNumber"></param>
-    /// <param name="pageSize"></param>
+    /// <remarks>
+    ///     Dùng để Collector xem lại các Offer mình đã gửi. <br />
+    ///     Có thể lọc theo trạng thái (VD: Chỉ xem các Offer đang `Pending` hoặc đã `Accepted`).
+    /// </remarks>
+    /// <param name="status">Trạng thái Offer (Pending, Accepted, Rejected, Canceled).</param>
+    /// <param name="sortByCreateAtDesc">Sắp xếp theo ngày tạo mới nhất (Mặc định: true).</param>
+    /// <param name="pageNumber">Trang số mấy.</param>
+    /// <param name="pageSize">Số lượng item trên mỗi trang.</param>
+    /// <response code="200">Trả về danh sách phân trang `PaginatedResult`.</response>
+    /// <response code="401">Chưa đăng nhập.</response>
+    /// <response code="403">Người dùng không phải là Collector (Individual/Business).</response>
     [HttpGet]
     [Authorize(Roles = "IndividualCollector, BusinessCollector")]
-    [ProducesResponseType(typeof(CollectionOfferOveralForCollectorModel), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> GetCollectionOffersForCollector(
-        [FromQuery] OfferStatus? offerStatus,
-        [FromQuery] bool? sortByCreateAt = false,
+    [ProducesResponseType(typeof(PaginatedResult<CollectionOfferOveralForCollectorModel>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> GetMyOffers(
+        [FromQuery] OfferStatus? status,
+        [FromQuery] bool sortByCreateAtDesc = true,
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var userIdParsed = Guid.Parse(userId);
-        var offers = await collectionOfferService.GetCollectionOffersForCollector(pageNumber, pageSize, offerStatus,
-            sortByCreateAt, userIdParsed);
-        return Ok(offers);
+        var userId = GetCurrentUserId();
+        return Ok(await _service.GetByCollectorAsync(pageNumber, pageSize, status, sortByCreateAtDesc, userId));
     }
 
     /// <summary>
-    ///     Scrap Collector can cancel or reopen their collection offer for scrap post.
+    ///     (All) Xem chi tiết một đề nghị thu gom.
     /// </summary>
-    /// <param name="offerId">ID of collection offer</param>
-    [HttpPatch("{offerId:Guid}")]
-    [Authorize(Roles = "IndividualCollector, BusinessCollector")]
-    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> CancelOrReopenCollectionOffer(
-        [FromRoute] Guid offerId)
-    {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var userIdParsed = Guid.Parse(userId);
-        await collectionOfferService.CancelOrReopenCollectionOffer(offerId, userIdParsed);
-        return Ok("Update successfully");
-    }
-
-    /// <summary>
-    ///     User can get details of offer detail.
-    /// </summary>
-    /// <param name="offerId">ID of collection offer</param>
-    /// <param name="offerDetailId">ID of offer detail</param>
-    [HttpGet("{offerId:Guid}/details/{offerDetailId:Guid}")]
+    /// <remarks>
+    ///     Trả về thông tin đầy đủ của Offer bao gồm: <br />
+    ///     - Thông tin Collector (Người gửi). <br />
+    ///     - Chi tiết giá từng loại ve chai (`OfferDetails`). <br />
+    ///     - Lịch sử thương lượng giờ giấc (`ScheduleProposals`).
+    /// </remarks>
+    /// <param name="id">ID của Offer.</param>
+    /// <response code="200">Trả về object `CollectionOfferModel`.</response>
+    /// <response code="404">Không tìm thấy Offer.</response>
+    [HttpGet("{id:guid}")]
     [Authorize]
-    [ProducesResponseType(typeof(OfferDetailModel), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> GetOfferDetail(
-        [FromRoute] Guid offerId,
-        [FromRoute] Guid offerDetailId)
+    [ProducesResponseType(typeof(CollectionOfferModel), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetById(Guid id)
     {
-        var offerDetail = await offerDetailService.GetOfferDetail(offerDetailId, offerId);
-        return Ok(offerDetail);
+        return Ok(await _service.GetByIdAsync(id));
     }
 
     /// <summary>
-    ///     Crap Collector can add offer detail to their collection offer.
+    ///     (Collector) Hủy hoặc Mở lại một đề nghị.
     /// </summary>
-    /// <param name="offerId">ID of collection offer</param>
-    /// <param name="offerDetailCreateModel">Information of offer detail</param>
-    [HttpPost("{offerId:Guid}/details")]
+    /// <remarks>
+    ///     **Logic Toggle:** <br />
+    ///     - Nếu đang `Pending` -> Chuyển thành `Canceled` (Hủy kèo). <br />
+    ///     - Nếu đang `Canceled` -> Chuyển thành `Pending` (Mở lại kèo). <br />
+    ///     **Lưu ý:** Không thể hủy nếu Offer đã được Household chấp nhận (`Accepted`).
+    /// </remarks>
+    /// <param name="id">ID của Offer.</param>
+    /// <response code="200">Thao tác thành công.</response>
+    /// <response code="400">Không thể hủy Offer đã được chấp nhận.</response>
+    /// <response code="403">Bạn không phải chủ nhân của Offer này.</response>
+    [HttpPatch("{id:guid}/toggle-cancel")]
     [Authorize(Roles = "IndividualCollector, BusinessCollector")]
-    [ProducesResponseType(typeof(OfferDetailModel), StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status409Conflict)]
-    public async Task<ActionResult> AddOfferDetail(
-        [FromRoute] Guid offerId,
-        [FromBody] OfferDetailCreateModel offerDetailCreateModel)
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> ToggleCancel(Guid id)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var userIdParsed = Guid.Parse(userId);
-        var createdOfferDetail = await offerDetailService.AddOfferDetail(userIdParsed, offerId, offerDetailCreateModel);
-        return CreatedAtAction(nameof(GetOfferDetail),
-            new { offerId, offerDetailId = createdOfferDetail.OfferDetailId }, createdOfferDetail);
+        var userId = GetCurrentUserId();
+        await _service.ToggleCancelAsync(userId, id);
+        return Ok(new { Message = "Trạng thái Offer đã được thay đổi thành công." });
     }
 
     /// <summary>
-    ///     Household can get all schedule proposals they made for collection offer with pagination and filtering by offer
-    ///     status.
+    ///     (Household) Chấp nhận hoặc Từ chối một đề nghị.
     /// </summary>
-    /// <param name="offerId">ID of collection offer</param>
-    /// <param name="status">Status of offer for a schedule proposal</param>
-    /// <param name="sortByCreateAt">Household can sort asc or des list schedule by create date</param>
-    /// <param name="pageNumber"></param>
-    /// <param name="pageSize"></param>
-    [HttpGet("{offerId:Guid}/schedules")]
+    /// <remarks>
+    ///     **Side Effect quan trọng:** <br />
+    ///     - Nếu **Accepted**: Hệ thống sẽ tự động tạo một `Transaction` (Giao dịch) mới để bắt đầu quy trình thu gom. Trạng
+    ///     thái bài đăng sẽ chuyển sang `FullyBooked` (hoặc xử lý logic tương ứng). <br />
+    ///     - Nếu **Rejected**: Trạng thái Offer chuyển sang `Rejected`. Collector có thể cập nhật lại giá và gửi lại.
+    /// </remarks>
+    /// <param name="id">ID của Offer.</param>
+    /// <param name="isAccepted">`true` = Đồng ý, `false` = Từ chối.</param>
+    /// <response code="200">Thao tác thành công.</response>
+    /// <response code="400">Offer không ở trạng thái Pending (Đã xử lý rồi).</response>
+    /// <response code="403">Bạn không phải chủ bài đăng.</response>
+    [HttpPatch("{id:guid}/process")]
     [Authorize(Roles = "Household")]
-    [ProducesResponseType(typeof(List<ScheduleProposalModel>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetScheduleProposalsForOffer(
-        [FromRoute] Guid offerId,
-        [FromQuery] ProposalStatus? status,
-        [FromQuery] bool? sortByCreateAt = true,
-        [FromQuery] int pageNumber = 1,
-        [FromQuery] int pageSize = 10)
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> ProcessOffer(Guid id, [FromQuery] bool isAccepted)
     {
-        var proposals =
-            await scheduleProposalService.GetScheduleProposalsByCollectionOfferId(pageNumber, pageSize, status,
-                sortByCreateAt, offerId);
-        return Ok(proposals);
+        var userId = GetCurrentUserId();
+        await _service.ProcessOfferAsync(userId, id, isAccepted);
+        return Ok(new { Message = isAccepted ? "Đã chấp nhận đề nghị. Giao dịch được tạo." : "Đã từ chối đề nghị." });
+    }
+
+    // --- NESTED DETAILS (Quản lý chi tiết giá trong Offer) ---
+
+    /// <summary>
+    ///     (Collector) Thêm báo giá cho một loại ve chai vào Offer.
+    /// </summary>
+    /// <remarks>
+    ///     Chỉ được phép thêm khi Offer đang ở trạng thái `Pending` hoặc `Rejected` (để sửa lại báo giá). <br />
+    ///     Không thể sửa Offer đã `Accepted`.
+    /// </remarks>
+    /// <param name="id">ID của Offer.</param>
+    /// <param name="request">Thông tin báo giá (Category, Unit Price).</param>
+    /// <response code="200">Thêm thành công (Trả về Offer cập nhật).</response>
+    /// <response code="400">Loại ve chai không có trong bài đăng gốc.</response>
+    /// <response code="409">Loại ve chai này đã được báo giá trong Offer rồi.</response>
+    [HttpPost("{id:guid}/details")]
+    [Authorize(Roles = "IndividualCollector, BusinessCollector")]
+    [ProducesResponseType(typeof(CollectionOfferModel), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> AddDetail(Guid id, [FromBody] OfferDetailCreateModel request)
+    {
+        var userId = GetCurrentUserId();
+        await _service.AddDetailAsync(userId, id, request);
+        return Ok(await _service.GetByIdAsync(id));
     }
 
     /// <summary>
-    ///     User can get detail schedule proposals
+    ///     (Collector) Cập nhật báo giá (Sửa đơn giá).
     /// </summary>
-    /// <param name="offerId">ID of collection offer</param>
-    /// <param name="scheduleId">ID of a schedule proposal</param>
-    [HttpGet("{offerId:Guid}/schedules/{scheduleId:Guid}")]
-    [Authorize(Roles = "Household, IndividualCollector, BusinessCollector")]
-    [ProducesResponseType(typeof(ScheduleProposalModel), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetScheduleProposalForOffer(
-        [FromRoute] Guid offerId,
-        [FromRoute] Guid scheduleId)
+    /// <param name="id">ID của Offer.</param>
+    /// <param name="detailId">ID chi tiết báo giá cần sửa.</param>
+    /// <param name="request">Giá mới.</param>
+    [HttpPut("{id:guid}/details/{detailId:guid}")]
+    [Authorize(Roles = "IndividualCollector, BusinessCollector")]
+    [ProducesResponseType(typeof(CollectionOfferModel), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> UpdateDetail(Guid id, Guid detailId, [FromBody] OfferDetailUpdateModel request)
     {
-        var proposal = await scheduleProposalService.GetScheduleProposal(offerId, scheduleId);
-        return Ok(proposal);
+        var userId = GetCurrentUserId();
+        await _service.UpdateDetailAsync(userId, id, detailId, request);
+        return Ok(await _service.GetByIdAsync(id));
     }
 
     /// <summary>
-    ///     User can reschedule a schedule proposal for a collection offer.
+    ///     (Collector) Xóa một mục báo giá khỏi Offer.
     /// </summary>
-    /// <param name="offerId">ID of collection offer</param>
-    /// <param name="model">Information of a model schedule proposal</param>
-    [HttpPost("{offerId:Guid}/reschedules")]
-    [Authorize(Roles = "Household, IndividualCollector, BusinessCollector")]
-    [ProducesResponseType(typeof(ScheduleProposalModel), StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> ReScheduleProposalForOffer(
-        [FromRoute] Guid offerId,
-        [FromBody] ScheduleProposalCreateModel model)
+    /// <remarks>
+    ///     **Lưu ý:** Nếu bài đăng gốc yêu cầu `MustTakeAll` (Full-lot), việc xóa item có thể khiến Offer trở nên không hợp lệ
+    ///     (thiếu item). Service sẽ chặn hành động này.
+    /// </remarks>
+    /// <param name="id">ID của Offer.</param>
+    /// <param name="detailId">ID chi tiết báo giá cần xóa.</param>
+    /// <response code="204">Xóa thành công.</response>
+    /// <response code="400">Không thể xóa (Do quy tắc Full-lot hoặc Offer đã Accepted).</response>
+    [HttpDelete("{id:guid}/details/{detailId:guid}")]
+    [Authorize(Roles = "IndividualCollector, BusinessCollector")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> DeleteDetail(Guid id, Guid detailId)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var userIdParsed = Guid.Parse(userId);
-        var proposal = await scheduleProposalService.ReScheduleProposal(offerId, userIdParsed, model);
-        return CreatedAtAction(nameof(GetScheduleProposalForOffer),
-            new { offerId, scheduleId = proposal.ScheduleProposalId }, proposal);
+        var userId = GetCurrentUserId();
+        await _service.DeleteDetailAsync(userId, id, detailId);
+        return NoContent();
     }
 
-    /// <summary>
-    ///     Household can accept or reject a schedule proposal for a collection offer.
-    /// </summary>
-    /// <param name="offerId">ID of collection offer</param>
-    /// <param name="scheduleId">ID of a schedule proposal</param>
-    /// <param name="isAccepted">True is Household accept schedule, False is Household reject schedule </param>
-    [HttpPatch("{offerId:Guid}/schedules/{scheduleId:Guid}")]
-    [Authorize(Roles = "Household")]
-    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> AcceptOrRejectScheduleProposal([FromRoute] Guid offerId,
-        [FromRoute] Guid scheduleId,
-        [FromQuery] bool isAccepted)
+    private Guid GetCurrentUserId()
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var userIdParsed = Guid.Parse(userId);
-        if (isAccepted)
-        {
-            await scheduleProposalService.RejectOrAcceptScheduleProposal(scheduleId, offerId, userIdParsed, isAccepted);
-            return Ok("Schedule proposal accepted successfully");
-        }
-
-        await scheduleProposalService.RejectOrAcceptScheduleProposal(scheduleId, offerId, userIdParsed, isAccepted);
-        return Ok("Schedule proposal rejected successfully");
+        var idStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return Guid.TryParse(idStr, out var id) ? id : Guid.Empty;
     }
 }

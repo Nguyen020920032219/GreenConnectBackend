@@ -1,39 +1,27 @@
 ﻿using System.Linq.Expressions;
-using Microsoft.EntityFrameworkCore;
 
 namespace GreenConnectPlatform.Data.Repositories.Base;
 
 public interface IBaseRepository<TEntity, TKey> where TEntity : class
 {
-    #region Delete
+    // 1. GET (Chỉ trả về Data, không trả IQueryable)
+    Task<TEntity?> GetByIdAsync(TKey id);
+    Task<IEnumerable<TEntity>> GetAllAsync();
+    Task<IEnumerable<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate);
 
-    Task<TEntity?> Delete(TEntity entity);
+    // Hàm check tồn tại nhanh gọn
+    Task<bool> ExistsAsync(Expression<Func<TEntity, bool>> predicate);
 
-    #endregion
+    // 2. CREATE
+    Task<TEntity> AddAsync(TEntity entity);
+    Task AddRangeAsync(IEnumerable<TEntity> entities);
 
-    #region Read
+    // 3. UPDATE
+    Task UpdateAsync(TEntity entity);
 
-    DbSet<TEntity> DbSet();
+    // 4. DELETE
+    Task DeleteAsync(TEntity entity);
 
-    DbContext DbContext();
-
-    IQueryable<TEntity> Where(Expression<Func<TEntity, bool>> predicate);
-
-    #endregion
-
-    #region Create
-
-    Task<TEntity?> Add(TEntity entity);
-
-    Task<ICollection<TEntity>> AddRange(ICollection<TEntity> entities);
-
-    #endregion
-
-    #region Update
-
-    Task<TEntity?> Update(TEntity entity);
-
-    Task<ICollection<TEntity>> UpdateRange(ICollection<TEntity> entities);
-
-    #endregion
+    // 5. SAVE (Tùy chọn, nếu bạn muốn control việc save change từ Service)
+    Task<bool> SaveChangesAsync();
 }

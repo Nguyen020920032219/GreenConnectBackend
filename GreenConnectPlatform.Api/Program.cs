@@ -10,7 +10,6 @@ namespace GreenConnectPlatform.Api;
 
 public class Program
 {
-    [Obsolete("Obsolete")]
     public static async Task Main(string[] args)
     {
         Env.Load();

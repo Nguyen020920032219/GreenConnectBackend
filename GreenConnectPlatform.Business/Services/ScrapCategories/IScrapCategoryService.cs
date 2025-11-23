@@ -5,6 +5,9 @@ namespace GreenConnectPlatform.Business.Services.ScrapCategories;
 
 public interface IScrapCategoryService
 {
-    Task<PaginatedResult<ScrapCategoryModel>> GetScrapCategories(int pageNumber, int pageSize, string? categoryName);
-    Task<ScrapCategoryModel> GetScrapCategory(int scrapCategoryId);
+    Task<PaginatedResult<ScrapCategoryModel>> GetListAsync(int pageNumber, int pageSize, string? searchName);
+    Task<ScrapCategoryModel> GetByIdAsync(int id);
+    Task<ScrapCategoryModel> CreateAsync(ScrapCategoryModel request);
+    Task<ScrapCategoryModel> UpdateAsync(int id, ScrapCategoryModel request);
+    Task DeleteAsync(int id);
 }

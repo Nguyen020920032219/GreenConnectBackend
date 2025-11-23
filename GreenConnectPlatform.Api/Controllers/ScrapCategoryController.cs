@@ -33,7 +33,7 @@ public class ScrapCategoryController : ControllerBase
     [HttpGet]
     [AllowAnonymous]
     [ProducesResponseType(typeof(PaginatedResult<ScrapCategoryModel>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetList(
         [FromQuery] string? searchName,
         [FromQuery] int pageNumber = 1,
@@ -52,7 +52,7 @@ public class ScrapCategoryController : ControllerBase
     [HttpGet("{id:int}")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(ScrapCategoryModel), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(int id)
     {
         var result = await _service.GetByIdAsync(id);
@@ -72,9 +72,9 @@ public class ScrapCategoryController : ControllerBase
     [HttpPost]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(ScrapCategoryModel), StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status409Conflict)]
-    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> Create([FromBody] ScrapCategoryModel request)
     {
         var result = await _service.CreateAsync(request);
@@ -95,8 +95,8 @@ public class ScrapCategoryController : ControllerBase
     [HttpPut("{id:int}")]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(ScrapCategoryModel), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status409Conflict)]
-    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(int id, [FromBody] ScrapCategoryModel request)
     {
         var result = await _service.UpdateAsync(id, request);
@@ -117,8 +117,8 @@ public class ScrapCategoryController : ControllerBase
     [HttpDelete("{id:int}")]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)
     {
         await _service.DeleteAsync(id);

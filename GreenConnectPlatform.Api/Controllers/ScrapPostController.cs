@@ -48,8 +48,8 @@ public class ScrapPostController : ControllerBase
     [HttpGet]
     [Authorize(Roles = "Admin, IndividualCollector, BusinessCollector")]
     [ProducesResponseType(typeof(PaginatedResult<ScrapPostOverralModel>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> Search(
         [FromQuery] string? categoryName,
         [FromQuery] PostStatus? status,
@@ -79,8 +79,8 @@ public class ScrapPostController : ControllerBase
     [HttpGet("my-posts")]
     [Authorize(Roles = "Household")]
     [ProducesResponseType(typeof(PaginatedResult<ScrapPostOverralModel>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetMyPosts(
         [FromQuery] string? title,
         [FromQuery] PostStatus? status,
@@ -107,7 +107,7 @@ public class ScrapPostController : ControllerBase
     [HttpGet("{id:guid}")]
     [Authorize]
     [ProducesResponseType(typeof(ScrapPostModel), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(Guid id)
     {
         return Ok(await _service.GetByIdAsync(id));
@@ -128,7 +128,7 @@ public class ScrapPostController : ControllerBase
     [HttpPost]
     [Authorize(Roles = "Household")]
     [ProducesResponseType(typeof(ScrapPostModel), StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create([FromBody] ScrapPostCreateModel request)
     {
         var userId = GetCurrentUserId();
@@ -152,9 +152,9 @@ public class ScrapPostController : ControllerBase
     [HttpPut("{id:guid}")]
     [Authorize(Roles = "Household")]
     [ProducesResponseType(typeof(ScrapPostModel), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(Guid id, [FromBody] ScrapPostUpdateModel request)
     {
         var userId = GetCurrentUserId();
@@ -174,8 +174,8 @@ public class ScrapPostController : ControllerBase
     [HttpPatch("{id:guid}/toggle")]
     [Authorize(Roles = "Household, Admin")]
     [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> ToggleStatus(Guid id)
     {
         var userId = GetCurrentUserId();
@@ -198,7 +198,7 @@ public class ScrapPostController : ControllerBase
     [HttpPost("{id:guid}/details")]
     [Authorize(Roles = "Household")]
     [ProducesResponseType(typeof(ScrapPostModel), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> AddDetail(Guid id, [FromBody] ScrapPostDetailCreateModel request)
     {
         var userId = GetCurrentUserId();
@@ -218,7 +218,7 @@ public class ScrapPostController : ControllerBase
     [HttpPut("{id:guid}/details/{categoryId:int}")]
     [Authorize(Roles = "Household")]
     [ProducesResponseType(typeof(ScrapPostModel), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpdateDetail(Guid id, int categoryId,
         [FromBody] ScrapPostDetailUpdateModel request)
     {
@@ -240,8 +240,8 @@ public class ScrapPostController : ControllerBase
     [HttpDelete("{id:guid}/details/{categoryId:int}")]
     [Authorize(Roles = "Household, Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteDetail(Guid id, int categoryId)
     {
         var userId = GetCurrentUserId();

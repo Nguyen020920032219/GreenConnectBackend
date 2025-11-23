@@ -5,4 +5,13 @@ namespace GreenConnectPlatform.Data.Repositories.Transactions;
 
 public interface ITransactionRepository : IBaseRepository<Transaction, Guid>
 {
+    Task<Transaction?> GetByIdWithDetailsAsync(Guid id);
+
+    Task<(List<Transaction> Items, int TotalCount)> GetByUserIdAsync(
+        Guid userId,
+        string role,
+        bool sortByCreateAtDesc,
+        bool sortByUpdateAtDesc,
+        int pageIndex,
+        int pageSize);
 }

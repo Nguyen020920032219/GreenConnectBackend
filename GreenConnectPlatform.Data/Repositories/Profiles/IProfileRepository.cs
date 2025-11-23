@@ -5,4 +5,5 @@ namespace GreenConnectPlatform.Data.Repositories.Profiles;
 
 public interface IProfileRepository : IBaseRepository<Profile, Guid>
 {
+    Task<Profile?> GetByUserIdWithRankAsync(Guid userId);
 }

@@ -1,13 +1,26 @@
-﻿CREATE EXTENSION IF NOT EXISTS postgis;
+﻿CREATE
+EXTENSION IF NOT EXISTS postgis;
 CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory"
 (
-    "MigrationId"    character varying(150) NOT NULL,
-    "ProductVersion" character varying(32)  NOT NULL,
-    CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")
-);
+    "MigrationId"
+    character
+    varying
+(
+    150
+) NOT NULL,
+    "ProductVersion" character varying
+(
+    32
+) NOT NULL,
+    CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY
+(
+    "MigrationId"
+)
+    );
 
 START TRANSACTION;
-CREATE EXTENSION IF NOT EXISTS postgis;
+CREATE
+EXTENSION IF NOT EXISTS postgis;
 
 CREATE TABLE "AspNetRoles"
 (

@@ -5,4 +5,5 @@ namespace GreenConnectPlatform.Data.Repositories.CollectorVerificationInfos;
 
 public interface IVerificationInfoRepository : IBaseRepository<CollectorVerificationInfo, Guid>
 {
+    Task<CollectorVerificationInfo?> GetByUserIdAsync(Guid userId);
 }

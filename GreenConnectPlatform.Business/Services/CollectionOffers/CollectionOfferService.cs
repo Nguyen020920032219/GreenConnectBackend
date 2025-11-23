@@ -1,395 +1,226 @@
 ﻿using AutoMapper;
 using GreenConnectPlatform.Business.Models.CollectionOffers;
+using GreenConnectPlatform.Business.Models.CollectionOffers.OfferDetails;
 using GreenConnectPlatform.Business.Models.Exceptions;
 using GreenConnectPlatform.Business.Models.Paging;
-using GreenConnectPlatform.Data.Configurations;
 using GreenConnectPlatform.Data.Entities;
 using GreenConnectPlatform.Data.Enums;
 using GreenConnectPlatform.Data.Repositories.CollectionOffers;
 using GreenConnectPlatform.Data.Repositories.ScrapCategories;
 using GreenConnectPlatform.Data.Repositories.ScrapPosts;
-using GreenConnectPlatform.Data.Repositories.ScrapPosts.ScrapPostDetails;
+using GreenConnectPlatform.Data.Repositories.Transactions;
 using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
 
 namespace GreenConnectPlatform.Business.Services.CollectionOffers;
 
 public class CollectionOfferService : ICollectionOfferService
 {
-    private readonly ICollectionOfferRepository _collectionOfferRepository;
-    private readonly GreenConnectDbContext _context;
+    private readonly IScrapCategoryRepository _categoryRepository;
     private readonly IMapper _mapper;
-    private readonly IScrapCategoryRepository _scrapCategoryRepository;
-    private readonly IScrapPostDetailRepository _scrapPostDetailRepository;
-    private readonly IScrapPostRepository _scrapPostRepository;
+    private readonly ICollectionOfferRepository _offerRepository;
+    private readonly IScrapPostRepository _postRepository;
+    private readonly ITransactionRepository _transactionRepository;
 
     public CollectionOfferService(
-        ICollectionOfferRepository collectionOfferRepository,
-        IScrapPostRepository scrapPostRepository,
-        IScrapCategoryRepository scrapCategoryRepository,
-        IScrapPostDetailRepository scrapPostDetailRepository,
-        GreenConnectDbContext context,
-        IMapper mapper
-    )
+        ICollectionOfferRepository offerRepository,
+        IScrapPostRepository postRepository,
+        IScrapCategoryRepository categoryRepository,
+        ITransactionRepository transactionRepository,
+        IMapper mapper)
     {
-        _collectionOfferRepository = collectionOfferRepository;
-        _scrapPostRepository = scrapPostRepository;
-        _scrapCategoryRepository = scrapCategoryRepository;
-        _scrapPostDetailRepository = scrapPostDetailRepository;
-        _context = context;
+        _offerRepository = offerRepository;
+        _postRepository = postRepository;
+        _categoryRepository = categoryRepository;
+        _transactionRepository = transactionRepository;
         _mapper = mapper;
     }
 
-    public async Task<PaginatedResult<CollectionOfferOveralForCollectorModel>> GetCollectionOffersForCollector(
-        int pageNumber,
-        int pageSize,
-        OfferStatus? offerStatus,
-        bool? sortByCreateAt,
-        Guid collectorId)
+    public async Task<PaginatedResult<CollectionOfferOveralForCollectorModel>> GetByCollectorAsync(
+        int pageNumber, int pageSize, OfferStatus? status, bool sortByCreateAtDesc, Guid collectorId)
     {
-        var query = _collectionOfferRepository.DbSet()
-            .Where(o => o.ScrapCollectorId == collectorId)
-            .AsQueryable()
-            .AsNoTracking();
-        if (offerStatus != null)
-            query = query.Where(o => o.Status == offerStatus);
-        if (sortByCreateAt == false)
-            query = query.OrderByDescending(o => o.CreatedAt);
-        else
-            query = query.OrderBy(o => o.CreatedAt);
-        var totalRecords = await query.CountAsync();
-        var collectionOffers = await query
-            .Include(c => c.ScrapPost)
-            .ThenInclude(s => s.Household)
-            .Include(c => c.ScrapPost)
-            .ThenInclude(s => s.ScrapPostDetails)
-            .Include(c => c.ScrapCollector)
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
-        var offerModel = _mapper.Map<List<CollectionOfferOveralForCollectorModel>>(collectionOffers);
-        var totalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
-        var paginationModel = new PaginationModel
-        {
-            TotalRecords = totalRecords,
-            CurrentPage = pageNumber,
-            TotalPages = totalPages,
-            NextPage = pageNumber < totalPages ? pageNumber + 1 : null,
-            PrevPage = pageNumber > 1 ? pageNumber - 1 : null
-        };
+        var (items, totalCount) =
+            await _offerRepository.GetByCollectorAsync(collectorId, status, sortByCreateAtDesc, pageNumber, pageSize);
+        var data = _mapper.Map<List<CollectionOfferOveralForCollectorModel>>(items);
         return new PaginatedResult<CollectionOfferOveralForCollectorModel>
         {
-            Data = offerModel,
-            Pagination = paginationModel
+            Data = data,
+            Pagination = new PaginationModel(totalCount, pageNumber, pageSize)
         };
     }
 
-    public async Task<PaginatedResult<CollectionOfferOveralForHouseModel>> GetCollectionOffersForHousehold(
-        int pageNumber, int pageSize, OfferStatus? offerStatus, Guid scrapPostId)
+    public async Task<PaginatedResult<CollectionOfferOveralForHouseModel>> GetByPostAsync(
+        int pageNumber, int pageSize, OfferStatus? status, Guid postId)
     {
-        var query = _collectionOfferRepository.DbSet()
-            .Include(o => o.ScrapCollector)
-            .Where(o => o.ScrapPostId == scrapPostId)
-            .AsQueryable()
-            .AsNoTracking();
-        if (offerStatus != null)
-            query = query.Where(o => o.Status == offerStatus);
-
-        var totalRecords = await query.CountAsync();
-
-        var collectionOffers = await query
-            .Include(c => c.ScrapPost)
-            .ThenInclude(s => s.Household)
-            .Include(c => c.ScrapPost)
-            .ThenInclude(s => s.ScrapPostDetails)
-            .Include(c => c.ScrapCollector)
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
-        var offerModel = _mapper.Map<List<CollectionOfferOveralForHouseModel>>(collectionOffers);
-        var totalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
-        var paginationModel = new PaginationModel
-        {
-            TotalRecords = totalRecords,
-            CurrentPage = pageNumber,
-            TotalPages = totalPages,
-            NextPage = pageNumber < totalPages ? pageNumber + 1 : null,
-            PrevPage = pageNumber > 1 ? pageNumber - 1 : null
-        };
+        var (items, totalCount) = await _offerRepository.GetByPostIdAsync(postId, status, pageNumber, pageSize);
+        var data = _mapper.Map<List<CollectionOfferOveralForHouseModel>>(items);
         return new PaginatedResult<CollectionOfferOveralForHouseModel>
         {
-            Data = offerModel,
-            Pagination = paginationModel
+            Data = data,
+            Pagination = new PaginationModel(totalCount, pageNumber, pageSize)
         };
     }
 
-
-    public async Task<CollectionOfferModel> GetCollectionOffer(Guid scrapPostId, Guid collectionOfferId)
+    public async Task<CollectionOfferModel> GetByIdAsync(Guid id)
     {
-        var collectionOffer = await _collectionOfferRepository.DbSet()
-            .Include(o => o.ScrapPost)
-            .ThenInclude(s => s.Household)
-            .Include(o => o.ScrapPost)
-            .ThenInclude(s => s.ScrapPostDetails)
-            .Include(o => o.OfferDetails)
-            .Include(o => o.ScheduleProposals)
-            .FirstOrDefaultAsync(o => o.CollectionOfferId == collectionOfferId && o.ScrapPostId == scrapPostId);
-        if (collectionOffer == null)
-            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Collection offer not found");
-        return _mapper.Map<CollectionOfferModel>(collectionOffer);
+        var offer = await _offerRepository.GetByIdWithDetailsAsync(id);
+        if (offer == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Offer not found.");
+        return _mapper.Map<CollectionOfferModel>(offer);
     }
 
-    public async Task<CollectionOfferModel> CreateCollectionOffer(Guid scrapPostId, Guid scrapCollectorId,
-        CollectionOfferCreateModel model)
+    public async Task<CollectionOfferModel> CreateAsync(Guid collectorId, Guid postId,
+        CollectionOfferCreateModel request)
     {
-        await using var transaction = await _context.Database.BeginTransactionAsync();
-        try
+        var post = await _postRepository.GetByIdWithDetailsAsync(postId);
+        if (post == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Post not found.");
+
+        if (post.HouseholdId == collectorId)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "Cannot create offer for your own post.");
+
+        var offerCategoryIds = request.OfferDetails.Select(d => d.ScrapCategoryId).Distinct().ToList();
+        var postCategoryIds = post.ScrapPostDetails.Select(d => d.ScrapCategoryId).ToList();
+
+        if (offerCategoryIds.Except(postCategoryIds).Any())
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "Offer contains items not in the post.");
+
+        if (post.MustTakeAll && offerCategoryIds.Count != postCategoryIds.Count)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "This post requires Full-lot purchase (must offer all items).");
+
+        var offer = _mapper.Map<CollectionOffer>(request);
+        offer.CollectionOfferId = Guid.NewGuid();
+        offer.ScrapPostId = postId;
+        offer.ScrapCollectorId = collectorId;
+        offer.Status = OfferStatus.Pending;
+        offer.CreatedAt = DateTime.UtcNow;
+
+        if (request.ScheduleProposal != null)
         {
-            var collectionOffer = _mapper.Map<CollectionOffer>(model);
-            var scrapPost = await _scrapPostRepository.DbSet()
-                .Include(s => s.ScrapPostDetails)
-                .FirstOrDefaultAsync(p => p.ScrapPostId == scrapPostId);
-            if (scrapPost == null)
-                throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Scrap post id does not exist");
-            var category = model.OfferDetails
-                .Select(c => c.ScrapCategoryId).ToList();
-
-            var distinctCategoryIds = category.Distinct().ToList();
-
-            if (category.Any())
-            {
-                if (distinctCategoryIds.Count != category.Count)
-                    throw new ApiExceptionModel(StatusCodes.Status409Conflict, "409",
-                        "Scrap category IDs in the details list cannot be duplicated.");
-
-                var existingCategoryCount = await _scrapCategoryRepository.DbSet()
-                    .CountAsync(c => distinctCategoryIds.Contains(c.ScrapCategoryId));
-
-                if (existingCategoryCount != distinctCategoryIds.Count)
-                    throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404",
-                        "One or more scrap categories do not exist");
-                var scrapPostDetails = scrapPost.ScrapPostDetails
-                    .Where(d => d.Status == PostDetailStatus.Available)
-                    .Select(d => d.ScrapCategoryId)
-                    .ToHashSet();
-
-                var allCategoryIdInPost = scrapPost.ScrapPostDetails
-                    .Select(c => c.ScrapCategoryId)
-                    .ToHashSet();
-
-                foreach (var offerCategoryId in distinctCategoryIds)
-                {
-                    if (!allCategoryIdInPost.Contains(offerCategoryId))
-                        throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
-                            $"Scrap category ID {offerCategoryId} is not part of the scrap post.");
-                    if (!scrapPostDetails.Contains(offerCategoryId))
-                        throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
-                            $"Scrap category ID {offerCategoryId} is not available in the scrap post.");
-                }
-            }
-
-            var isFullOffer = scrapPost.ScrapPostDetails.Count == distinctCategoryIds.Count;
-            if (scrapPost.MustTakeAll && !isFullOffer)
-                throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
-                    "This scrap post requires all scrap categories to be included in the collection offer.");
-
-            collectionOffer.CollectionOfferId = Guid.NewGuid();
-            collectionOffer.CreatedAt = DateTime.UtcNow;
-            collectionOffer.ScrapPostId = scrapPostId;
-            collectionOffer.Status = OfferStatus.Pending;
-            collectionOffer.ScrapCollectorId = scrapCollectorId;
-
-            var scheduleProposal = collectionOffer.ScheduleProposals.FirstOrDefault();
-            if (scheduleProposal != null)
-            {
-                scheduleProposal.ScheduleProposalId = Guid.NewGuid();
-                scheduleProposal.CollectionOfferId = collectionOffer.CollectionOfferId;
-                scheduleProposal.ProposerId = scrapCollectorId;
-                scheduleProposal.CreatedAt = DateTime.UtcNow;
-                scheduleProposal.Status = ProposalStatus.Pending;
-            }
-            else
-            {
-                throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Schedule proposal is required.");
-            }
-
-            _context.CollectionOffers.Add(collectionOffer);
-
-            var scrapPostDetailToUpdate = scrapPost.ScrapPostDetails
-                .Where(d => distinctCategoryIds.Contains(d.ScrapCategoryId))
-                .ToList();
-            if (scrapPostDetailToUpdate.Any())
-                foreach (var scrapPostDetail in scrapPostDetailToUpdate)
-                    scrapPostDetail.Status = PostDetailStatus.Booked;
-
-            scrapPost.Status = isFullOffer ? PostStatus.FullyBooked : PostStatus.PartiallyBooked;
-
-            await _context.SaveChangesAsync();
-            await transaction.CommitAsync();
-            return _mapper.Map<CollectionOfferModel>(collectionOffer);
+            var proposal = _mapper.Map<ScheduleProposal>(request.ScheduleProposal);
+            proposal.ScheduleProposalId = Guid.NewGuid();
+            proposal.ProposerId = collectorId;
+            proposal.Status = ProposalStatus.Pending;
+            proposal.CreatedAt = DateTime.UtcNow;
+            offer.ScheduleProposals.Add(proposal);
         }
-        catch (ApiExceptionModel)
-        {
-            await transaction.RollbackAsync();
-            throw;
-        }
-        catch (Exception)
-        {
-            await transaction.RollbackAsync();
-            throw new ApiExceptionModel(StatusCodes.Status500InternalServerError, "500",
-                "An error occurred while creating the collection offer");
-        }
+
+        await _offerRepository.AddAsync(offer);
+        return await GetByIdAsync(offer.CollectionOfferId);
     }
 
-    public async Task RejectOrAcceptCollectionOffer(Guid collectionOfferId, Guid scrapPostId, Guid householdId,
-        bool isAccepted)
+    public async Task ProcessOfferAsync(Guid householdId, Guid offerId, bool isAccepted)
     {
-        await using var transaction = await _context.Database.BeginTransactionAsync();
-        try
+        var offer = await _offerRepository.GetByIdWithDetailsAsync(offerId);
+        if (offer == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Offer not found.");
+
+        if (offer.ScrapPost.HouseholdId != householdId)
+            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Not authorized.");
+
+        if (offer.Status != OfferStatus.Pending)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "Can only accept/reject Pending offers.");
+
+        if (isAccepted)
         {
-            var collectionOffer = await _collectionOfferRepository.DbSet()
-                .Include(o => o.ScheduleProposals)
-                .Include(o => o.ScrapPost)
-                .ThenInclude(o => o.ScrapPostDetails)
-                .Include(o => o.OfferDetails)
-                .FirstOrDefaultAsync(o => o.CollectionOfferId == collectionOfferId && o.ScrapPostId == scrapPostId);
-            if (collectionOffer == null)
-                throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Collection offer not found");
-            if (collectionOffer.ScrapPost.HouseholdId != householdId)
-                throw new ApiExceptionModel(StatusCodes.Status401Unauthorized, "401",
-                    "You are not authorized to reject this collection offer");
-            if (collectionOffer.Status != OfferStatus.Pending)
-                throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
-                    "Only pending collection offers can be accepted or rejected");
-            if (isAccepted)
+            offer.Status = OfferStatus.Accepted;
+
+            offer.ScrapPost.Status = PostStatus.FullyBooked;
+
+            var pendingProposal = offer.ScheduleProposals.FirstOrDefault(p => p.Status == ProposalStatus.Pending);
+            if (pendingProposal != null) pendingProposal.Status = ProposalStatus.Accepted;
+
+            var transaction = new Transaction
             {
-                collectionOffer.Status = OfferStatus.Accepted;
-                var proposalToAccept = collectionOffer.ScheduleProposals
-                    .FirstOrDefault(p => p.Status == ProposalStatus.Pending);
-                if (proposalToAccept == null)
-                    throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
-                        "Cannot accept offer: Missing a pending schedule proposal.");
-                proposalToAccept.Status = ProposalStatus.Accepted;
-                var newTransaction = new Transaction
-                {
-                    TransactionId = Guid.NewGuid(),
-                    HouseholdId = collectionOffer.ScrapPost.HouseholdId,
-                    ScrapCollectorId = collectionOffer.ScrapCollectorId,
-                    OfferId = collectionOffer.CollectionOfferId,
-                    Status = TransactionStatus.Scheduled,
-                    ScheduledTime = proposalToAccept.ProposedTime,
-                    CreatedAt = DateTime.UtcNow
-                };
-                _context.Transactions.Add(newTransaction);
-            }
-            else if (!isAccepted)
+                TransactionId = Guid.NewGuid(),
+                HouseholdId = householdId,
+                ScrapCollectorId = offer.ScrapCollectorId,
+                OfferId = offerId,
+                Status = TransactionStatus.Scheduled,
+                ScheduledTime = pendingProposal?.ProposedTime,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            transaction.TransactionDetails = offer.OfferDetails.Select(od => new TransactionDetail
             {
-                collectionOffer.Status = OfferStatus.Rejected;
+                TransactionId = transaction.TransactionId,
+                ScrapCategoryId = od.ScrapCategoryId,
+                PricePerUnit = od.PricePerUnit,
+                Unit = od.Unit ?? "kg",
+                Quantity = 0, // Chưa cân
+                FinalPrice = 0
+            }).ToList();
 
-                var categoryIdsInOffer = collectionOffer.OfferDetails
-                    .Select(od => od.ScrapCategoryId)
-                    .ToList();
-
-                var scrapPostDetailsToUpdate = collectionOffer.ScrapPost.ScrapPostDetails
-                    .Where(d => categoryIdsInOffer.Contains(d.ScrapCategoryId))
-                    .ToList();
-
-                foreach (var scrapPostDetail in scrapPostDetailsToUpdate)
-                    scrapPostDetail.Status = PostDetailStatus.Available;
-
-                var detailsBooked = collectionOffer.ScrapPost.ScrapPostDetails
-                    .Any(d => d.Status == PostDetailStatus.Booked);
-                collectionOffer.ScrapPost.Status = detailsBooked ? PostStatus.PartiallyBooked : PostStatus.Open;
-            }
-
-            await _context.SaveChangesAsync();
-            await transaction.CommitAsync();
+            await _transactionRepository.AddAsync(transaction);
         }
-        catch (ApiExceptionModel)
+        else
         {
-            await transaction.RollbackAsync();
-            throw;
+            offer.Status = OfferStatus.Rejected;
         }
-        catch (Exception)
-        {
-            await transaction.RollbackAsync();
-            throw new ApiExceptionModel(StatusCodes.Status500InternalServerError, "500",
-                "An error occurred while reject or accept the collection offer");
-        }
+
+        await _offerRepository.UpdateAsync(offer);
     }
 
-    public async Task CancelOrReopenCollectionOffer(Guid collectionOfferId, Guid collectorId)
+    public async Task ToggleCancelAsync(Guid collectorId, Guid offerId)
     {
-        await using var transaction = await _context.Database.BeginTransactionAsync();
-        try
-        {
-            var collectionOffer = await _collectionOfferRepository.DbSet()
-                .Include(o => o.OfferDetails)
-                .Include(o => o.ScrapPost)
-                .ThenInclude(o => o.ScrapPostDetails)
-                .ThenInclude(o => o.ScrapCategory)
-                .FirstOrDefaultAsync(o => o.CollectionOfferId == collectionOfferId);
-            if (collectionOffer == null)
-                throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Collection offer not found");
-            if (collectionOffer.ScrapCollectorId != collectorId)
-                throw new ApiExceptionModel(StatusCodes.Status401Unauthorized, "401",
-                    "You are not authorized to cancel or reopen this collection offer");
-            if (collectionOffer.Status == OfferStatus.Accepted)
-                throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
-                    "Collection offer is in accepted status so it cannot be canceled or reopened");
-            if (collectionOffer.Status == OfferStatus.Rejected || collectionOffer.Status == OfferStatus.Canceled)
-            {
-                var categoryIdsToReopen = collectionOffer.OfferDetails
-                    .Select(od => od.ScrapCategoryId)
-                    .ToHashSet();
+        var offer = await _offerRepository.GetByIdWithDetailsAsync(offerId);
+        if (offer == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Offer not found.");
+        if (offer.ScrapCollectorId != collectorId)
+            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Not authorized.");
 
-                var detailsToCheck = collectionOffer.ScrapPost.ScrapPostDetails
-                    .Where(d => categoryIdsToReopen.Contains(d.ScrapCategoryId))
-                    .ToList();
-                foreach (var detail in detailsToCheck)
-                    if (detail.Status == PostDetailStatus.Booked || detail.Status == PostDetailStatus.Collected)
-                        throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
-                            $"Cannot reopen offer. Scrap category {detail.ScrapCategory.CategoryName} is already {detail.Status}.");
+        if (offer.Status == OfferStatus.Accepted)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Cannot cancel an accepted offer.");
 
-                foreach (var detail in detailsToCheck) detail.Status = PostDetailStatus.Booked;
+        if (offer.Status == OfferStatus.Pending) offer.Status = OfferStatus.Canceled;
+        else if (offer.Status == OfferStatus.Canceled) offer.Status = OfferStatus.Pending;
 
-                var isFullOffer = collectionOffer.ScrapPost.ScrapPostDetails.Count == detailsToCheck.Count;
-                collectionOffer.ScrapPost.Status = isFullOffer ? PostStatus.FullyBooked : PostStatus.PartiallyBooked;
+        await _offerRepository.UpdateAsync(offer);
+    }
 
-                collectionOffer.Status = OfferStatus.Pending;
-            }
-            else if (collectionOffer.Status == OfferStatus.Pending)
-            {
-                collectionOffer.Status = OfferStatus.Canceled;
-                var scrapPostDetailsToUpdate = await _scrapPostDetailRepository.DbSet()
-                    .Where(d => d.ScrapPostId == collectionOffer.ScrapPostId && collectionOffer.OfferDetails
-                        .Select(od => od.ScrapCategoryId)
-                        .Contains(d.ScrapCategoryId))
-                    .ToListAsync();
-                foreach (var scrapPostDetail in scrapPostDetailsToUpdate)
-                    scrapPostDetail.Status = PostDetailStatus.Available;
-                var scrapPost = await _scrapPostRepository.DbSet()
-                    .Include(p => p.ScrapPostDetails)
-                    .FirstOrDefaultAsync(p => p.ScrapPostId == collectionOffer.ScrapPostId);
+    public async Task AddDetailAsync(Guid collectorId, Guid offerId, OfferDetailCreateModel detailRequest)
+    {
+        var offer = await _offerRepository.GetByIdWithDetailsAsync(offerId);
+        if (offer == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Offer not found.");
+        if (offer.ScrapCollectorId != collectorId)
+            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Not authorized.");
 
-                var detailsBooked = scrapPost.ScrapPostDetails
-                    .Any(d => d.Status == PostDetailStatus.Booked);
-                scrapPost.Status = detailsBooked ? PostStatus.PartiallyBooked : PostStatus.Open;
-            }
+        if (offer.Status == OfferStatus.Accepted)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Cannot modify accepted offer.");
 
-            await _context.SaveChangesAsync();
-            await transaction.CommitAsync();
-        }
-        catch (ApiExceptionModel)
-        {
-            await transaction.RollbackAsync();
-            throw;
-        }
-        catch (Exception)
-        {
-            await transaction.RollbackAsync();
-            throw new ApiExceptionModel(StatusCodes.Status500InternalServerError, "500",
-                "An error occurred while reopen or cancel the collection offer");
-        }
+        if (offer.OfferDetails.Any(d => d.ScrapCategoryId == detailRequest.ScrapCategoryId))
+            throw new ApiExceptionModel(StatusCodes.Status409Conflict, "409", "Item exists.");
+
+        var post = await _postRepository.GetByIdWithDetailsAsync(offer.ScrapPostId);
+        if (!post!.ScrapPostDetails.Any(d => d.ScrapCategoryId == detailRequest.ScrapCategoryId))
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Item not in original post.");
+
+        var detail = _mapper.Map<OfferDetail>(detailRequest);
+        detail.CollectionOfferId = offerId;
+        offer.OfferDetails.Add(detail);
+
+        await _offerRepository.UpdateAsync(offer);
+    }
+
+    public async Task UpdateDetailAsync(Guid collectorId, Guid offerId, Guid detailId, OfferDetailUpdateModel request)
+    {
+        var offer = await _offerRepository.GetByIdWithDetailsAsync(offerId);
+        var detail = offer!.OfferDetails.FirstOrDefault(d => d.OfferDetailId == detailId);
+        if (detail == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Detail not found.");
+
+        _mapper.Map(request, detail);
+        await _offerRepository.UpdateAsync(offer);
+    }
+
+    public async Task DeleteDetailAsync(Guid collectorId, Guid offerId, Guid detailId)
+    {
+        var offer = await _offerRepository.GetByIdWithDetailsAsync(offerId);
+        var detail = offer!.OfferDetails.FirstOrDefault(d => d.OfferDetailId == detailId);
+
+        var post = await _postRepository.GetByIdWithDetailsAsync(offer.ScrapPostId);
+        if (post!.MustTakeAll && offer.OfferDetails.Count <= post.ScrapPostDetails.Count)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Full-lot post requires all items.");
+
+        offer.OfferDetails.Remove(detail!);
+        await _offerRepository.UpdateAsync(offer);
     }
 }

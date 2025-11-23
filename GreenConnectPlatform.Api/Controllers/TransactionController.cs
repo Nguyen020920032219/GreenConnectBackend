@@ -1,10 +1,10 @@
 ﻿using System.Security.Claims;
 using GreenConnectPlatform.Business.Models.Exceptions;
+using GreenConnectPlatform.Business.Models.Paging;
 using GreenConnectPlatform.Business.Models.ScrapPosts;
 using GreenConnectPlatform.Business.Models.Transactions;
 using GreenConnectPlatform.Business.Models.Transactions.TransactionDetails;
 using GreenConnectPlatform.Business.Services.Transactions;
-using GreenConnectPlatform.Business.Services.Transactions.TransactionDetails;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,153 +12,137 @@ namespace GreenConnectPlatform.Api.Controllers;
 
 [Route("api/v1/transactions")]
 [ApiController]
-[Tags("Transactions")]
-public class TransactionController(
-    ITransactionService transactionService,
-    ITransactionDetailService transactionDetailService) : ControllerBase
+[Tags("7. Transactions (Check-in & Payment)")]
+public class TransactionController : ControllerBase
 {
+    private readonly ITransactionService _service;
+
+    public TransactionController(ITransactionService service)
+    {
+        _service = service;
+    }
+
     /// <summary>
-    ///     IndividualCollector, BusinessCollector can check in at the collection location for a transaction.
+    ///     (Collector) Check-in tại địa điểm thu gom (GPS).
     /// </summary>
-    /// <param name="transactionId">ID of transaction</param>
-    /// <param name="location">Location include Longitude and Latitude</param>
-    [HttpPatch("{transactionId:Guid}/check-in")]
+    /// <remarks>
+    ///     Bước bắt buộc trước khi bắt đầu giao dịch. <br />
+    ///     Collector phải gửi tọa độ GPS hiện tại. Hệ thống sẽ tính khoảng cách tới địa chỉ bài đăng. <br />
+    ///     Nếu khoảng cách &lt; 100m (hoặc 50m tùy config), trạng thái chuyển từ `Scheduled` -> `InProgress`.
+    /// </remarks>
+    /// <param name="id">ID của Transaction.</param>
+    /// <param name="location">Tọa độ hiện tại (Lat, Long).</param>
+    /// <response code="200">Check-in thành công.</response>
+    /// <response code="400">Khoảng cách quá xa hoặc trạng thái không hợp lệ.</response>
+    [HttpPatch("{id:guid}/check-in")]
     [Authorize(Roles = "IndividualCollector, BusinessCollector")]
-    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status500InternalServerError)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> CheckIn(Guid transactionId, LocationModel location)
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> CheckIn([FromRoute] Guid id, [FromBody] LocationModel location)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        await transactionService.CheckIn(location, transactionId, Guid.Parse(userId));
-        return Ok("Check-in successful");
+        var userId = GetCurrentUserId();
+        await _service.CheckInAsync(id, userId, location);
+        return Ok(new { Message = "Check-in successful. You can now submit details." });
     }
 
     /// <summary>
-    ///     User can get transaction by transactionId.
+    ///     (Collector) Nhập số lượng/khối lượng ve chai thực tế.
     /// </summary>
-    /// <param name="transactionId">ID of transaction</param>
-    [HttpGet("{transactionId:Guid}")]
-    [Authorize]
-    [ProducesResponseType(typeof(TransactionModel), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetTransaction(Guid transactionId)
+    /// <remarks>
+    ///     Sau khi Check-in, Collector cân đo và nhập số liệu vào App. <br />
+    ///     API này sẽ cập nhật danh sách chi tiết (`TransactionDetails`) và tính tổng tiền. <br />
+    ///     **Lưu ý:** Hành động này sẽ ghi đè các chi tiết cũ nếu submit lại.
+    /// </remarks>
+    /// <param name="id">ID của Transaction.</param>
+    /// <param name="details">Danh sách các loại ve chai và số lượng thực tế.</param>
+    /// <response code="200">Cập nhật thành công. Trả về danh sách chi tiết đã lưu.</response>
+    /// <response code="400">Chưa check-in hoặc dữ liệu không khớp với Offer ban đầu.</response>
+    [HttpPost("{id:guid}/details")]
+    [Authorize(Roles = "IndividualCollector, BusinessCollector")]
+    [ProducesResponseType(typeof(List<TransactionDetailModel>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> SubmitDetails([FromRoute] Guid id,
+        [FromBody] List<TransactionDetailCreateModel> details)
     {
-        var transaction = await transactionService.GetTransaction(transactionId);
-        return Ok(transaction);
+        var userId = GetCurrentUserId();
+        var result = await _service.SubmitDetailsAsync(id, userId, details);
+        return Ok(result);
     }
 
     /// <summary>
-    ///     IndividualCollector, BusinessCollector and Household can get transactions by userId with pagination and sorting.
+    ///     (Household) Xác nhận hoàn tất (Accept) hoặc Hủy giao dịch.
     /// </summary>
-    /// <param name="pageNumber"></param>
-    /// <param name="pageSize"></param>
-    /// <param name="sortByCreateAt">User can sort list transaction by creation date</param>
-    /// <param name="sortByUpdateAt">User can sort list transaction by update date</param>
+    /// <remarks>
+    ///     Đây là bước cuối cùng ("Chốt đơn"). <br />
+    ///     - **Accept (true):** Đồng ý với số lượng và số tiền Collector đã nhập -> Giao dịch `Completed` -> Cộng điểm thưởng.
+    ///     <br />
+    ///     - **Reject (false):** Không đồng ý -> Giao dịch `Canceled`.
+    /// </remarks>
+    /// <param name="id">ID của Transaction.</param>
+    /// <param name="isAccepted">`true` = Chốt đơn, `false` = Hủy.</param>
+    /// <response code="200">Thành công.</response>
+    /// <response code="400">Collector chưa nhập số liệu (Empty details).</response>
+    [HttpPatch("{id:guid}/process")]
+    [Authorize(Roles = "Household")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Process([FromRoute] Guid id, [FromQuery] bool isAccepted)
+    {
+        var userId = GetCurrentUserId();
+        await _service.ProcessTransactionAsync(id, userId, isAccepted);
+        return Ok(new { Message = isAccepted ? "Transaction Completed" : "Transaction Canceled" });
+    }
+
+    /// <summary>
+    ///     (All) Lấy danh sách giao dịch của tôi.
+    /// </summary>
+    /// <param name="sortByCreateAt">Sắp xếp theo ngày tạo (Mặc định: Newest).</param>
+    /// <param name="sortByUpdateAt">Sắp xếp theo ngày cập nhật.</param>
+    /// <param name="pageNumber">Trang số.</param>
+    /// <param name="pageSize">Số lượng item.</param>
     [HttpGet]
     [Authorize]
-    [ProducesResponseType(typeof(List<TransactionOveralModel>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> GetTransactionsByUserId(
+    [ProducesResponseType(typeof(PaginatedResult<TransactionOveralModel>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetList(
+        [FromQuery] bool sortByCreateAt = true,
+        [FromQuery] bool sortByUpdateAt = false,
         [FromQuery] int pageNumber = 1,
-        [FromQuery] int pageSize = 10,
-        [FromQuery] bool sortByCreateAt = false,
-        [FromQuery] bool sortByUpdateAt = false)
+        [FromQuery] int pageSize = 10)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var roleName = User.FindFirstValue(ClaimTypes.Role);
-        var transactions = await transactionService.GetTransactionsByUserId(
-            Guid.Parse(userId), roleName, pageNumber, pageSize, sortByCreateAt, sortByUpdateAt);
-        return Ok(transactions);
-    }
-
-
-    [HttpPatch("{transactionId:Guid}/accept-cancel")]
-    [Authorize(Roles = "Household")]
-    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> CancelOrAcceptTransaction(
-        [FromRoute] Guid transactionId,
-        [FromQuery] bool isAccept)
-    {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (isAccept)
-        {
-            await transactionService.CancelOrAcceptTransaction(transactionId, Guid.Parse(userId), isAccept);
-            return Ok("Transaction accepted successfully");
-        }
-
-        await transactionService.CancelOrAcceptTransaction(transactionId, Guid.Parse(userId), isAccept);
-        return Ok("Transaction rejected successfully");
-    }
-
-    [HttpPatch("{transactionId:Guid}/toggle")]
-    [Authorize(Roles = "IndividualCollector, BusinessCollector")]
-    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> CancelOrReopoenTransaction(
-        [FromRoute] Guid transactionId)
-    {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        await transactionService.CancelOrReopenTransaction(transactionId, Guid.Parse(userId));
-        return Ok("Transaction status updated successfully");
+        var userId = GetCurrentUserId();
+        var role = User.FindFirstValue(ClaimTypes.Role) ?? "";
+        return Ok(await _service.GetListAsync(userId, role, pageNumber, pageSize, sortByCreateAt, sortByUpdateAt));
     }
 
     /// <summary>
-    ///     IndividualCollector, BusinessCollector can submit transaction details for a transaction.
+    ///     (All) Xem chi tiết giao dịch.
     /// </summary>
-    /// <param name="transactionId">ID of transaction</param>
-    /// <param name="transactionDetailCreateModels">List of transaction details that the Household will submit for transaction</param>
-    [HttpPost("{transactionId:Guid}/submit-details")]
-    [Authorize(Roles = "IndividualCollector, BusinessCollector")]
-    [ProducesResponseType(typeof(List<TransactionDetailModel>), StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> SubmitTransactionDetails(
-        [FromRoute] Guid transactionId,
-        [FromBody] List<TransactionDetailCreateModel> transactionDetailCreateModels)
+    /// <param name="id">ID Transaction.</param>
+    [HttpGet("{id:guid}")]
+    [Authorize]
+    [ProducesResponseType(typeof(TransactionModel), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetById(Guid id)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var transactionDetails = await transactionDetailService.CreateTransactionDetails(
-            transactionId, Guid.Parse(userId), transactionDetailCreateModels);
-        return CreatedAtAction(nameof(GetTransaction), new { transactionId }, transactionDetails);
+        return Ok(await _service.GetByIdAsync(id));
     }
 
     /// <summary>
-    ///     IndividualCollector, BusinessCollector can update transaction detail for a transaction.
+    ///     (Collector) Hủy hoặc Mở lại giao dịch (Sự cố).
     /// </summary>
-    /// <param name="transactionId">ID of transaction</param>
-    /// <param name="scrapCategoryId">ID of scrap category in transaction detail</param>
-    /// <param name="transactionDetailUpdateModel">Information of transaction details to update</param>
-    [HttpPatch("{transactionId:Guid}/details")]
+    [HttpPatch("{id:guid}/toggle-cancel")]
     [Authorize(Roles = "IndividualCollector, BusinessCollector")]
-    [ProducesResponseType(typeof(TransactionDetailModel), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> UpdateTransactionDetail(
-        [FromRoute] Guid transactionId,
-        [FromQuery] int scrapCategoryId,
-        [FromBody] TransactionDetailUpdateModel transactionDetailUpdateModel)
+    public async Task<IActionResult> ToggleCancel(Guid id)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var transactionDetail = await transactionDetailService.UpdateTransactionDetail(
-            Guid.Parse(userId), transactionId, scrapCategoryId, transactionDetailUpdateModel);
-        return Ok(transactionDetail);
+        var userId = GetCurrentUserId();
+        await _service.ToggleCancelAsync(id, userId);
+        return Ok(new { Message = "Status toggled." });
+    }
+
+    private Guid GetCurrentUserId()
+    {
+        var idStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return Guid.TryParse(idStr, out var id) ? id : Guid.Empty;
     }
 }

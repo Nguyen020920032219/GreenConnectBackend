@@ -8,7 +8,7 @@ namespace GreenConnectPlatform.Business.Models.Transactions;
 public class TransactionModel
 {
     public Guid TransactionId { get; set; }
-    
+
     public Guid HouseholdId { get; set; }
     public UserViewModel Household { get; set; } = new();
 
@@ -27,6 +27,6 @@ public class TransactionModel
     public DateTime CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
-    
+
     public List<TransactionDetailModel> TransactionDetails { get; set; } = new();
 }

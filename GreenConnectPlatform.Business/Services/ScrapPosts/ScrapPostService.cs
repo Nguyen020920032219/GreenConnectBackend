@@ -2,13 +2,13 @@
 using GreenConnectPlatform.Business.Models.Exceptions;
 using GreenConnectPlatform.Business.Models.Paging;
 using GreenConnectPlatform.Business.Models.ScrapPosts;
+using GreenConnectPlatform.Business.Models.ScrapPosts.ScrapPostDetails;
 using GreenConnectPlatform.Data.Entities;
 using GreenConnectPlatform.Data.Enums;
 using GreenConnectPlatform.Data.Repositories.Profiles;
 using GreenConnectPlatform.Data.Repositories.ScrapCategories;
 using GreenConnectPlatform.Data.Repositories.ScrapPosts;
 using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
 
@@ -16,235 +16,199 @@ namespace GreenConnectPlatform.Business.Services.ScrapPosts;
 
 public class ScrapPostService : IScrapPostService
 {
+    private readonly IScrapCategoryRepository _categoryRepository;
     private readonly GeometryFactory _geometryFactory;
     private readonly IMapper _mapper;
+    private readonly IScrapPostRepository _postRepository;
     private readonly IProfileRepository _profileRepository;
-    private readonly IScrapCategoryRepository _scrapCategoryRepository;
-    private readonly IScrapPostRepository _scrapPostRepository;
 
     public ScrapPostService(
-        IScrapPostRepository scrapPostRepository,
-        IScrapCategoryRepository scrapCategoryRepository,
+        IScrapPostRepository postRepository,
+        IScrapCategoryRepository categoryRepository,
         IProfileRepository profileRepository,
         IMapper mapper)
     {
-        _scrapPostRepository = scrapPostRepository;
-        _scrapCategoryRepository = scrapCategoryRepository;
+        _postRepository = postRepository;
+        _categoryRepository = categoryRepository;
         _profileRepository = profileRepository;
         _mapper = mapper;
         _geometryFactory = NtsGeometryServices.Instance.CreateGeometryFactory(4326);
     }
 
-    public async Task<PaginatedResult<ScrapPostOverralModel>> GetPosts(
-        int pageNumber,
-        int pageSize,
-        Guid userId,
-        string userRole,
-        string? categoryName,
-        PostStatus? status,
-        bool sortByLocation = false,
-        bool sortByCreateAt = false,
-        bool sortByUpdateAt = false)
+    public async Task<PaginatedResult<ScrapPostOverralModel>> SearchPostsAsync(
+        int pageNumber, int pageSize, string? categoryName, PostStatus? status,
+        bool sortByLocation, bool sortByCreateAt, Guid currentUserId)
     {
         Point? userLocation = null;
-        if (sortByLocation && userRole == "IndividualCollector, BusinessCollector")
+        if (sortByLocation)
         {
-            var userProfile = await _profileRepository.DbSet().AsNoTracking()
-                .FirstOrDefaultAsync(u => u.UserId == userId);
-            if (userProfile != null && userProfile.Location != null) userLocation = userProfile.Location;
+            var profile = await _profileRepository.GetByIdAsync(currentUserId);
+            userLocation = profile?.Location;
         }
 
-        var query = _scrapPostRepository.DbSet().AsQueryable()
-            .AsNoTracking();
-        if (userRole == "IndividualCollector" || userRole == "BusinessCollector")
-            query = query.Where(s => s.Status == PostStatus.Open || s.Status == PostStatus.PartiallyBooked);
-        if (status != null && userRole == "Admin") query = query.Where(s => s.Status == status);
-        if (!string.IsNullOrWhiteSpace(categoryName))
-            query = query
-                .Include(post => post.ScrapPostDetails)
-                .ThenInclude(detail => detail.ScrapCategory)
-                .Where(post => post.ScrapPostDetails.Any(detail =>
-                    detail.ScrapCategory.CategoryName.Contains(categoryName, StringComparison.OrdinalIgnoreCase)));
+        var (items, totalCount) = await _postRepository.SearchAsync(
+            categoryName, status, userLocation,
+            sortByLocation, sortByCreateAt, false,
+            pageNumber, pageSize);
 
-        var totalRecords = await query.CountAsync();
-        if (sortByLocation && userLocation != null)
-        {
-            query = query
-                .Where(post => post.Location != null)
-                .OrderBy(post => post.Location!.Distance(userLocation));
-        }
-        else
-        {
-            IOrderedQueryable<ScrapPost> orderedQuery;
-            if (sortByCreateAt)
-                orderedQuery = query.OrderBy(s => s.CreatedAt);
-            else
-                orderedQuery = query.OrderByDescending(s => s.CreatedAt);
+        var data = _mapper.Map<List<ScrapPostOverralModel>>(items);
 
-            orderedQuery = sortByUpdateAt
-                ? orderedQuery.ThenBy(s => s.UpdatedAt)
-                : orderedQuery.ThenByDescending(s => s.UpdatedAt);
-
-            query = orderedQuery;
-        }
-
-        var scrapPosts = await query
-            .Include(s => s.Household)
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
-        var scrapPostModels = _mapper.Map<List<ScrapPostOverralModel>>(scrapPosts);
-        var totalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
-        var paginationModel = new PaginationModel
-        {
-            TotalRecords = totalRecords,
-            CurrentPage = pageNumber,
-            TotalPages = totalPages,
-            NextPage = pageNumber < totalPages ? pageNumber + 1 : null,
-            PrevPage = pageNumber > 1 ? pageNumber - 1 : null
-        };
         return new PaginatedResult<ScrapPostOverralModel>
         {
-            Data = scrapPostModels,
-            Pagination = paginationModel
+            Data = data,
+            Pagination = new PaginationModel(totalCount, pageNumber, pageSize)
         };
     }
 
-    public async Task<PaginatedResult<ScrapPostOverralModel>> GetPostsByHousehold(int pageNumber, int pageSize,
-        Guid? userId,
-        string? title, PostStatus? status)
+    public async Task<PaginatedResult<ScrapPostOverralModel>> GetMyPostsAsync(
+        int pageNumber, int pageSize, string? title, PostStatus? status, Guid householdId)
     {
-        var query = _scrapPostRepository.DbSet()
-            .Where(s => s.HouseholdId == userId);
-        if (!string.IsNullOrWhiteSpace(title)) query = query.Where(s => s.Title.ToLower().Contains(title.ToLower()));
+        var (items, totalCount) = await _postRepository.GetByHouseholdAsync(
+            householdId, title, status, pageNumber, pageSize);
 
-        if (status != null) query = query.Where(s => s.Status == status);
-        var totalRecords = await query.CountAsync();
-        var scrapPosts = await query
-            .Include(s => s.Household)
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
-        var scrapPostModel = _mapper.Map<List<ScrapPostOverralModel>>(scrapPosts);
-        var totalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
-        var paginationModel = new PaginationModel
-        {
-            TotalRecords = totalRecords,
-            CurrentPage = pageNumber,
-            TotalPages = totalPages,
-            NextPage = pageNumber < totalPages ? pageNumber + 1 : null,
-            PrevPage = pageNumber > 1 ? pageNumber - 1 : null
-        };
+        var data = _mapper.Map<List<ScrapPostOverralModel>>(items);
+
         return new PaginatedResult<ScrapPostOverralModel>
         {
-            Data = scrapPostModel,
-            Pagination = paginationModel
+            Data = data,
+            Pagination = new PaginationModel(totalCount, pageNumber, pageSize)
         };
     }
 
-
-    public async Task<ScrapPostModel> GetPost(Guid scrapPostId)
+    public async Task<ScrapPostModel> GetByIdAsync(Guid id)
     {
-        var scrapPost = await _scrapPostRepository.DbSet()
-            .Include(s => s.Household)
-            .Include(s => s.ScrapPostDetails)
-            .ThenInclude(s => s.ScrapCategory)
-            .FirstOrDefaultAsync(s => s.ScrapPostId == scrapPostId);
-        if (scrapPost == null)
-            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Scrap post not found");
-        return _mapper.Map<ScrapPostModel>(scrapPost);
+        var post = await _postRepository.GetByIdWithDetailsAsync(id);
+        if (post == null)
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Bài đăng không tồn tại.");
+
+        return _mapper.Map<ScrapPostModel>(post);
     }
 
-    public async Task<ScrapPostModel> CreateScrapPost(ScrapPostCreateModel scrapPostCreateModel)
+    public async Task<ScrapPostModel> CreateAsync(Guid householdId, ScrapPostCreateModel request)
     {
-        Point? userLocation = null;
-        var category = scrapPostCreateModel.ScrapPostDetails
-            .Select(c => c.ScrapCategoryId).ToList();
+        var categoryIds = request.ScrapPostDetails.Select(d => d.ScrapCategoryId).Distinct().ToList();
+        foreach (var catId in categoryIds)
+            if (await _categoryRepository.GetByIdAsync(catId) == null)
+                throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                    $"Loại ve chai ID {catId} không hợp lệ.");
 
-        if (category.Any())
-        {
-            var distinctCategoryIds = category.Distinct().ToList();
+        var post = _mapper.Map<ScrapPost>(request);
+        post.ScrapPostId = Guid.NewGuid();
+        post.HouseholdId = householdId;
+        post.Status = PostStatus.Open;
+        post.CreatedAt = DateTime.UtcNow;
 
-            if (distinctCategoryIds.Count != category.Count)
-                throw new ApiExceptionModel(StatusCodes.Status409Conflict, "409",
-                    "Scrap category IDs in the details list cannot be duplicated.");
+        if (request.Location != null && request.Location.Latitude.HasValue && request.Location.Longitude.HasValue)
+            post.Location =
+                _geometryFactory.CreatePoint(new Coordinate(request.Location.Longitude.Value,
+                    request.Location.Latitude.Value));
 
-            var existingCategoryCount = await _scrapCategoryRepository.DbSet()
-                .CountAsync(c => distinctCategoryIds.Contains(c.ScrapCategoryId));
+        await _postRepository.AddAsync(post);
 
-            if (existingCategoryCount != distinctCategoryIds.Count)
-                throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404",
-                    "One or more scrap categories do not exist");
-        }
-
-        var scrapPost = _mapper.Map<ScrapPost>(scrapPostCreateModel);
-        if (scrapPostCreateModel.Location.Latitude.HasValue && scrapPostCreateModel.Location.Longitude.HasValue)
-            userLocation = _geometryFactory.CreatePoint(new Coordinate(
-                scrapPostCreateModel.Location.Longitude.Value,
-                scrapPostCreateModel.Location.Latitude.Value));
-        scrapPost.Location = userLocation;
-        scrapPost.ScrapPostId = Guid.NewGuid();
-        scrapPost.CreatedAt = DateTime.UtcNow;
-        var result = await _scrapPostRepository.Add(scrapPost);
-        if (result == null)
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Scrap post not created");
-        return _mapper.Map<ScrapPostModel>(result);
+        return await GetByIdAsync(post.ScrapPostId);
     }
 
-    public async Task<ScrapPostModel> UpdateScrapPost(Guid userId, Guid scrapPostId,
-        ScrapPostUpdateModel scrapPostUpdateModel)
+    public async Task<ScrapPostModel> UpdateAsync(Guid householdId, Guid postId, ScrapPostUpdateModel request)
     {
-        var scrapPost = await _scrapPostRepository.DbSet()
-            .Include(s => s.ScrapPostDetails)
-            .FirstOrDefaultAsync(s => s.ScrapPostId == scrapPostId);
+        var post = await _postRepository.GetByIdWithDetailsAsync(postId);
+        if (post == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Bài đăng không tồn tại.");
 
-        if (scrapPost == null)
-            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Scrap post not found");
+        if (post.HouseholdId != householdId)
+            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Bạn không có quyền chỉnh sửa bài này.");
 
-        if (scrapPost.HouseholdId != userId)
-            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "You can not update this scrap post");
-
-        if (scrapPost.Status != PostStatus.Open)
+        if (post.Status != PostStatus.Open)
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
-                "Only posts with status Open can be updated.");
-        _mapper.Map(scrapPostUpdateModel, scrapPost);
-        scrapPost.UpdatedAt = DateTime.UtcNow;
-        Point? location;
-        if (scrapPostUpdateModel.Location != null)
-        {
-            if (scrapPostUpdateModel.Location.Latitude.HasValue && scrapPostUpdateModel.Location.Longitude.HasValue)
-                location = _geometryFactory.CreatePoint(new Coordinate(
-                    scrapPostUpdateModel.Location.Longitude.Value,
-                    scrapPostUpdateModel.Location.Latitude.Value));
-            else
-                scrapPostUpdateModel.Location = null;
-        }
+                "Chỉ có thể chỉnh sửa bài đăng khi trạng thái là Open.");
 
-        var result = await _scrapPostRepository.Update(scrapPost);
-        if (result == null)
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Scrap post not updated");
-        return _mapper.Map<ScrapPostModel>(result);
+        _mapper.Map(request, post);
+        post.UpdatedAt = DateTime.UtcNow;
+
+        if (request.Location != null && request.Location.Latitude.HasValue && request.Location.Longitude.HasValue)
+            post.Location =
+                _geometryFactory.CreatePoint(new Coordinate(request.Location.Longitude.Value,
+                    request.Location.Latitude.Value));
+
+        await _postRepository.UpdateAsync(post);
+        return _mapper.Map<ScrapPostModel>(post);
     }
 
-    public async Task<bool> ToggleScrapPost(Guid userId, Guid scrapPostId, string userRole)
+    public async Task ToggleStatusAsync(Guid userId, Guid postId, string userRole)
     {
-        var scrapPost = await _scrapPostRepository.DbSet()
-            .FirstOrDefaultAsync(s => s.ScrapPostId == scrapPostId);
-        if (scrapPost == null)
-            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Scrap post not found");
-        if (userRole != "Admin")
-            if (scrapPost.HouseholdId != userId)
-                throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403",
-                    "You can not toggle this scrap post");
-        scrapPost.UpdatedAt = DateTime.UtcNow;
-        if (scrapPost.Status != PostStatus.Open && scrapPost.Status != PostStatus.Canceled)
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
-                "Only posts with status Open or Canceled can be toggled.");
-        if (scrapPost.Status != PostStatus.Canceled)
-            scrapPost.Status = PostStatus.Canceled;
+        var post = await _postRepository.GetByIdAsync(postId);
+        if (post == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Bài đăng không tồn tại.");
+
+        if (userRole != "Admin" && post.HouseholdId != userId)
+            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Bạn không có quyền.");
+
+        if (post.Status == PostStatus.Open) post.Status = PostStatus.Canceled;
+        else if (post.Status == PostStatus.Canceled) post.Status = PostStatus.Open;
         else
-            scrapPost.Status = PostStatus.Open;
-        var result = await _scrapPostRepository.Update(scrapPost);
-        return true;
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "Không thể đổi trạng thái bài đăng này (đang xử lý hoặc đã xong).");
+
+        post.UpdatedAt = DateTime.UtcNow;
+        await _postRepository.UpdateAsync(post);
+    }
+
+    public async Task AddDetailAsync(Guid householdId, Guid postId, ScrapPostDetailCreateModel detailRequest)
+    {
+        var post = await _postRepository.GetByIdWithDetailsAsync(postId);
+        if (post == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Bài đăng không tồn tại.");
+        if (post.HouseholdId != householdId)
+            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Không có quyền.");
+
+        if (post.Status == PostStatus.Completed)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "Bài đăng đã hoàn thành, không thể thêm.");
+
+        if (post.ScrapPostDetails.Any(d => d.ScrapCategoryId == detailRequest.ScrapCategoryId))
+            throw new ApiExceptionModel(StatusCodes.Status409Conflict, "409",
+                "Loại ve chai này đã có trong danh sách.");
+
+        var detail = _mapper.Map<ScrapPostDetail>(detailRequest);
+        detail.ScrapPostId = postId;
+        post.ScrapPostDetails.Add(detail);
+
+        await _postRepository.UpdateAsync(post);
+    }
+
+    public async Task UpdateDetailAsync(Guid householdId, Guid postId, int categoryId,
+        ScrapPostDetailUpdateModel detailRequest)
+    {
+        var post = await _postRepository.GetByIdWithDetailsAsync(postId);
+        if (post == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Bài đăng không tồn tại.");
+        if (post.HouseholdId != householdId)
+            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Không có quyền.");
+
+        var detail = post.ScrapPostDetails.FirstOrDefault(d => d.ScrapCategoryId == categoryId);
+        if (detail == null)
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Chi tiết ve chai không tồn tại.");
+
+        if (detail.Status != PostDetailStatus.Available)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "Không thể sửa món hàng đã được đặt/thu gom.");
+
+        _mapper.Map(detailRequest, detail);
+        await _postRepository.UpdateAsync(post);
+    }
+
+    public async Task DeleteDetailAsync(Guid userId, Guid postId, int categoryId, string userRole)
+    {
+        var post = await _postRepository.GetByIdWithDetailsAsync(postId);
+        if (post == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Bài đăng không tồn tại.");
+
+        if (userRole != "Admin" && post.HouseholdId != userId)
+            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Không có quyền.");
+
+        var detail = post.ScrapPostDetails.FirstOrDefault(d => d.ScrapCategoryId == categoryId);
+        if (detail == null)
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Chi tiết không tồn tại.");
+
+        if (detail.Status != PostDetailStatus.Available)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "Không thể xóa món hàng đã được đặt/thu gom.");
+
+        post.ScrapPostDetails.Remove(detail);
+        await _postRepository.UpdateAsync(post);
     }
 }

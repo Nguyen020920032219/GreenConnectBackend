@@ -1,17 +1,21 @@
 ﻿using GreenConnectPlatform.Business.Models.Paging;
 using GreenConnectPlatform.Business.Models.ScrapPosts;
 using GreenConnectPlatform.Business.Models.Transactions;
+using GreenConnectPlatform.Business.Models.Transactions.TransactionDetails;
 
 namespace GreenConnectPlatform.Business.Services.Transactions;
 
 public interface ITransactionService
 {
-    Task CheckIn(LocationModel location, Guid transactionId, Guid userId);
-    Task<TransactionModel> GetTransaction(Guid transactionId);
+    Task CheckInAsync(Guid transactionId, Guid collectorId, LocationModel currentLocation);
+    Task<TransactionModel> GetByIdAsync(Guid id);
 
-    Task<PaginatedResult<TransactionOveralModel>> GetTransactionsByUserId(Guid userId, string roleName,
-        int pageNumber, int pageSize, bool sortByCreateAt = false, bool sortByUpdateAt = false);
+    Task<PaginatedResult<TransactionOveralModel>> GetListAsync(
+        Guid userId, string role, int pageNumber, int pageSize, bool sortByCreateAt, bool sortByUpdateAt);
 
-    Task CancelOrAcceptTransaction(Guid transactionId, Guid userId, bool isAccept);
-    Task CancelOrReopenTransaction(Guid transactionId, Guid userId);
+    Task<List<TransactionDetailModel>> SubmitDetailsAsync(
+        Guid transactionId, Guid collectorId, List<TransactionDetailCreateModel> details);
+
+    Task ProcessTransactionAsync(Guid transactionId, Guid householdId, bool isAccepted);
+    Task ToggleCancelAsync(Guid transactionId, Guid collectorId);
 }

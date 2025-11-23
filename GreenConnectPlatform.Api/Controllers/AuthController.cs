@@ -1,4 +1,5 @@
 using GreenConnectPlatform.Business.Models.Auth;
+using GreenConnectPlatform.Business.Models.Exceptions;
 using GreenConnectPlatform.Business.Services.Auth;
 using Microsoft.AspNetCore.Mvc;
 
@@ -38,9 +39,9 @@ public class AuthController : ControllerBase
     [HttpPost("login-or-register")]
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> LoginOrRegister([FromBody] LoginOrRegisterRequest request)
     {
         var (authResponse, isNewUser) = await _authService.LoginOrRegisterAsync(request);
@@ -64,9 +65,9 @@ public class AuthController : ControllerBase
     /// <response code="404">User not found.</response>
     [HttpPost("admin-login")]
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> AdminLogin([FromBody] AdminLoginRequest request)
     {
         var authResponse = await _authService.AdminLoginAsync(request);

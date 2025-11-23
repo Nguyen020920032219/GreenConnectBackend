@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using GreenConnectPlatform.Business.Models.Exceptions;
 using GreenConnectPlatform.Business.Models.Files;
 using GreenConnectPlatform.Business.Models.Users;
 using GreenConnectPlatform.Business.Services.Profile;
@@ -34,8 +35,8 @@ public class ProfileController : ControllerBase
     /// <response code="404">Profile or User not found in database.</response>
     [HttpGet("me")]
     [ProducesResponseType(typeof(ProfileModel), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExceptionModel),StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel),StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetMyProfile()
     {
         var userId = GetCurrentUserId();
@@ -56,8 +57,8 @@ public class ProfileController : ControllerBase
     /// <response code="404">User not found.</response>
     [HttpPut("me")]
     [ProducesResponseType(typeof(ProfileModel), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExceptionModel),StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel),StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateMyProfile([FromBody] UpdateProfileRequest request)
     {
         var userId = GetCurrentUserId();
@@ -79,7 +80,7 @@ public class ProfileController : ControllerBase
     /// <response code="400">Invalid file name.</response>
     [HttpPost("avatar")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel),StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpdateAvatar([FromBody] UpdateFileRequestModel request)
     {
         var userId = GetCurrentUserId();
@@ -104,8 +105,8 @@ public class ProfileController : ControllerBase
     /// <response code="404">User not found.</response>
     [HttpPost("verification")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExceptionModel),StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel),StatusCodes.Status404NotFound)]
     public async Task<IActionResult> SubmitVerification([FromBody] SubmitVerificationRequest request)
     {
         var userId = GetCurrentUserId();
@@ -113,7 +114,6 @@ public class ProfileController : ControllerBase
         return Ok(new { Message = "Gửi thông tin xác minh thành công. Vui lòng chờ Admin duyệt." });
     }
 
-    // --- Helper ---
     private Guid GetCurrentUserId()
     {
         var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);

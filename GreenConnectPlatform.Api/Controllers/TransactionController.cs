@@ -37,8 +37,8 @@ public class TransactionController : ControllerBase
     [HttpPatch("{id:guid}/check-in")]
     [Authorize(Roles = "IndividualCollector, BusinessCollector")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status403Forbidden)]
+      [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
+      [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> CheckIn([FromRoute] Guid id, [FromBody] LocationModel location)
     {
         var userId = GetCurrentUserId();
@@ -61,7 +61,7 @@ public class TransactionController : ControllerBase
     [HttpPost("{id:guid}/details")]
     [Authorize(Roles = "IndividualCollector, BusinessCollector")]
     [ProducesResponseType(typeof(List<TransactionDetailModel>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status400BadRequest)]
+      [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> SubmitDetails([FromRoute] Guid id,
         [FromBody] List<TransactionDetailCreateModel> details)
     {
@@ -86,7 +86,7 @@ public class TransactionController : ControllerBase
     [HttpPatch("{id:guid}/process")]
     [Authorize(Roles = "Household")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status400BadRequest)]
+      [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Process([FromRoute] Guid id, [FromQuery] bool isAccepted)
     {
         var userId = GetCurrentUserId();
@@ -122,7 +122,7 @@ public class TransactionController : ControllerBase
     [HttpGet("{id:guid}")]
     [Authorize]
     [ProducesResponseType(typeof(TransactionModel), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status404NotFound)]
+      [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(Guid id)
     {
         return Ok(await _service.GetByIdAsync(id));

@@ -39,8 +39,8 @@ public class CollectionOfferController : ControllerBase
     [HttpGet]
     [Authorize(Roles = "IndividualCollector, BusinessCollector")]
     [ProducesResponseType(typeof(PaginatedResult<CollectionOfferOveralForCollectorModel>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetMyOffers(
         [FromQuery] OfferStatus? status,
         [FromQuery] bool sortByCreateAtDesc = true,
@@ -66,7 +66,7 @@ public class CollectionOfferController : ControllerBase
     [HttpGet("{id:guid}")]
     [Authorize]
     [ProducesResponseType(typeof(CollectionOfferModel), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(Guid id)
     {
         return Ok(await _service.GetByIdAsync(id));
@@ -88,8 +88,8 @@ public class CollectionOfferController : ControllerBase
     [HttpPatch("{id:guid}/toggle-cancel")]
     [Authorize(Roles = "IndividualCollector, BusinessCollector")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> ToggleCancel(Guid id)
     {
         var userId = GetCurrentUserId();
@@ -114,8 +114,8 @@ public class CollectionOfferController : ControllerBase
     [HttpPatch("{id:guid}/process")]
     [Authorize(Roles = "Household")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> ProcessOffer(Guid id, [FromQuery] bool isAccepted)
     {
         var userId = GetCurrentUserId();
@@ -140,8 +140,8 @@ public class CollectionOfferController : ControllerBase
     [HttpPost("{id:guid}/details")]
     [Authorize(Roles = "IndividualCollector, BusinessCollector")]
     [ProducesResponseType(typeof(CollectionOfferModel), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> AddDetail(Guid id, [FromBody] OfferDetailCreateModel request)
     {
         var userId = GetCurrentUserId();
@@ -158,7 +158,7 @@ public class CollectionOfferController : ControllerBase
     [HttpPut("{id:guid}/details/{detailId:guid}")]
     [Authorize(Roles = "IndividualCollector, BusinessCollector")]
     [ProducesResponseType(typeof(CollectionOfferModel), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpdateDetail(Guid id, Guid detailId, [FromBody] OfferDetailUpdateModel request)
     {
         var userId = GetCurrentUserId();
@@ -180,7 +180,7 @@ public class CollectionOfferController : ControllerBase
     [HttpDelete("{id:guid}/details/{detailId:guid}")]
     [Authorize(Roles = "IndividualCollector, BusinessCollector")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(typeof(ApiExceptionModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> DeleteDetail(Guid id, Guid detailId)
     {
         var userId = GetCurrentUserId();

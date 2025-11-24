@@ -12,7 +12,7 @@ namespace GreenConnectPlatform.Api.Controllers;
 
 [Route("api/v1/offers")]
 [ApiController]
-[Tags("5. Collection Offers")]
+[Tags("5. Collection Offers (Đề Nghị Thu Gom)")]
 public class CollectionOfferController : ControllerBase
 {
     private readonly ICollectionOfferService _service;
@@ -23,19 +23,20 @@ public class CollectionOfferController : ControllerBase
     }
 
     /// <summary>
-    ///     (Collector) Lấy lịch sử các đề nghị thu gom đã gửi.
+    ///     (Collector) Xem lịch sử các đề nghị thu gom đã gửi.
     /// </summary>
     /// <remarks>
-    ///     Dùng để Collector xem lại các Offer mình đã gửi. <br />
-    ///     Có thể lọc theo trạng thái (VD: Chỉ xem các Offer đang `Pending` hoặc đã `Accepted`).
+    ///     Giúp Collector quản lý danh sách các Offer mình đã gửi đi. <br />
+    ///     Có thể lọc theo trạng thái để xem các Offer đang chờ (`Pending`), đã chốt (`Accepted`) hoặc bị từ chối
+    ///     (`Rejected`).
     /// </remarks>
-    /// <param name="status">Trạng thái Offer (Pending, Accepted, Rejected, Canceled).</param>
-    /// <param name="sortByCreateAtDesc">Sắp xếp theo ngày tạo mới nhất (Mặc định: true).</param>
-    /// <param name="pageNumber">Trang số mấy.</param>
-    /// <param name="pageSize">Số lượng item trên mỗi trang.</param>
-    /// <response code="200">Trả về danh sách phân trang `PaginatedResult`.</response>
+    /// <param name="status">Lọc theo trạng thái Offer (Optional).</param>
+    /// <param name="sortByCreateAtDesc">`true`: Mới nhất trước (Mặc định). `false`: Cũ nhất trước.</param>
+    /// <param name="pageNumber">Trang số (Bắt đầu từ 1).</param>
+    /// <param name="pageSize">Số lượng item/trang.</param>
+    /// <response code="200">Thành công. Trả về danh sách phân trang.</response>
     /// <response code="401">Chưa đăng nhập.</response>
-    /// <response code="403">Người dùng không phải là Collector (Individual/Business).</response>
+    /// <response code="403">Người dùng không phải là Collector.</response>
     [HttpGet]
     [Authorize(Roles = "IndividualCollector, BusinessCollector")]
     [ProducesResponseType(typeof(PaginatedResult<CollectionOfferOveralForCollectorModel>), StatusCodes.Status200OK)]
@@ -55,13 +56,13 @@ public class CollectionOfferController : ControllerBase
     ///     (All) Xem chi tiết một đề nghị thu gom.
     /// </summary>
     /// <remarks>
-    ///     Trả về thông tin đầy đủ của Offer bao gồm: <br />
-    ///     - Thông tin Collector (Người gửi). <br />
-    ///     - Chi tiết giá từng loại ve chai (`OfferDetails`). <br />
+    ///     Trả về đầy đủ thông tin: <br />
+    ///     - Thông tin người gửi (Collector). <br />
+    ///     - Danh sách chi tiết giá (`OfferDetails`). <br />
     ///     - Lịch sử thương lượng giờ giấc (`ScheduleProposals`).
     /// </remarks>
     /// <param name="id">ID của Offer.</param>
-    /// <response code="200">Trả về object `CollectionOfferModel`.</response>
+    /// <response code="200">Thành công. Trả về chi tiết Offer.</response>
     /// <response code="404">Không tìm thấy Offer.</response>
     [HttpGet("{id:guid}")]
     [Authorize]
@@ -76,7 +77,7 @@ public class CollectionOfferController : ControllerBase
     ///     (Collector) Hủy hoặc Mở lại một đề nghị.
     /// </summary>
     /// <remarks>
-    ///     **Logic Toggle:** <br />
+    ///     **Cơ chế Toggle:** <br />
     ///     - Nếu đang `Pending` -> Chuyển thành `Canceled` (Hủy kèo). <br />
     ///     - Nếu đang `Canceled` -> Chuyển thành `Pending` (Mở lại kèo). <br />
     ///     **Lưu ý:** Không thể hủy nếu Offer đã được Household chấp nhận (`Accepted`).
@@ -101,13 +102,17 @@ public class CollectionOfferController : ControllerBase
     ///     (Household) Chấp nhận hoặc Từ chối một đề nghị.
     /// </summary>
     /// <remarks>
-    ///     **Side Effect quan trọng:** <br />
-    ///     - Nếu **Accepted**: Hệ thống sẽ tự động tạo một `Transaction` (Giao dịch) mới để bắt đầu quy trình thu gom. Trạng
-    ///     thái bài đăng sẽ chuyển sang `FullyBooked` (hoặc xử lý logic tương ứng). <br />
-    ///     - Nếu **Rejected**: Trạng thái Offer chuyển sang `Rejected`. Collector có thể cập nhật lại giá và gửi lại.
+    ///     Đây là bước quan trọng để bắt đầu giao dịch. <br />
+    ///     - **Nếu Chấp nhận (isAccepted = true):** <br />
+    ///     1. Trạng thái Offer -> `Accepted`. <br />
+    ///     2. Hệ thống **Tự động tạo Giao dịch (Transaction)** mới với trạng thái `Scheduled`. <br />
+    ///     3. Trạng thái bài đăng gốc chuyển sang `FullyBooked` (hoặc `PartiallyBooked` tùy logic). <br />
+    ///     - **Nếu Từ chối (isAccepted = false):** <br />
+    ///     1. Trạng thái Offer -> `Rejected`. <br />
+    ///     2. Collector có thể sửa lại giá và gửi lại (nếu muốn).
     /// </remarks>
     /// <param name="id">ID của Offer.</param>
-    /// <param name="isAccepted">`true` = Đồng ý, `false` = Từ chối.</param>
+    /// <param name="isAccepted">`true`: Đồng ý, `false`: Từ chối.</param>
     /// <response code="200">Thao tác thành công.</response>
     /// <response code="400">Offer không ở trạng thái Pending (Đã xử lý rồi).</response>
     /// <response code="403">Bạn không phải chủ bài đăng.</response>
@@ -123,18 +128,23 @@ public class CollectionOfferController : ControllerBase
         return Ok(new { Message = isAccepted ? "Đã chấp nhận đề nghị. Giao dịch được tạo." : "Đã từ chối đề nghị." });
     }
 
+    // --- NESTED DETAILS (Quản lý chi tiết giá trong Offer) ---
+
     /// <summary>
     ///     (Collector) Thêm báo giá cho một loại ve chai vào Offer.
     /// </summary>
     /// <remarks>
-    ///     Chỉ được phép thêm khi Offer đang ở trạng thái `Pending` hoặc `Rejected` (để sửa lại báo giá). <br />
-    ///     Không thể sửa Offer đã `Accepted`.
+    ///     Dùng để bổ sung mặt hàng vào Offer (nếu lúc đầu quên hoặc Household thêm hàng mới). <br />
+    ///     **Điều kiện:** <br />
+    ///     - Offer phải đang ở trạng thái `Pending` hoặc `Rejected` (để sửa lại). <br />
+    ///     - Loại ve chai này phải có trong bài đăng gốc. <br />
+    ///     - Loại ve chai này chưa có trong Offer (tránh trùng lặp).
     /// </remarks>
     /// <param name="id">ID của Offer.</param>
-    /// <param name="request">Thông tin báo giá (Category, Unit Price).</param>
-    /// <response code="201">Thêm thành công (Trả về Offer cập nhật).</response>
-    /// <response code="400">Loại ve chai không có trong bài đăng gốc.</response>
-    /// <response code="409">Loại ve chai này đã được báo giá trong Offer rồi.</response>
+    /// <param name="request">Thông tin báo giá (Loại rác, Đơn giá, Đơn vị tính).</param>
+    /// <response code="201">Thêm thành công (Trả về chi tiết Offer cập nhật).</response>
+    /// <response code="400">Loại ve chai không hợp lệ hoặc Offer đã chốt.</response>
+    /// <response code="409">Loại ve chai này đã tồn tại trong Offer.</response>
     [HttpPost("{id:guid}/details")]
     [Authorize(Roles = "IndividualCollector, BusinessCollector")]
     [ProducesResponseType(typeof(CollectionOfferModel), StatusCodes.Status201Created)]
@@ -144,15 +154,22 @@ public class CollectionOfferController : ControllerBase
     {
         var userId = GetCurrentUserId();
         await _service.AddDetailAsync(userId, id, request);
+        // Trả về 201 Created và dẫn link về trang chi tiết Offer
         return CreatedAtAction(nameof(GetById), new { id }, await _service.GetByIdAsync(id));
     }
 
     /// <summary>
     ///     (Collector) Cập nhật báo giá (Sửa đơn giá).
     /// </summary>
+    /// <remarks>
+    ///     Dùng khi Collector muốn thương lượng lại giá (VD: Household chê rẻ quá). <br />
+    ///     Chỉ được sửa khi Offer chưa được Chấp nhận.
+    /// </remarks>
     /// <param name="id">ID của Offer.</param>
     /// <param name="detailId">ID chi tiết báo giá cần sửa.</param>
     /// <param name="request">Giá mới.</param>
+    /// <response code="200">Cập nhật thành công.</response>
+    /// <response code="400">Offer đã được chấp nhận, không thể sửa.</response>
     [HttpPut("{id:guid}/details/{detailId:guid}")]
     [Authorize(Roles = "IndividualCollector, BusinessCollector")]
     [ProducesResponseType(typeof(CollectionOfferModel), StatusCodes.Status200OK)]
@@ -168,8 +185,8 @@ public class CollectionOfferController : ControllerBase
     ///     (Collector) Xóa một mục báo giá khỏi Offer.
     /// </summary>
     /// <remarks>
-    ///     **Lưu ý:** Nếu bài đăng gốc yêu cầu `MustTakeAll` (Full-lot), việc xóa item có thể khiến Offer trở nên không hợp lệ
-    ///     (thiếu item). Service sẽ chặn hành động này.
+    ///     **Cảnh báo:** Nếu bài đăng gốc yêu cầu `MustTakeAll` (Bán trọn gói), việc xóa bớt item sẽ khiến Offer không hợp lệ
+    ///     (thiếu hàng) và hệ thống sẽ chặn hành động này.
     /// </remarks>
     /// <param name="id">ID của Offer.</param>
     /// <param name="detailId">ID chi tiết báo giá cần xóa.</param>

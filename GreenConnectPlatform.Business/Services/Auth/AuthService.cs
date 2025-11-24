@@ -9,8 +9,6 @@ using GreenConnectPlatform.Data.Repositories.Profiles;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 
-// Model Exception của bạn
-
 namespace GreenConnectPlatform.Business.Services.Auth;
 
 public class AuthService : IAuthService

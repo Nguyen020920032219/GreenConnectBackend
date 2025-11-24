@@ -59,16 +59,14 @@ public class ProfileService : IProfileService
     {
         var user = await _userManager.FindByIdAsync(userId.ToString());
         if (user == null)
-            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "User not found.");
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Không tìm thấy người dùng.");
 
-        // Update Tên (bảng User)
         if (!string.IsNullOrEmpty(request.FullName) && user.FullName != request.FullName)
         {
             user.FullName = request.FullName;
             await _userManager.UpdateAsync(user);
         }
 
-        // Update Profile
         var profile = await _profileRepository.GetByUserIdWithRankAsync(userId);
 
         if (profile == null)
@@ -97,11 +95,10 @@ public class ProfileService : IProfileService
         }
 
         var oldAvatarUrl = profile.AvatarUrl;
-        profile.AvatarUrl = request.FileName; // Lưu đường dẫn file mới
+        profile.AvatarUrl = request.FileName;
 
         await _profileRepository.UpdateAsync(profile);
 
-        // Clean ảnh cũ
         if (!string.IsNullOrEmpty(oldAvatarUrl) && oldAvatarUrl != request.FileName)
             await _fileStorageService.DeleteFileAsync(oldAvatarUrl);
     }
@@ -110,9 +107,8 @@ public class ProfileService : IProfileService
     {
         var user = await _userManager.FindByIdAsync(userId.ToString());
         if (user == null)
-            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "User not found.");
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Không tìm thấy người dùng.");
 
-        // 1. Chuyển Role & Status
         user.Status = UserStatus.PendingVerification;
         user.BuyerType = request.BuyerType;
         await _userManager.UpdateAsync(user);
@@ -123,10 +119,8 @@ public class ProfileService : IProfileService
         var newRole = request.BuyerType == BuyerType.Individual ? "IndividualCollector" : "BusinessCollector";
         if (!await _userManager.IsInRoleAsync(user, newRole)) await _userManager.AddToRoleAsync(user, newRole);
 
-        // 2. Cập nhật Verification Info
         var verificationInfo = await _verificationInfoRepository.GetByUserIdAsync(userId);
 
-        // Biến lưu ảnh cũ để xóa sau khi update thành công
         string? oldFront = null;
         string? oldBack = null;
 
@@ -144,7 +138,6 @@ public class ProfileService : IProfileService
         }
         else
         {
-            // Lưu lại ảnh cũ trước khi ghi đè
             oldFront = verificationInfo.DocumentFrontUrl;
             oldBack = verificationInfo.DocumentBackUrl;
 
@@ -158,7 +151,6 @@ public class ProfileService : IProfileService
             await _verificationInfoRepository.UpdateAsync(verificationInfo);
         }
 
-        // 3. Dọn dẹp ảnh cũ trên Cloud
         if (!string.IsNullOrEmpty(oldFront) && oldFront != request.DocumentFrontUrl)
             await _fileStorageService.DeleteFileAsync(oldFront);
         if (!string.IsNullOrEmpty(oldBack) && oldBack != request.DocumentBackUrl)

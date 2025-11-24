@@ -9,7 +9,7 @@ namespace GreenConnectPlatform.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/scrap-categories")]
-[Tags("3. Master Data (Category)")]
+[Tags("3. Master Data (Danh Mục Ve Chai)")]
 public class ScrapCategoryController : ControllerBase
 {
     private readonly IScrapCategoryService _service;
@@ -20,16 +20,20 @@ public class ScrapCategoryController : ControllerBase
     }
 
     /// <summary>
-    ///     (Public) Lấy danh sách danh mục ve chai.
+    ///     (Public) Lấy danh sách các loại ve chai.
     /// </summary>
     /// <remarks>
-    ///     Dùng để hiển thị dropdown chọn loại rác hoặc bộ lọc tìm kiếm. <br />
-    ///     Hỗ trợ tìm kiếm tương đối theo tên (VD: "giấy" -> ra "Giấy vụn", "Giấy carton").
+    ///     API này cung cấp dữ liệu Master Data cho toàn bộ hệ thống. <br />
+    ///     **Ứng dụng:** <br />
+    ///     - **Household:** Dùng để chọn loại rác khi tạo bài đăng mới. <br />
+    ///     - **Collector:** Dùng để lọc bài đăng theo loại rác quan tâm. <br />
+    ///     - **Search Bar:** Hỗ trợ tìm kiếm tương đối theo tên (VD: Nhập "nhựa" -> Trả về "Chai nhựa", "Nhựa cứng").
     /// </remarks>
-    /// <param name="searchName">Từ khóa tìm kiếm (Optional).</param>
-    /// <param name="pageNumber">Trang số (Mặc định: 1).</param>
-    /// <param name="pageSize">Số dòng/trang (Mặc định: 10).</param>
-    /// <response code="200">Thành công.</response>
+    /// <param name="searchName">Từ khóa tìm kiếm theo tên danh mục (Không phân biệt hoa thường).</param>
+    /// <param name="pageNumber">Trang hiện tại (Mặc định: 1).</param>
+    /// <param name="pageSize">Số lượng danh mục trên mỗi trang (Mặc định: 10).</param>
+    /// <response code="200">Thành công. Trả về danh sách có phân trang.</response>
+    /// <response code="500">Lỗi server nội bộ.</response>
     [HttpGet]
     [AllowAnonymous]
     [ProducesResponseType(typeof(PaginatedResult<ScrapCategoryModel>), StatusCodes.Status200OK)]
@@ -44,11 +48,14 @@ public class ScrapCategoryController : ControllerBase
     }
 
     /// <summary>
-    ///     (Public) Xem chi tiết danh mục.
+    ///     (Public) Xem chi tiết một danh mục ve chai.
     /// </summary>
-    /// <param name="id">ID danh mục.</param>
-    /// <response code="200">Trả về thông tin chi tiết.</response>
-    /// <response code="404">Không tìm thấy ID này.</response>
+    /// <remarks>
+    ///     Lấy thông tin chi tiết bao gồm Tên, Mô tả, Hình ảnh minh họa (nếu có) của một loại rác cụ thể.
+    /// </remarks>
+    /// <param name="id">ID của danh mục (Số nguyên).</param>
+    /// <response code="200">Thành công. Trả về object `ScrapCategoryModel`.</response>
+    /// <response code="404">Không tìm thấy danh mục với ID này.</response>
     [HttpGet("{id:int}")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(ScrapCategoryModel), StatusCodes.Status200OK)]
@@ -60,15 +67,19 @@ public class ScrapCategoryController : ControllerBase
     }
 
     /// <summary>
-    ///     (Admin) Tạo danh mục ve chai mới.
+    ///     (Admin) Tạo mới một danh mục ve chai.
     /// </summary>
     /// <remarks>
-    ///     Tên danh mục (`CategoryName`) là duy nhất, không được trùng lặp (Case-insensitive).
+    ///     Chỉ dành cho Quản trị viên hệ thống. <br />
+    ///     **Quy tắc Validation:** <br />
+    ///     - `CategoryName`: Bắt buộc và **Duy nhất**. Nếu trùng tên với danh mục đã có (không phân biệt hoa thường) sẽ báo
+    ///     lỗi `409 Conflict`.
     /// </remarks>
-    /// <param name="request">Thông tin danh mục cần tạo.</param>
+    /// <param name="request">Thông tin danh mục mới (Tên, Mô tả).</param>
     /// <response code="201">Tạo thành công.</response>
-    /// <response code="409">Lỗi trùng tên danh mục.</response>
-    /// <response code="403">Không phải Admin.</response>
+    /// <response code="400">Dữ liệu không hợp lệ (Thiếu tên...).</response>
+    /// <response code="409">Tên danh mục đã tồn tại.</response>
+    /// <response code="403">Không có quyền Admin.</response>
     [HttpPost]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(ScrapCategoryModel), StatusCodes.Status201Created)]
@@ -85,7 +96,8 @@ public class ScrapCategoryController : ControllerBase
     ///     (Admin) Cập nhật thông tin danh mục.
     /// </summary>
     /// <remarks>
-    ///     Cho phép đổi tên hoặc mô tả. Nếu đổi tên, hệ thống sẽ kiểm tra trùng lặp lại.
+    ///     Cho phép Admin sửa tên hoặc mô tả của danh mục. <br />
+    ///     **Lưu ý:** Nếu đổi tên, hệ thống vẫn sẽ kiểm tra trùng lặp với các danh mục khác.
     /// </remarks>
     /// <param name="id">ID danh mục cần sửa.</param>
     /// <param name="request">Thông tin mới.</param>
@@ -104,16 +116,19 @@ public class ScrapCategoryController : ControllerBase
     }
 
     /// <summary>
-    ///     (Admin) Xóa danh mục ve chai.
+    ///     (Admin) Xóa một danh mục ve chai.
     /// </summary>
     /// <remarks>
-    ///     **QUAN TRỌNG:** Hệ thống sẽ **CHẶN** xóa nếu danh mục này đang được sử dụng trong bất kỳ bài đăng (`ScrapPost`) nào
-    ///     để đảm bảo tính toàn vẹn dữ liệu. <br />
-    ///     Admin cần xóa các bài đăng liên quan trước, hoặc chỉ được phép ẩn danh mục (chức năng update status - nếu có).
+    ///     **Cơ chế an toàn:** <br />
+    ///     Hệ thống sẽ **CHẶN (Block)** hành động xóa nếu danh mục này đang được sử dụng trong bất kỳ bài đăng (`ScrapPost`)
+    ///     nào. <br />
+    ///     Điều này nhằm đảm bảo lịch sử giao dịch và dữ liệu bài đăng không bị lỗi. <br />
+    ///     *Giải pháp:* Nếu muốn ngừng sử dụng, hãy cân nhắc tính năng "Ẩn" danh mục (Soft Delete) thay vì xóa cứng (trong
+    ///     tương lai).
     /// </remarks>
     /// <param name="id">ID danh mục cần xóa.</param>
     /// <response code="204">Xóa thành công.</response>
-    /// <response code="400">Không thể xóa vì danh mục đang được sử dụng (Ràng buộc khóa ngoại).</response>
+    /// <response code="400">Không thể xóa do danh mục đang được sử dụng (Ràng buộc dữ liệu).</response>
     /// <response code="404">Danh mục không tồn tại.</response>
     [HttpDelete("{id:int}")]
     [Authorize(Roles = "Admin")]

@@ -147,7 +147,7 @@ public class CollectionOfferService : ICollectionOfferService
                 ScrapCategoryId = od.ScrapCategoryId,
                 PricePerUnit = od.PricePerUnit,
                 Unit = od.Unit ?? "kg",
-                Quantity = 0, // Chưa cân
+                Quantity = 0,
                 FinalPrice = 0
             }).ToList();
 

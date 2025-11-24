@@ -7,7 +7,7 @@ namespace GreenConnectPlatform.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/auth")]
-[Tags("1. Authentication")]
+[Tags("1. Authentication (Xác thực & Phân quyền)")]
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
@@ -18,24 +18,26 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    ///     (User) Logs in or registers a new user via Firebase ID Token.
+    ///     (Mobile) Đăng nhập hoặc Đăng ký bằng Firebase Token.
     /// </summary>
     /// <remarks>
-    ///     Receives the `FirebaseToken` (IdToken) from the Flutter app (after OTP verification). <br />
-    ///     The backend verifies this token. <br />
-    ///     - If the phone number from the token does not exist -> Auto-registers a new `Household` user with a default
-    ///     Profile. <br />
-    ///     - If the phone number exists -> Logs in. <br />
-    ///     - If the user is a `Buyer` (Individual/Business) and their `Status` is `PendingVerification` -> Returns 403
-    ///     (Forbidden). <br />
-    ///     - If the user is `Blocked` -> Returns 403.
+    ///     API chính dành cho Mobile App. <br />
+    ///     **Quy trình xử lý:** <br />
+    ///     1. Backend xác thực `FirebaseToken` gửi lên (lấy số điện thoại). <br />
+    ///     2. Nếu SĐT chưa tồn tại -> **Tự động Đăng ký**: Tạo User mới (Role mặc định là `Household`), tạo Profile mặc định
+    ///     -> Trả về `201 Created`. <br />
+    ///     3. Nếu SĐT đã tồn tại -> **Đăng nhập**: Kiểm tra trạng thái tài khoản -> Trả về `200 OK`. <br />
+    ///     <br />
+    ///     **Các trường hợp bị chặn (Lỗi 403):** <br />
+    ///     - User là Collector nhưng đang chờ duyệt (`PendingVerification`). <br />
+    ///     - Tài khoản bị khóa (`Blocked`).
     /// </remarks>
-    /// <param name="request">Contains the valid Firebase IdToken.</param>
-    /// <response code="200">Login successful (Returns `AuthResponse`).</response>
-    /// <response code="201">Registration successful (Returns `AuthResponse` for new user).</response>
-    /// <response code="400">The Firebase Token is invalid or missing phone number.</response>
-    /// <response code="401">Unauthorized (Invalid Token Signature).</response>
-    /// <response code="403">Account is pending verification or blocked.</response>
+    /// <param name="request">Chứa chuỗi `FirebaseToken` lấy từ Firebase SDK.</param>
+    /// <response code="200">Đăng nhập thành công. Trả về Token và thông tin User.</response>
+    /// <response code="201">Đăng ký thành công (User mới).</response>
+    /// <response code="400">Token không hợp lệ hoặc thiếu thông tin SĐT.</response>
+    /// <response code="401">Token hết hạn hoặc sai chữ ký.</response>
+    /// <response code="403">Tài khoản chưa được duyệt hoặc bị khóa.</response>
     [HttpPost("login-or-register")]
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status201Created)]
@@ -52,17 +54,17 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    ///     (Admin) Logs in for the Admin Web Portal.
+    ///     (Web Admin) Đăng nhập trang quản trị.
     /// </summary>
     /// <remarks>
-    ///     The Admin logs in using their `Email` and `Password`. <br />
-    ///     Supports Dev Backdoor for test accounts (`@1` password) to bypass Admin role check.
+    ///     Dành riêng cho Web Portal. Sử dụng Email & Password truyền thống. <br />
+    ///     Có hỗ trợ tài khoản Test (Backdoor) cho Developer (Mật khẩu: `@1`).
     /// </remarks>
-    /// <param name="request">Contains `Email` and `Password`.</param>
-    /// <response code="200">Login successful (Returns `AuthResponse` with Admin Token).</response>
-    /// <response code="401">Invalid credentials (Password incorrect).</response>
-    /// <response code="403">User exists but does not have Admin role (Forbidden).</response>
-    /// <response code="404">User not found.</response>
+    /// <param name="request">Email và Mật khẩu.</param>
+    /// <response code="200">Đăng nhập thành công. Trả về Admin Token.</response>
+    /// <response code="401">Sai mật khẩu.</response>
+    /// <response code="403">User tồn tại nhưng không có quyền Admin.</response>
+    /// <response code="404">Không tìm thấy tài khoản với Email này.</response>
     [HttpPost("admin-login")]
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]

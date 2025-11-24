@@ -11,7 +11,7 @@ namespace GreenConnectPlatform.Api.Controllers;
 [ApiController]
 [Route("api/v1/profile")]
 [Authorize]
-[Tags("2. Profile & Verification")]
+[Tags("2. Profile & Verification (Hồ sơ & Xác minh)")]
 public class ProfileController : ControllerBase
 {
     private readonly IProfileService _profileService;
@@ -22,17 +22,14 @@ public class ProfileController : ControllerBase
     }
 
     /// <summary>
-    ///     (All) Get current user's full profile information.
+    ///     (All) Xem hồ sơ cá nhân của tôi.
     /// </summary>
     /// <remarks>
-    ///     Retrieves detailed profile data including: <br />
-    ///     - Basic info: Name, Phone, Address, Gender, DOB. <br />
-    ///     - Gamification info: Point Balance, Current Rank. <br />
-    ///     - Metadata: Roles, Avatar URL.
+    ///     Lấy đầy đủ thông tin chi tiết: Họ tên, SĐT, Địa chỉ, Giới tính, Ngày sinh, Điểm thưởng, Hạng thành viên (Rank),
+    ///     Avatar...
     /// </remarks>
-    /// <response code="200">Returns the detailed `ProfileModel`.</response>
-    /// <response code="401">Unauthorized (Token expired or missing).</response>
-    /// <response code="404">Profile or User not found in database.</response>
+    /// <response code="200">Thành công. Trả về `ProfileModel`.</response>
+    /// <response code="404">Không tìm thấy hồ sơ (Lỗi dữ liệu).</response>
     [HttpGet("me")]
     [ProducesResponseType(typeof(ProfileModel), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
@@ -45,16 +42,14 @@ public class ProfileController : ControllerBase
     }
 
     /// <summary>
-    ///     (All) Update personal information.
+    ///     (All) Cập nhật thông tin cá nhân.
     /// </summary>
     /// <remarks>
-    ///     Updates editable fields such as Full Name, Address, Gender, and Date of Birth. <br />
-    ///     Any null fields in the request will be ignored (partial update).
+    ///     Cho phép sửa các trường: Họ tên, Địa chỉ, Giới tính, Ngày sinh. <br />
+    ///     Các trường gửi lên là `null` sẽ được giữ nguyên giá trị cũ (Partial Update).
     /// </remarks>
-    /// <param name="request">The fields to be updated.</param>
-    /// <response code="200">Update successful (Returns the updated `ProfileModel`).</response>
-    /// <response code="400">Invalid data submitted (Validation error).</response>
-    /// <response code="404">User not found.</response>
+    /// <param name="request">Thông tin cần sửa.</param>
+    /// <response code="200">Cập nhật thành công.</response>
     [HttpPut("me")]
     [ProducesResponseType(typeof(ProfileModel), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
@@ -67,17 +62,15 @@ public class ProfileController : ControllerBase
     }
 
     /// <summary>
-    ///     (All) Confirm and update user avatar.
+    ///     (All) Cập nhật ảnh đại diện (Avatar).
     /// </summary>
     /// <remarks>
-    ///     **Prerequisite:** The client must first upload the image to Storage via the `Files API` to get the file path.
+    ///     **Lưu ý:** Client cần upload ảnh lên Cloud trước (qua API `Files`), sau đó gửi đường dẫn file (FileName) vào đây.
     ///     <br />
-    ///     This endpoint saves the file path into the user's profile and automatically deletes the old avatar (if any) to save
-    ///     space.
+    ///     Hệ thống sẽ lưu đường dẫn mới và tự động xóa ảnh cũ trên Cloud để tiết kiệm dung lượng.
     /// </remarks>
-    /// <param name="request">Contains the `FileName` (path) of the uploaded image.</param>
-    /// <response code="200">Avatar updated successfully.</response>
-    /// <response code="400">Invalid file name.</response>
+    /// <param name="request">Đường dẫn file ảnh vừa upload.</param>
+    /// <response code="200">Cập nhật thành công.</response>
     [HttpPost("avatar")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
@@ -89,20 +82,18 @@ public class ProfileController : ControllerBase
     }
 
     /// <summary>
-    ///     (Household) Apply to upgrade account to a Collector role.
+    ///     (Household) Nộp hồ sơ nâng cấp lên Người thu gom (Collector).
     /// </summary>
     /// <remarks>
-    ///     Only users with the `Household` role can use this. <br />
-    ///     Submits verification documents (ID Card or Business License) for Admin review. <br />
-    ///     **Side Effects:** <br />
-    ///     - User Status changes to `PendingVerification`. <br />
-    ///     - Role changes from `Household` to `IndividualCollector` or `BusinessCollector`. <br />
-    ///     - Old verification images (if rejected previously) will be cleaned up.
+    ///     Dùng cho Household muốn đăng ký trở thành Collector (Cá nhân/Vựa). <br />
+    ///     Gửi ảnh CCCD (mặt trước/sau) hoặc Giấy phép kinh doanh. <br />
+    ///     **Hệ quả:** <br />
+    ///     - Tài khoản chuyển sang trạng thái `PendingVerification`. <br />
+    ///     - Role chuyển sang `IndividualCollector` hoặc `BusinessCollector`. <br />
+    ///     - Chờ Admin duyệt.
     /// </remarks>
-    /// <param name="request">Contains the `BuyerType` target and document image paths.</param>
-    /// <response code="200">Application submitted successfully.</response>
-    /// <response code="400">Invalid request data.</response>
-    /// <response code="404">User not found.</response>
+    /// <param name="request">Loại tài khoản muốn nâng và link ảnh giấy tờ.</param>
+    /// <response code="200">Nộp hồ sơ thành công.</response>
     [HttpPost("verification")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]

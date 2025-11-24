@@ -57,4 +57,11 @@ public class TransactionRepository : BaseRepository<GreenConnectDbContext, Trans
 
         return (items, totalCount);
     }
+
+    public async Task<List<Transaction>> GetTransactionsForReport(DateTime startDate, DateTime endDate)
+    {
+        return await _dbSet
+            .Where(t => t.CreatedAt >= startDate && t.CreatedAt <= endDate)
+            .ToListAsync();
+    }
 }

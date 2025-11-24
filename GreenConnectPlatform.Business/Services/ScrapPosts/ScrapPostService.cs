@@ -97,6 +97,7 @@ public class ScrapPostService : IScrapPostService
         post.HouseholdId = householdId;
         post.Status = PostStatus.Open;
         post.CreatedAt = DateTime.UtcNow;
+        post.UpdatedAt = DateTime.UtcNow;
 
         if (request.Location != null && request.Location.Latitude.HasValue && request.Location.Longitude.HasValue)
             post.Location =

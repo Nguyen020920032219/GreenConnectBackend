@@ -9,16 +9,16 @@ public class ScrapPostCreateModel
 {
     [JsonIgnore] public Guid ScrapPostId { get; set; }
 
-    [Required(ErrorMessage = "Title is required.")]
+    [Required(ErrorMessage = "Title là bắt buộc.")]
     public string Title { get; set; } = null!;
 
-    [Required(ErrorMessage = "Description is required.")]
+    [Required(ErrorMessage = "Description là bắt buộc.")]
     public string? Description { get; set; }
 
-    [Required(ErrorMessage = "Address is required.")]
+    [Required(ErrorMessage = "Address là bắt buộc.")]
     public string Address { get; set; } = null!;
 
-    [Required(ErrorMessage = "AvailableTimeRange is required.")]
+    [Required(ErrorMessage = "AvailableTimeRange là bắt buộc.")]
     public string? AvailableTimeRange { get; set; }
 
     [JsonIgnore] public PostStatus Status { get; private set; } = PostStatus.Open;
@@ -29,7 +29,7 @@ public class ScrapPostCreateModel
 
     [JsonIgnore] public Guid HouseholdId { get; set; }
 
-    [Required(ErrorMessage = "Location is required.")]
+    [Required(ErrorMessage = "Location là bắt buộc.")]
     public LocationModel Location { get; set; } = null!;
 
     public bool MustTakeAll { get; set; }

@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace GreenConnectPlatform.Api.Controllers;
 
-[Route("api/prices")]
+[Route("api/v1/prices")]
 [Tags("11. Reference Prices (Giá tham khảo)")]
 public class ReferencePriceController(IReferencePriceService priceService) : ControllerBase
 {

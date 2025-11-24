@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace GreenConnectPlatform.Api.Controllers;
 
-[Route("api/complaints")]
+[Route("api/v1/complaints")]
 [Tags("12. Complaints (Đơn khiếu nại)")]
 public class ComplaintController(IComplaintService complaintService) : ControllerBase
 {

@@ -3,6 +3,7 @@ using GreenConnectPlatform.Business.Models.CollectionOffers.OfferDetails;
 using GreenConnectPlatform.Business.Models.Complaints;
 using GreenConnectPlatform.Business.Models.PaymentPackages;
 using GreenConnectPlatform.Business.Models.ReferencePrices;
+using GreenConnectPlatform.Business.Models.RewardItems;
 using GreenConnectPlatform.Business.Models.ScheduleProposals;
 using GreenConnectPlatform.Business.Models.ScrapCategories;
 using GreenConnectPlatform.Business.Models.ScrapPosts;
@@ -102,6 +103,15 @@ public class MappingProfile : Profile
         #region Complaint
 
         CreateMap<Complaint, ComplaintModel>();
+
+        #endregion
+
+        #region RewardItem
+
+        CreateMap<RewardItem, RewardItemModel>();
+        CreateMap<RewardItemCreateModel, RewardItem>();
+        CreateMap<RewardItemUpdateModel, RewardItem>()
+            .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
 
         #endregion
     }

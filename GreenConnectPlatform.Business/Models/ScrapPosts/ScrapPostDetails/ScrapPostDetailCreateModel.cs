@@ -8,13 +8,13 @@ public class ScrapPostDetailCreateModel
 {
     [JsonIgnore] public Guid ScrapPostId { get; set; }
 
-    [Required(ErrorMessage = "ScrapCategoryId is required.")]
+    [Required(ErrorMessage = "ScrapCategoryId là bắt buộc.")]
     public int ScrapCategoryId { get; set; }
 
-    [Required(ErrorMessage = "AmountDescription is required.")]
+    [Required(ErrorMessage = "AmountDescription là bắt buộc.")]
     public string? AmountDescription { get; set; }
 
-    [Required(ErrorMessage = "ImageUrl is required.")]
+    [Required(ErrorMessage = "ImageUrl là bắt buộc.")]
     public string? ImageUrl { get; set; }
 
     [JsonIgnore] public PostDetailStatus Status { get; set; } = PostDetailStatus.Available;

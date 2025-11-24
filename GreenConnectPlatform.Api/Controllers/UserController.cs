@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace GreenConnectPlatform.Api.Controllers;
 
-[Route("api/users")]
+[Route("api/v1/users")]
 [Tags("14. Users (Người dùng)")]
 
 public class UserController(IUserService userService) : ControllerBase

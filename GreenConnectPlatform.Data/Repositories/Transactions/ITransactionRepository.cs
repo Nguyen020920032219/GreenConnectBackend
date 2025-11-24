@@ -14,4 +14,6 @@ public interface ITransactionRepository : IBaseRepository<Transaction, Guid>
         bool sortByUpdateAtDesc,
         int pageIndex,
         int pageSize);
+    
+    Task<List<Transaction>> GetTransactionsForReport(DateTime startDate, DateTime endDate);
 }

@@ -7,6 +7,8 @@ using GreenConnectPlatform.Business.Services.Jwt;
 using GreenConnectPlatform.Business.Services.PaymentPackages;
 using GreenConnectPlatform.Business.Services.Profile;
 using GreenConnectPlatform.Business.Services.ReferencePrices;
+using GreenConnectPlatform.Business.Services.Reports;
+using GreenConnectPlatform.Business.Services.RewardItems;
 using GreenConnectPlatform.Business.Services.ScheduleProposals;
 using GreenConnectPlatform.Business.Services.ScrapCategories;
 using GreenConnectPlatform.Business.Services.ScrapPosts;
@@ -20,6 +22,7 @@ using GreenConnectPlatform.Data.Repositories.Complaints;
 using GreenConnectPlatform.Data.Repositories.PaymentPackages;
 using GreenConnectPlatform.Data.Repositories.Profiles;
 using GreenConnectPlatform.Data.Repositories.ReferencePrices;
+using GreenConnectPlatform.Data.Repositories.RewardItems;
 using GreenConnectPlatform.Data.Repositories.ScheduleProposals;
 using GreenConnectPlatform.Data.Repositories.ScrapCategories;
 using GreenConnectPlatform.Data.Repositories.ScrapPosts;
@@ -54,6 +57,8 @@ public static class ServiceConfiguration
         services.AddScoped<IPaymentPackageService, PaymentPackageService>();
         services.AddScoped<IReferencePriceService, ReferencePriceService>();
         services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IRewardItemService, RewardItemService>();
+        services.AddScoped<IReportService, ReportService>();
     }
 
     public static void ConfigureRepositories(this IServiceCollection services)
@@ -76,5 +81,6 @@ public static class ServiceConfiguration
         services.AddScoped<IReferencePriceRepository, ReferencePriceRepository>();
         services.AddScoped<IUserPackageRepository, UserPackageRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IRewardItemRepository, RewardItemRepository>();
     }
 }

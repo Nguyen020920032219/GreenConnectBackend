@@ -11,4 +11,6 @@ public interface IUserRepository : IBaseRepository<User, Guid>
         Guid? roleId,
         string? fullName);
     Task<User?> GetUserByIdAsync(Guid userId);
+    
+    Task<List<User>> GetUsersFroReport(DateTime startDate, DateTime endDate);
 }

@@ -51,4 +51,11 @@ public class UserRepository : BaseRepository<GreenConnectDbContext, User, Guid>,
         return await _dbSet
             .FirstOrDefaultAsync(u => u.Id == userId);
     }
+
+    public async Task<List<User>> GetUsersFroReport(DateTime startDate, DateTime endDate)
+    {
+        return await _dbSet
+            .Where(u => u.CreatedAt >= startDate && u.CreatedAt <= endDate)
+            .ToListAsync();
+    }
 }

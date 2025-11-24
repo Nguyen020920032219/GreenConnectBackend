@@ -89,6 +89,7 @@ public class ScrapPostRepository : BaseRepository<GreenConnectDbContext, ScrapPo
         var totalCount = await query.CountAsync();
 
         var items = await query
+            .Include(p => p.Household)
             .Include(p => p.ScrapPostDetails).ThenInclude(d => d.ScrapCategory)
             .OrderByDescending(p => p.CreatedAt)
             .Skip((pageIndex - 1) * pageSize)
@@ -101,5 +102,10 @@ public class ScrapPostRepository : BaseRepository<GreenConnectDbContext, ScrapPo
     public async Task<bool> IsCategoryInUseAsync(int categoryId)
     {
         return await _dbSet.AnyAsync(p => p.ScrapPostDetails.Any(d => d.ScrapCategoryId == categoryId));
+    }
+
+    public async Task<List<ScrapPost>> GetScrapPostForReport(DateTime startDate, DateTime endDate)
+    {
+        return await _dbSet.Where(s => s.CreatedAt >= startDate && s.CreatedAt <= endDate).ToListAsync();
     }
 }

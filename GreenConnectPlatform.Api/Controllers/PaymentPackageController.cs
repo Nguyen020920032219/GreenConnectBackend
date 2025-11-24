@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace GreenConnectPlatform.Api.Controllers;
 
-[Route("api/packages")]
+[Route("api/v1/packages")]
 [Tags("13. Payment Packages (Gói thanh toán)")]
 [Authorize]
 public class PaymentPackageController(IPaymentPackageService packageService) : ControllerBase

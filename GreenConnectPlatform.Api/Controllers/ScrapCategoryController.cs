@@ -9,7 +9,7 @@ namespace GreenConnectPlatform.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/scrap-categories")]
-[Tags("3. Master Data (Danh Mục Ve Chai)")]
+[Tags("3. Scrap Category (Loại Ve Chai)")]
 public class ScrapCategoryController : ControllerBase
 {
     private readonly IScrapCategoryService _service;

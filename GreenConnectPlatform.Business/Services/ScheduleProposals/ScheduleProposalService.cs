@@ -51,7 +51,7 @@ public class ScheduleProposalService : IScheduleProposalService
     {
         var proposal = await _proposalRepository.GetByIdWithDetailsAsync(id);
         if (proposal == null)
-            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Schedule proposal not found.");
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Lịch hẹn trước không tìm thấy.");
         return _mapper.Map<ScheduleProposalModel>(proposal);
     }
 
@@ -59,14 +59,14 @@ public class ScheduleProposalService : IScheduleProposalService
         ScheduleProposalCreateModel request)
     {
         var offer = await _offerRepository.GetByIdWithDetailsAsync(offerId);
-        if (offer == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Offer not found.");
+        if (offer == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Đề nghị này không tìm thấy.");
 
         if (offer.ScrapCollectorId != collectorId)
-            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Not authorized.");
+            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Bạn không có quyền.");
 
         if (offer.Status != OfferStatus.Pending)
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
-                "Can only reschedule for Pending offers.");
+                "Bạn không thể gửi lại lịch hẹn khi đề nghị không ở trạng thái pending.");
 
         var proposal = _mapper.Map<ScheduleProposal>(request);
         proposal.ScheduleProposalId = Guid.NewGuid();
@@ -83,13 +83,13 @@ public class ScheduleProposalService : IScheduleProposalService
         string? message)
     {
         var proposal = await _proposalRepository.GetByIdWithDetailsAsync(proposalId);
-        if (proposal == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Proposal not found.");
+        if (proposal == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Lich hẹn trước không tìm thấy.");
 
         if (proposal.ProposerId != collectorId)
-            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Not authorized.");
+            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Bạn không có quyền.");
 
         if (proposal.Status == ProposalStatus.Accepted)
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Cannot update accepted proposal.");
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Bạn không thể cập nhật khi đã được chấp nhận.");
 
         if (proposedTime.HasValue) proposal.ProposedTime = proposedTime.Value;
         if (!string.IsNullOrEmpty(message)) proposal.ResponseMessage = message;
@@ -101,19 +101,23 @@ public class ScheduleProposalService : IScheduleProposalService
     public async Task ToggleCancelAsync(Guid collectorId, Guid proposalId)
     {
         var proposal = await _proposalRepository.GetByIdWithDetailsAsync(proposalId);
-        if (proposal == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Proposal not found.");
+        if (proposal == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Lịch hẹn trước không tìm thấy.");
 
         if (proposal.ProposerId != collectorId)
-            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Not authorized.");
+            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Bạn không có quyền.");
 
         if (proposal.Status == ProposalStatus.Accepted)
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Cannot cancel accepted proposal.");
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Bạn không thể hủy khi đã được chấp nhận.");
 
-        if (proposal.Status == ProposalStatus.Pending) proposal.Status = ProposalStatus.Canceled;
-        else if (proposal.Status == ProposalStatus.Canceled) proposal.Status = ProposalStatus.Pending;
-        else
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
-                "Can only toggle between Pending and Canceled.");
+        if (proposal.Status == ProposalStatus.Canceled || proposal.Status == ProposalStatus.Rejected)
+            if (proposal.Offer.Status == OfferStatus.Pending)
+                proposal.Status = ProposalStatus.Pending;
+            else
+                throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                    "Bạn chỉ có thể mở lại đề xuất lịch trình nếu đề nghị thu thập liên quan vẫn đang chờ xử lý");
+
+        else if (proposal.Status == ProposalStatus.Pending)
+            proposal.Status = ProposalStatus.Canceled;
 
         await _proposalRepository.UpdateAsync(proposal);
     }
@@ -121,17 +125,23 @@ public class ScheduleProposalService : IScheduleProposalService
     public async Task ProcessProposalAsync(Guid householdId, Guid proposalId, bool isAccepted)
     {
         var proposal = await _proposalRepository.GetByIdWithDetailsAsync(proposalId);
-        if (proposal == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Proposal not found.");
+        if (proposal == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Lịch hẹn trước không tìm thấy.");
 
         if (proposal.Offer.ScrapPost.HouseholdId != householdId)
             throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403",
-                "Only the post owner can accept/reject schedule.");
+                "Chỉ chủ bài đăng mới có thể chấp nhận/từ chối lịch trình.");
 
         if (proposal.Status != ProposalStatus.Pending)
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Can only process Pending proposals.");
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Chỉ có thể xử lý các đề xuất đang chờ xử lý.");
 
         if (isAccepted)
+        {
             proposal.Status = ProposalStatus.Accepted;
+            var schedules = await _proposalRepository.GetByOffer(proposal.CollectionOfferId);
+            var scheduleIsPending = schedules
+                .Where(s => s.Status == ProposalStatus.Pending && s.ScheduleProposalId != proposalId).ToList();
+            foreach (var schedule in scheduleIsPending) schedule.Status = ProposalStatus.Canceled;
+        }
         else
             proposal.Status = ProposalStatus.Rejected;
 

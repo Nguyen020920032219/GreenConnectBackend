@@ -1,8 +1,10 @@
 ﻿using System.Security.Claims;
+using GreenConnectPlatform.Business.Models.CollectionOffers;
 using GreenConnectPlatform.Business.Models.Exceptions;
 using GreenConnectPlatform.Business.Models.Paging;
 using GreenConnectPlatform.Business.Models.ScrapPosts;
 using GreenConnectPlatform.Business.Models.ScrapPosts.ScrapPostDetails;
+using GreenConnectPlatform.Business.Services.CollectionOffers;
 using GreenConnectPlatform.Business.Services.ScrapPosts;
 using GreenConnectPlatform.Data.Enums;
 using Microsoft.AspNetCore.Authorization;
@@ -16,10 +18,12 @@ namespace GreenConnectPlatform.Api.Controllers;
 public class ScrapPostController : ControllerBase
 {
     private readonly IScrapPostService _service;
+    private readonly ICollectionOfferService _collectionOfferService;
 
-    public ScrapPostController(IScrapPostService service)
+    public ScrapPostController(IScrapPostService service, ICollectionOfferService collectionOfferService)
     {
         _service = service;
+        _collectionOfferService = collectionOfferService;
     }
 
     /// <summary>
@@ -252,9 +256,35 @@ public class ScrapPostController : ControllerBase
         return NoContent();
     }
 
+    
     private Guid GetCurrentUserId()
     {
         var idStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
         return Guid.TryParse(idStr, out var id) ? id : Guid.Empty;
+    }
+    
+    /// <summary>
+    ///     (IndividualCollector/BusinessCollector) Tạo đề nghị thu gom cho một bài đăng.
+    /// </summary>
+    /// <remarks>
+    ///     Chỉ tạo đề nghị thu gom nếu bài đăng đang ở trạng thái Open hoặc PartiallyBooked
+    /// </remarks>
+    /// <param name="id"></param>
+    /// <param name="request"></param>
+    /// <response code="200">Thêm offer dành cho bài đăng(trả về đề nghị dành cho bài đăng)</response>
+    /// <response code="400">Không thể thêm lời đề nghị vì bài đăng đã hoàn thành.....</response>
+    /// <response code="404">Không tìm thấy bài đăng này.</response>
+    [HttpPost("{id:guid}/offers")]
+    [Authorize(Roles = "IndividualCollector, BusinessCollector")]
+    [ProducesResponseType(typeof(CollectionOfferModel), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> AddOffer(Guid id, [FromBody] CollectionOfferCreateModel request)
+    {
+        var userId = GetCurrentUserId();
+        var result = await _collectionOfferService.CreateAsync(userId, id, request);
+        return Ok(await _collectionOfferService.GetByIdAsync(result.CollectionOfferId));
     }
 }

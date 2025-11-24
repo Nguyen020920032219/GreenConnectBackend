@@ -34,21 +34,21 @@ public class TransactionService : ITransactionService
     {
         var transaction = await _transactionRepository.GetByIdWithDetailsAsync(transactionId);
         if (transaction == null)
-            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Transaction not found.");
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Giao dịch không tìm thấy.");
 
         if (transaction.ScrapCollectorId != collectorId)
-            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Not authorized.");
+            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Bạn không có quyền.");
 
         if (transaction.Status != TransactionStatus.Scheduled)
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
-                "Can only check-in for Scheduled transactions.");
+                "Bạn phải check-in trước khi bắt đầu thu gom.");
 
         var postLocation = transaction.Offer.ScrapPost.Location;
         if (postLocation == null)
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Scrap post has no location data.");
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Bài đăng không có vị trí.");
 
         if (currentLocation.Longitude == null || currentLocation.Latitude == null)
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Invalid current location.");
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Vị trí gửi không hợp lệ.");
 
         var collectorPoint =
             _geometryFactory.CreatePoint(
@@ -60,7 +60,7 @@ public class TransactionService : ITransactionService
 
         if (distanceInMeters > CheckinRadiusMeters)
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
-                $"You are too far ({distanceInMeters:F0}m). Must be within {CheckinRadiusMeters}m.");
+                $"Bạn đang ở cách xa ({distanceInMeters:F0}m). Phải ở trong khoảng {CheckinRadiusMeters}m.");
 
         transaction.CheckInTime = DateTime.UtcNow;
         transaction.CheckInLocation = collectorPoint;
@@ -74,8 +74,10 @@ public class TransactionService : ITransactionService
     {
         var transaction = await _transactionRepository.GetByIdWithDetailsAsync(id);
         if (transaction == null)
-            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Transaction not found.");
-        return _mapper.Map<TransactionModel>(transaction);
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Giao dịch không tìm thấy.");
+        var transactionModel = _mapper.Map<TransactionModel>(transaction);
+        transactionModel.TotalPrice = transaction.TransactionDetails.Sum(d => d.FinalPrice);
+        return transactionModel;
     }
 
     public async Task<PaginatedResult<TransactionOveralModel>> GetListAsync(
@@ -94,14 +96,14 @@ public class TransactionService : ITransactionService
     {
         var transaction = await _transactionRepository.GetByIdWithDetailsAsync(transactionId);
         if (transaction == null)
-            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Transaction not found.");
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Giao dịch không tìm thấy.");
 
         if (transaction.ScrapCollectorId != collectorId)
-            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Not authorized.");
+            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Bạn không có quyền.");
 
         if (transaction.Status != TransactionStatus.InProgress)
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
-                "Must Check-in before submitting details.");
+                "Phải check-in trước khi gửi chi tiết thu gom.");
 
         // Validate: Categories có khớp với Offer đã chốt không?
         var offerCategoryIds = transaction.Offer.OfferDetails.Select(d => d.ScrapCategoryId).ToList();
@@ -138,25 +140,33 @@ public class TransactionService : ITransactionService
     {
         var transaction = await _transactionRepository.GetByIdWithDetailsAsync(transactionId);
         if (transaction == null)
-            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Transaction not found.");
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Giao dịch không tìm thấy.");
 
         if (transaction.HouseholdId != householdId)
-            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Not authorized.");
+            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Bạn không có quyền.");
 
         if (transaction.Status != TransactionStatus.InProgress)
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Transaction is not in progress.");
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Trạng thái giao dịch không phải là progress.");
 
         if (isAccepted && !transaction.TransactionDetails.Any())
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
-                "Collector hasn't submitted any items yet.");
+                "Người thu gom vẫn chưa gửi bất kỳ vật phẩm nào.");
 
         if (isAccepted)
         {
             transaction.Status = TransactionStatus.Completed;
-            transaction.Offer.ScrapPost.Status = PostStatus.Completed;
+            transaction.ScrapCollector.Profile.PointBalance += 10;
 
             foreach (var detail in transaction.Offer.ScrapPost.ScrapPostDetails)
                 detail.Status = PostDetailStatus.Collected;
+            var scrapPosts = transaction.Offer.ScrapPost.ScrapPostDetails
+                .Where(s => s.Status == PostDetailStatus.Available || s.Status == PostDetailStatus.Booked)
+                .ToList();
+            if (!scrapPosts.Any())
+            {
+                transaction.Offer.ScrapPost.Status = PostStatus.Completed;
+                transaction.Household.Profile.PointBalance += 10;
+            }
         }
         else
         {
@@ -170,13 +180,13 @@ public class TransactionService : ITransactionService
     public async Task ToggleCancelAsync(Guid transactionId, Guid collectorId)
     {
         var transaction = await _transactionRepository.GetByIdAsync(transactionId);
-        if (transaction == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Not found.");
+        if (transaction == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Giao dịch không tìm thấy.");
 
         if (transaction.ScrapCollectorId != collectorId)
-            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Not authorized.");
+            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Bạn không có quyền");
 
         if (transaction.Status == TransactionStatus.Completed)
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Cannot cancel completed transaction.");
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Bạn không thể hủy hoặc mở lại giao dịch khi đã hoàn thành.");
 
         if (transaction.Status == TransactionStatus.CanceledByUser)
             transaction.Status = TransactionStatus.InProgress;

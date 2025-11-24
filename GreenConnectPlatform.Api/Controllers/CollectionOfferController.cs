@@ -118,7 +118,7 @@ public class CollectionOfferController : ControllerBase
     /// <response code="403">Bạn không phải chủ bài đăng.</response>
     [HttpPatch("{id:guid}/process")]
     [Authorize(Roles = "Household")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(string),StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> ProcessOffer(Guid id, [FromQuery] bool isAccepted)

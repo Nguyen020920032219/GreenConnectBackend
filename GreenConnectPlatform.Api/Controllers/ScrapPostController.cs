@@ -203,7 +203,7 @@ public class ScrapPostController : ControllerBase
     {
         var userId = GetCurrentUserId();
         await _service.AddDetailAsync(userId, id, request);
-        return Ok(await _service.GetByIdAsync(id));
+        return CreatedAtAction(nameof(GetById), new { id }, await _service.GetByIdAsync(id));
     }
 
     /// <summary>

@@ -11,9 +11,9 @@ namespace GreenConnectPlatform.Business.Services.ScrapCategories;
 
 public class ScrapCategoryService : IScrapCategoryService
 {
-    private readonly IScrapCategoryRepository _repository;
-    private readonly IScrapPostRepository _postRepository;
     private readonly IMapper _mapper;
+    private readonly IScrapPostRepository _postRepository;
+    private readonly IScrapCategoryRepository _repository;
 
     public ScrapCategoryService(IScrapCategoryRepository repository, IScrapPostRepository postRepository,
         IMapper mapper)
@@ -93,10 +93,8 @@ public class ScrapCategoryService : IScrapCategoryService
 
         var isInUse = await _postRepository.IsCategoryInUseAsync(id);
         if (isInUse)
-        {
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Không thể xóa danh mục này vì đang có bài đăng sử dụng nó. Vui lòng xóa các bài đăng liên quan trước.");
-        }
 
         await _repository.DeleteAsync(entity);
     }

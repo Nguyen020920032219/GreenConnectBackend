@@ -97,7 +97,7 @@ public class ScrapPostRepository : BaseRepository<GreenConnectDbContext, ScrapPo
 
         return (items, totalCount);
     }
-    
+
     public async Task<bool> IsCategoryInUseAsync(int categoryId)
     {
         return await _dbSet.AnyAsync(p => p.ScrapPostDetails.Any(d => d.ScrapCategoryId == categoryId));

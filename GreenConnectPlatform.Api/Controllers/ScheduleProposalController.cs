@@ -22,10 +22,10 @@ public class ScheduleProposalController : ControllerBase
     }
 
     /// <summary>
-    ///     (Collector) Xem lịch sử các đề xuất lịch hẹn.
+    ///     (Collector) Xem lịch sử các đề xuất lịch hẹn của tôi.
     /// </summary>
     /// <remarks>
-    ///     Giúp Collector theo dõi các lịch hẹn mình đã gửi đi. <br/>
+    ///     Giúp Collector theo dõi các lịch hẹn mình đã gửi đi. <br />
     ///     Có thể lọc xem cái nào đang `Pending` (chờ Household trả lời) hoặc đã `Accepted` (Chốt đơn).
     /// </remarks>
     /// <param name="status">Lọc theo trạng thái (Pending, Accepted, Rejected...).</param>
@@ -37,6 +37,7 @@ public class ScheduleProposalController : ControllerBase
     [Authorize(Roles = "IndividualCollector, BusinessCollector")]
     [ProducesResponseType(typeof(PaginatedResult<ScheduleProposalModel>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)] // [ADDED] Thêm 403 vì có check Role
     public async Task<IActionResult> GetMyProposals(
         [FromQuery] ProposalStatus? status,
         [FromQuery] bool sortByCreateAtDesc = true,
@@ -66,7 +67,7 @@ public class ScheduleProposalController : ControllerBase
     ///     (Collector) Đề xuất lịch hẹn mới (Reschedule).
     /// </summary>
     /// <remarks>
-    ///     Dùng khi Collector muốn **đổi giờ** thu gom khác so với Offer ban đầu. <br/>
+    ///     Dùng khi Collector muốn **đổi giờ** thu gom khác so với Offer ban đầu. <br />
     ///     **Điều kiện:** Offer gốc phải đang ở trạng thái `Pending`.
     /// </remarks>
     /// <param name="offerId">ID của Offer cần hẹn lại lịch.</param>
@@ -113,7 +114,7 @@ public class ScheduleProposalController : ControllerBase
     ///     (Collector) Hủy hoặc Mở lại đề xuất lịch.
     /// </summary>
     /// <remarks>
-    ///     Chuyển đổi trạng thái giữa `Pending` <--> `Canceled`. <br/>
+    ///     Chuyển đổi trạng thái giữa `Pending` <--> `Canceled`. <br />
     ///     Dùng khi Collector lỡ gửi nhầm lịch hoặc muốn rút lại đề nghị.
     /// </remarks>
     /// <param name="id">ID của Proposal.</param>
@@ -121,8 +122,9 @@ public class ScheduleProposalController : ControllerBase
     /// <response code="400">Không thể hủy đề xuất đã được Chấp nhận.</response>
     [HttpPatch("{id:guid}/toggle-cancel")]
     [Authorize(Roles = "IndividualCollector, BusinessCollector")]
-    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)] // [FIXED] Đổi string thành object vì trả về JSON
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> ToggleCancel(Guid id)
     {
         var userId = GetCurrentUserId();
@@ -134,8 +136,8 @@ public class ScheduleProposalController : ControllerBase
     ///     (Household) Chốt lịch (Accept) hoặc Từ chối lịch (Reject).
     /// </summary>
     /// <remarks>
-    ///     **Quyết định cuối cùng của Household:** <br/>
-    ///     - **Accept:** Chốt thời gian thu gom này -> Cập nhật trạng thái Offer -> Có thể dẫn đến tạo Transaction. <br/>
+    ///     **Quyết định cuối cùng của Household:** <br />
+    ///     - **Accept:** Chốt thời gian thu gom này -> Cập nhật trạng thái Offer -> Có thể dẫn đến tạo Transaction. <br />
     ///     - **Reject:** Từ chối thời gian này -> Collector phải đề xuất giờ khác.
     /// </remarks>
     /// <param name="id">ID của Proposal.</param>
@@ -145,14 +147,14 @@ public class ScheduleProposalController : ControllerBase
     /// <response code="403">Bạn không phải chủ bài đăng của Offer này.</response>
     [HttpPatch("{id:guid}/process")]
     [Authorize(Roles = "Household")]
-    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)] // [FIXED] Đổi string thành object
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> ProcessProposal(Guid id, [FromQuery] bool isAccepted)
     {
         var userId = GetCurrentUserId();
         await _service.ProcessProposalAsync(userId, id, isAccepted);
-        return Ok(new { Message = isAccepted ? "Proposal Accepted" : "Proposal Rejected" });
+        return Ok(new { Message = isAccepted ? "Accepted" : "Rejected" });
     }
 
     private Guid GetCurrentUserId()

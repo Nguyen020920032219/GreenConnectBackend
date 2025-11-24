@@ -21,6 +21,7 @@ public class CollectionOfferRepository : BaseRepository<GreenConnectDbContext, C
             .Include(o => o.ScheduleProposals)
             .Include(o => o.ScrapPost).ThenInclude(p => p.ScrapPostDetails)
             .Include(o => o.ScrapPost).ThenInclude(p => p.Household)
+            .Include(o => o.Transactions)
             .AsSplitQuery()
             .FirstOrDefaultAsync(o => o.CollectionOfferId == id);
     }

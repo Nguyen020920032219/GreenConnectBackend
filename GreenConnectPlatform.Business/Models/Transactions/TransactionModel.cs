@@ -29,4 +29,6 @@ public class TransactionModel
     public DateTime? UpdatedAt { get; set; }
 
     public List<TransactionDetailModel> TransactionDetails { get; set; } = new();
+    
+    public Decimal TotalPrice { get; set; }
 }

@@ -8,7 +8,7 @@ public class OfferDetailCreateModel
     public int ScrapCategoryId { get; set; }
 
     [Required(ErrorMessage = "PricePerUnit is required")]
-    [Range(0.01, double.MaxValue, ErrorMessage = "PricePerUnit must be greater than zero")]
+    [Range(0.1, double.MaxValue, ErrorMessage = "PricePerUnit must be greater than zero")]
     public decimal PricePerUnit { get; set; }
 
     [Required(ErrorMessage = "Unit is required")]

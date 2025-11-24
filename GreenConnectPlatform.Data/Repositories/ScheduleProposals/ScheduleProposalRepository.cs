@@ -70,4 +70,9 @@ public class ScheduleProposalRepository : BaseRepository<GreenConnectDbContext, 
 
         return (items, totalCount);
     }
+
+    public async Task<List<ScheduleProposal>> GetByOffer(Guid offerId)
+    {
+        return await _dbSet.Where(p => p.CollectionOfferId == offerId).ToListAsync();
+    }
 }

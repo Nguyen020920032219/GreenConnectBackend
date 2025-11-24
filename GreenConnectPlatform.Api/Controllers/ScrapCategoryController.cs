@@ -23,7 +23,7 @@ public class ScrapCategoryController : ControllerBase
     ///     (Public) Lấy danh sách danh mục ve chai.
     /// </summary>
     /// <remarks>
-    ///     Dùng để hiển thị dropdown chọn loại rác hoặc bộ lọc tìm kiếm. <br/>
+    ///     Dùng để hiển thị dropdown chọn loại rác hoặc bộ lọc tìm kiếm. <br />
     ///     Hỗ trợ tìm kiếm tương đối theo tên (VD: "giấy" -> ra "Giấy vụn", "Giấy carton").
     /// </remarks>
     /// <param name="searchName">Từ khóa tìm kiếm (Optional).</param>
@@ -107,7 +107,8 @@ public class ScrapCategoryController : ControllerBase
     ///     (Admin) Xóa danh mục ve chai.
     /// </summary>
     /// <remarks>
-    ///     **QUAN TRỌNG:** Hệ thống sẽ **CHẶN** xóa nếu danh mục này đang được sử dụng trong bất kỳ bài đăng (`ScrapPost`) nào để đảm bảo tính toàn vẹn dữ liệu. <br/>
+    ///     **QUAN TRỌNG:** Hệ thống sẽ **CHẶN** xóa nếu danh mục này đang được sử dụng trong bất kỳ bài đăng (`ScrapPost`) nào
+    ///     để đảm bảo tính toàn vẹn dữ liệu. <br />
     ///     Admin cần xóa các bài đăng liên quan trước, hoặc chỉ được phép ẩn danh mục (chức năng update status - nếu có).
     /// </remarks>
     /// <param name="id">ID danh mục cần xóa.</param>

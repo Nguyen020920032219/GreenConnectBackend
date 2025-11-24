@@ -123,8 +123,6 @@ public class CollectionOfferController : ControllerBase
         return Ok(new { Message = isAccepted ? "Đã chấp nhận đề nghị. Giao dịch được tạo." : "Đã từ chối đề nghị." });
     }
 
-    // --- NESTED DETAILS (Quản lý chi tiết giá trong Offer) ---
-
     /// <summary>
     ///     (Collector) Thêm báo giá cho một loại ve chai vào Offer.
     /// </summary>
@@ -134,19 +132,19 @@ public class CollectionOfferController : ControllerBase
     /// </remarks>
     /// <param name="id">ID của Offer.</param>
     /// <param name="request">Thông tin báo giá (Category, Unit Price).</param>
-    /// <response code="200">Thêm thành công (Trả về Offer cập nhật).</response>
+    /// <response code="201">Thêm thành công (Trả về Offer cập nhật).</response>
     /// <response code="400">Loại ve chai không có trong bài đăng gốc.</response>
     /// <response code="409">Loại ve chai này đã được báo giá trong Offer rồi.</response>
     [HttpPost("{id:guid}/details")]
     [Authorize(Roles = "IndividualCollector, BusinessCollector")]
-    [ProducesResponseType(typeof(CollectionOfferModel), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(CollectionOfferModel), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> AddDetail(Guid id, [FromBody] OfferDetailCreateModel request)
     {
         var userId = GetCurrentUserId();
         await _service.AddDetailAsync(userId, id, request);
-        return Ok(await _service.GetByIdAsync(id));
+        return CreatedAtAction(nameof(GetById), new { id }, await _service.GetByIdAsync(id));
     }
 
     /// <summary>

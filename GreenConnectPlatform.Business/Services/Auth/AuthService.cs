@@ -8,6 +8,7 @@ using GreenConnectPlatform.Data.Enums;
 using GreenConnectPlatform.Data.Repositories.Profiles;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+
 // Model Exception của bạn
 
 namespace GreenConnectPlatform.Business.Services.Auth;
@@ -33,7 +34,6 @@ public class AuthService : IAuthService
 
     public async Task<(AuthResponse Response, bool IsNewUser)> LoginOrRegisterAsync(LoginOrRegisterRequest request)
     {
-        // 1. Verify Firebase Token
         string phoneNumber;
         try
         {
@@ -41,7 +41,6 @@ public class AuthService : IAuthService
             phoneNumber = decodedToken.Claims.GetValueOrDefault("phone_number")?.ToString() ?? "";
 
             if (string.IsNullOrEmpty(phoneNumber))
-                // Dùng mã lỗi "400" thay vì chuỗi in hoa
                 throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                     "Firebase Token không chứa số điện thoại.");
         }
@@ -51,16 +50,13 @@ public class AuthService : IAuthService
                 $"Lỗi xác thực Firebase: {ex.Message}");
         }
 
-        // 2. Tìm User
         var user = await _userManager.FindByNameAsync(phoneNumber);
         var isNewUser = user == null;
 
         if (isNewUser) user = await CreateHouseholdUserAsync(phoneNumber);
 
-        // 3. Validate Trạng thái User (Pending/Blocked)
         await ValidateUserStatusAsync(user!);
 
-        // 4. Tạo Token & Response
         var response = await GenerateAuthResponseAsync(user!);
         return (response, isNewUser);
     }
@@ -71,7 +67,6 @@ public class AuthService : IAuthService
         var normalizedEmail = request.Email.ToUpper();
         var isDevLogin = false;
 
-        // --- DEV BACKDOOR (Giữ lại cho ae test) ---
         var testAccounts = new List<string> { "CHITU@GC.COM", "ANHBA@GC.COM", "VUAABC@GC.COM" };
 
         if (testAccounts.Contains(normalizedEmail) && request.Password == "@1")
@@ -81,7 +76,6 @@ public class AuthService : IAuthService
         }
         else
         {
-            // Login thật
             user = await _userManager.FindByEmailAsync(request.Email)
                    ?? await _userManager.FindByNameAsync(request.Email);
 
@@ -96,7 +90,6 @@ public class AuthService : IAuthService
         if (user.Status == UserStatus.Blocked)
             throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Tài khoản đã bị khóa.");
 
-        // Check Role Admin (Chỉ check nếu không phải Dev Login)
         var roles = await _userManager.GetRolesAsync(user);
         if (!isDevLogin && !roles.Contains("Admin"))
             throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403",
@@ -104,8 +97,6 @@ public class AuthService : IAuthService
 
         return await GenerateAuthResponseAsync(user);
     }
-
-    // ================= HELPER METHODS =================
 
     private async Task<User> CreateHouseholdUserAsync(string phoneNumber)
     {
@@ -131,13 +122,12 @@ public class AuthService : IAuthService
 
         await _userManager.AddToRoleAsync(newUser, "Household");
 
-        // Tạo Profile mặc định (Dùng Repository chuẩn)
         var newProfile = new Data.Entities.Profile
         {
             ProfileId = Guid.NewGuid(),
             UserId = newUser.Id,
-            PointBalance = 200, // Điểm thưởng
-            RankId = 1 // Rank mặc định
+            PointBalance = 200,
+            RankId = 1
         };
 
         await _profileRepository.AddAsync(newProfile);
@@ -149,7 +139,6 @@ public class AuthService : IAuthService
     {
         var roles = await _userManager.GetRolesAsync(user);
 
-        // Nếu là Collector mà chưa được duyệt -> Chặn
         if (!roles.Contains("Household") && user.Status == UserStatus.PendingVerification)
             throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Tài khoản đang chờ Admin xác minh.");
 
@@ -162,11 +151,9 @@ public class AuthService : IAuthService
         var roles = await _userManager.GetRolesAsync(user);
         var accessToken = await _jwtService.GenerateAccessTokenAsync(user, roles);
 
-        // Lấy Profile bằng Repository
         var profiles = await _profileRepository.FindAsync(p => p.UserId == user.Id);
         var profile = profiles.FirstOrDefault();
 
-        // Logic hiển thị tên Rank
         var rankName = "Bronze";
         if (profile != null && profile.RankId == 2) rankName = "Silver";
         if (profile != null && profile.RankId == 3) rankName = "Gold";
@@ -174,7 +161,7 @@ public class AuthService : IAuthService
         var userViewModel = new UserViewModel
         {
             Id = user.Id,
-            FullName = user.FullName ?? "Người dùng mới",
+            FullName = user.FullName,
             PhoneNumber = user.PhoneNumber,
             AvatarUrl = profile?.AvatarUrl,
             PointBalance = profile?.PointBalance ?? 0,

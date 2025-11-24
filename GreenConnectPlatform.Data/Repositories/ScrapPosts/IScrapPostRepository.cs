@@ -25,6 +25,6 @@ public interface IScrapPostRepository : IBaseRepository<ScrapPost, Guid>
         PostStatus? status,
         int pageIndex,
         int pageSize);
-    
+
     Task<bool> IsCategoryInUseAsync(int categoryId);
 }

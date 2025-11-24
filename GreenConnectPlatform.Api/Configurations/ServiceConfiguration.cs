@@ -26,13 +26,13 @@ public static class ServiceConfiguration
         // --- Services ---
         services.AddAutoMapper(typeof(MappingProfile));
         services.AddScoped<IJwtService, JwtService>();
-        
-        services.AddSingleton<IFileStorageService, FirebaseStorageService>(); 
+
+        services.AddSingleton<IFileStorageService, FirebaseStorageService>();
 
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IProfileService, ProfileService>();
         services.AddScoped<IStorageService, StorageService>();
-        
+
         services.AddScoped<IScrapCategoryService, ScrapCategoryService>();
         services.AddScoped<IScrapPostService, ScrapPostService>();
         services.AddScoped<ICollectionOfferService, CollectionOfferService>();
@@ -45,13 +45,13 @@ public static class ServiceConfiguration
         // --- Repositories ---
         services.AddScoped<IProfileRepository, ProfileRepository>();
         services.AddScoped<IVerificationInfoRepository, VerificationInfoRepository>();
-        
+
         services.AddScoped<IScrapCategoryRepository, ScrapCategoryRepository>();
         services.AddScoped<IScrapPostRepository, ScrapPostRepository>();
-        
+
         services.AddScoped<ICollectionOfferRepository, CollectionOfferRepository>();
         services.AddScoped<IScheduleProposalRepository, ScheduleProposalRepository>();
-        
+
         services.AddScoped<ITransactionRepository, TransactionRepository>();
     }
 }

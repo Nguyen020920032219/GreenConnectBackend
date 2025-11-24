@@ -4,6 +4,7 @@ using GreenConnectPlatform.Data.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+
 // Import extension seeding
 
 namespace GreenConnectPlatform.Data.Configurations;

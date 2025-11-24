@@ -24,10 +24,10 @@ public class FilesController : ControllerBase
     ///     (All) Xin link upload Avatar.
     /// </summary>
     /// <remarks>
-    ///     **Quy trình Upload File:** <br/>
-    ///     1. Client gọi API này để xin link upload. <br/>
-    ///     2. Server trả về `UploadUrl` (Signed URL) và `FilePath` (để lưu vào DB). <br/>
-    ///     3. Client dùng `UploadUrl` để `PUT` file binary lên thẳng Google Cloud Storage/Firebase. <br/>
+    ///     **Quy trình Upload File:** <br />
+    ///     1. Client gọi API này để xin link upload. <br />
+    ///     2. Server trả về `UploadUrl` (Signed URL) và `FilePath` (để lưu vào DB). <br />
+    ///     3. Client dùng `UploadUrl` để `PUT` file binary lên thẳng Google Cloud Storage/Firebase. <br />
     ///     4. Sau khi upload xong, Client gọi API cập nhật profile (`/api/v1/profile/avatar`) với `FilePath`.
     /// </remarks>
     /// <param name="request">Thông tin file (Tên file, Content-Type).</param>
@@ -47,7 +47,7 @@ public class FilesController : ControllerBase
     ///     (Household) Xin link upload giấy tờ xác minh (CCCD/GPKD).
     /// </summary>
     /// <remarks>
-    ///     Dùng khi Household muốn nâng cấp lên Collector. <br/>
+    ///     Dùng khi Household muốn nâng cấp lên Collector. <br />
     ///     Cần upload cả mặt trước và mặt sau (gọi API này 2 lần).
     /// </remarks>
     /// <param name="request">Thông tin file.</param>
@@ -65,7 +65,7 @@ public class FilesController : ControllerBase
     ///     (Household) Xin link upload ảnh cho bài đăng ve chai.
     /// </summary>
     /// <remarks>
-    ///     **Yêu cầu:** User phải là người tạo ra bài đăng (`EntityId` = `ScrapPostId`). <br/>
+    ///     **Yêu cầu:** User phải là người tạo ra bài đăng (`EntityId` = `ScrapPostId`). <br />
     ///     Nếu bài đăng không tồn tại hoặc không phải chính chủ, sẽ trả về lỗi 403/404.
     /// </remarks>
     /// <param name="request">Thông tin file và `EntityId` (là `ScrapPostId`).</param>
@@ -88,7 +88,7 @@ public class FilesController : ControllerBase
     ///     (Collector) Xin link upload ảnh Check-in giao dịch.
     /// </summary>
     /// <remarks>
-    ///     Dùng để upload ảnh chụp tại hiện trường làm bằng chứng. <br/>
+    ///     Dùng để upload ảnh chụp tại hiện trường làm bằng chứng. <br />
     ///     **Yêu cầu:** User phải là Collector được chỉ định trong giao dịch (`EntityId` = `TransactionId`).
     /// </remarks>
     /// <param name="request">Thông tin file và `EntityId` (là `TransactionId`).</param>
@@ -111,7 +111,7 @@ public class FilesController : ControllerBase
     ///     (All) Xóa file đã upload.
     /// </summary>
     /// <remarks>
-    ///     Chỉ cho phép xóa file thuộc sở hữu của mình (Check dựa trên đường dẫn file). <br/>
+    ///     Chỉ cho phép xóa file thuộc sở hữu của mình (Check dựa trên đường dẫn file). <br />
     ///     **Lưu ý:** Không thể xóa ảnh Check-in (để giữ bằng chứng).
     /// </remarks>
     /// <param name="request">Đường dẫn file cần xóa (`FilePath`).</param>

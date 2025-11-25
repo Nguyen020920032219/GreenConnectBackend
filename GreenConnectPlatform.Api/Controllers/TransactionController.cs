@@ -1,9 +1,11 @@
 ﻿using System.Security.Claims;
 using GreenConnectPlatform.Business.Models.Exceptions;
+using GreenConnectPlatform.Business.Models.Feedbacks;
 using GreenConnectPlatform.Business.Models.Paging;
 using GreenConnectPlatform.Business.Models.ScrapPosts;
 using GreenConnectPlatform.Business.Models.Transactions;
 using GreenConnectPlatform.Business.Models.Transactions.TransactionDetails;
+using GreenConnectPlatform.Business.Services.Feedbacks;
 using GreenConnectPlatform.Business.Services.Transactions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,10 +18,12 @@ namespace GreenConnectPlatform.Api.Controllers;
 public class TransactionController : ControllerBase
 {
     private readonly ITransactionService _service;
+    private readonly IFeedbackService _feedbackService;
 
-    public TransactionController(ITransactionService service)
+    public TransactionController(ITransactionService service, IFeedbackService feedbackService)
     {
         _service = service;
+        _feedbackService = feedbackService;
     }
 
     /// <summary>
@@ -140,6 +144,11 @@ public class TransactionController : ControllerBase
     /// </remarks>
     [HttpPatch("{id:guid}/toggle-cancel")]
     [Authorize(Roles = "IndividualCollector, BusinessCollector")]
+    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> ToggleCancel(Guid id)
     {
         var userId = GetCurrentUserId();
@@ -147,6 +156,25 @@ public class TransactionController : ControllerBase
         return Ok(new { Message = "Đổi trạng thái giao dịch thành công." });
     }
 
+    /// <summary>
+    ///     (IndividualCollector, BusinessCollector, Household) có thể lấy danh sách nhận xét dành cho giao dịch của mình
+    /// </summary>
+    /// <param name="id">Id của nhận xét</param>
+    /// <param name="pageNumber"></param>
+    /// <param name="pageSize"></param>
+    /// <param name="sortByCreateAt">Có thể sắp xếp theo ngày tạo nhận xét</param>
+
+    [HttpGet("{id:guid}/feedbacks")]
+    [Authorize(Roles = "IndividualCollector, BusinessCollector, Household")]
+    [ProducesResponseType(typeof(FeedbackModel), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetFeedbacks([FromRoute] Guid id, 
+        [FromQuery] int pageNumber = 1,
+        [FromQuery]int pageSize = 10,
+        [FromQuery] bool sortByCreateAt = true)
+    {
+        return Ok(await _feedbackService.GetFeedbacksAsync(pageNumber, pageSize,id, sortByCreateAt));
+    }
+    
     private Guid GetCurrentUserId()
     {
         var idStr = User.FindFirstValue(ClaimTypes.NameIdentifier);

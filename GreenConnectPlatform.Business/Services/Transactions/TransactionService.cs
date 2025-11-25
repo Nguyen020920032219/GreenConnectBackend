@@ -177,7 +177,7 @@ public class TransactionService : ITransactionService
         await _transactionRepository.UpdateAsync(transaction);
     }
 
-    public async Task ToggleCancelAsync(Guid transactionId, Guid collectorId)
+    public async Task  ToggleCancelAsync(Guid transactionId, Guid collectorId)
     {
         var transaction = await _transactionRepository.GetByIdAsync(transactionId);
         if (transaction == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Giao dịch không tìm thấy.");

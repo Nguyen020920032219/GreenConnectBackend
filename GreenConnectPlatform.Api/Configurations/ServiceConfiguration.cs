@@ -2,6 +2,7 @@ using GreenConnectPlatform.Business.Mappers;
 using GreenConnectPlatform.Business.Services.Auth;
 using GreenConnectPlatform.Business.Services.CollectionOffers;
 using GreenConnectPlatform.Business.Services.Complaints;
+using GreenConnectPlatform.Business.Services.Feedbacks;
 using GreenConnectPlatform.Business.Services.FileStorage;
 using GreenConnectPlatform.Business.Services.Jwt;
 using GreenConnectPlatform.Business.Services.PaymentPackages;
@@ -19,6 +20,7 @@ using GreenConnectPlatform.Business.Services.VerificationInfos;
 using GreenConnectPlatform.Data.Repositories.CollectionOffers;
 using GreenConnectPlatform.Data.Repositories.CollectorVerificationInfos;
 using GreenConnectPlatform.Data.Repositories.Complaints;
+using GreenConnectPlatform.Data.Repositories.Feedbacks;
 using GreenConnectPlatform.Data.Repositories.PaymentPackages;
 using GreenConnectPlatform.Data.Repositories.Profiles;
 using GreenConnectPlatform.Data.Repositories.ReferencePrices;
@@ -59,6 +61,7 @@ public static class ServiceConfiguration
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IRewardItemService, RewardItemService>();
         services.AddScoped<IReportService, ReportService>();
+        services.AddScoped<IFeedbackService, FeedbackService>();
     }
 
     public static void ConfigureRepositories(this IServiceCollection services)
@@ -82,5 +85,6 @@ public static class ServiceConfiguration
         services.AddScoped<IUserPackageRepository, UserPackageRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRewardItemRepository, RewardItemRepository>();
+        services.AddScoped<IFeedbackRepository, FeedbackRepository>();
     }
 }

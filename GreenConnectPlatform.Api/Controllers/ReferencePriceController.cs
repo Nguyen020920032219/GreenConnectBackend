@@ -85,8 +85,8 @@ public class ReferencePriceController(IReferencePriceService priceService) : Con
         [FromRoute] Guid priceId,
         [FromQuery] decimal? pricePerKg)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var result = await priceService.UpdateReferencePrice(priceId, pricePerKg, Guid.Parse(userId));
+        var userId = GetCurrentUserId();
+        var result = await priceService.UpdateReferencePrice(priceId, pricePerKg, userId);
         return Ok(result);
     }
     
@@ -105,5 +105,11 @@ public class ReferencePriceController(IReferencePriceService priceService) : Con
     {
         await priceService.DeleteReferencePrice(priceId);
         return Ok("Đã xóa giá tham khảo thành công");
+    }
+    
+    private Guid GetCurrentUserId()
+    {
+        var idStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return Guid.TryParse(idStr, out var id) ? id : Guid.Empty;
     }
 }

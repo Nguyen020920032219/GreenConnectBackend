@@ -11,4 +11,10 @@ public interface IComplaintService
     Task<ComplaintModel> GetComplaint(Guid complaintId);
     
     Task ProcessComplaintAsync(Guid complaintId, bool isAccept);
+    
+    Task<ComplaintModel> CreateComplaint(Guid userId,string roleName,ComplaintCreateModel model);
+    
+    Task<ComplaintModel> UpdateComplaint(Guid complaintId, Guid userId, string? reason, string? evidenceUrl);
+
+    Task ReopenComplaint(Guid complaintId, Guid userId);
 }

@@ -74,9 +74,9 @@ public class VerificationController(IVerificationInfoService verificationInfoSer
         [FromQuery] bool isAccepted,
         [FromQuery] string? reviewerNote)
     {
-        var collectorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var collectorId = GetCurrentUserId();
 
-        await verificationInfoService.VerifyCollector(userId, Guid.Parse(collectorId), isAccepted, reviewerNote);
+        await verificationInfoService.VerifyCollector(userId, collectorId, isAccepted, reviewerNote);
         return Ok(isAccepted ? "Verification accepted" : "Verification rejected");
     }
     
@@ -99,9 +99,14 @@ public class VerificationController(IVerificationInfoService verificationInfoSer
         [FromQuery] string? documentBackUrl,
         [FromQuery] BuyerType? buyerType)
     {
-        var collectorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var result = await verificationInfoService.UpdateVerificationInfo(Guid.Parse(collectorId),buyerType, documentFrontUrl, documentBackUrl);
+        var collectorId = GetCurrentUserId();
+        var result = await verificationInfoService.UpdateVerificationInfo(collectorId,buyerType, documentFrontUrl, documentBackUrl);
         return Ok(result);
     }
     
+    private Guid GetCurrentUserId()
+    {
+        var idStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return Guid.TryParse(idStr, out var id) ? id : Guid.Empty;
+    }
 }

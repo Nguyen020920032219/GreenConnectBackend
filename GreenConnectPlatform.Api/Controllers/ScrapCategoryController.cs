@@ -75,7 +75,8 @@ public class ScrapCategoryController : ControllerBase
     ///     - `CategoryName`: Bắt buộc và **Duy nhất**. Nếu trùng tên với danh mục đã có (không phân biệt hoa thường) sẽ báo
     ///     lỗi `409 Conflict`.
     /// </remarks>
-    /// <param name="request">Thông tin danh mục mới (Tên, Mô tả).</param>
+    /// <param name="categoryName">Tên dành cho danh mục mới</param>
+    /// <param name="description">Mô tả dành cho danh mục mới</param>
     /// <response code="201">Tạo thành công.</response>
     /// <response code="400">Dữ liệu không hợp lệ (Thiếu tên...).</response>
     /// <response code="409">Tên danh mục đã tồn tại.</response>
@@ -86,9 +87,9 @@ public class ScrapCategoryController : ControllerBase
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> Create([FromBody] ScrapCategoryModel request)
+    public async Task<IActionResult> Create([FromQuery]string categoryName, [FromQuery]string description)
     {
-        var result = await _service.CreateAsync(request);
+        var result = await _service.CreateAsync(categoryName, description);
         return CreatedAtAction(nameof(GetById), new { id = result.ScrapCategoryId }, result);
     }
 
@@ -100,7 +101,8 @@ public class ScrapCategoryController : ControllerBase
     ///     **Lưu ý:** Nếu đổi tên, hệ thống vẫn sẽ kiểm tra trùng lặp với các danh mục khác.
     /// </remarks>
     /// <param name="id">ID danh mục cần sửa.</param>
-    /// <param name="request">Thông tin mới.</param>
+    /// <param name="categoryName">Tên danh mục mới.</param>
+    /// <param name="description">Mô tả danh mục mới</param>
     /// <response code="200">Cập nhật thành công.</response>
     /// <response code="409">Tên mới bị trùng với danh mục khác.</response>
     /// <response code="404">Danh mục không tồn tại.</response>
@@ -109,9 +111,9 @@ public class ScrapCategoryController : ControllerBase
     [ProducesResponseType(typeof(ScrapCategoryModel), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Update(int id, [FromBody] ScrapCategoryModel request)
+    public async Task<IActionResult> Update(int id, [FromQuery]string? categoryName, [FromQuery]string? description)
     {
-        var result = await _service.UpdateAsync(id, request);
+        var result = await _service.UpdateAsync(id, categoryName, description);
         return Ok(result);
     }
 

@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using DotNetEnv;
 using GreenConnectPlatform.Api.Configurations;
+using GreenConnectPlatform.Business.Hubs;
 using GreenConnectPlatform.Data.Configurations;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -22,6 +23,8 @@ public class Program
         var allowedOrigins = (builder.Configuration["CORS:AllowedOrigins"] ?? "")
             .Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
+        builder.Services.AddSignalR();
+        
         builder.Services.AddCors(opt =>
         {
             opt.AddPolicy("Default", p =>
@@ -104,7 +107,7 @@ public class Program
 
         app.UseAuthentication();
         app.UseAuthorization();
-
+        app.MapHub<ChatHub>("/chatHub");
         app.MapGet("/healthz", () => Results.Ok("ok")).AllowAnonymous();
 
         app.MapControllers();

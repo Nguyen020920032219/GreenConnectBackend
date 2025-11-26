@@ -1,0 +1,150 @@
+﻿using GreenConnectPlatform.Business.Hubs;
+using GreenConnectPlatform.Business.Models.Chat;
+using GreenConnectPlatform.Business.Models.Exceptions;
+using GreenConnectPlatform.Business.Models.Paging;
+using GreenConnectPlatform.Data.Entities;
+using GreenConnectPlatform.Data.Repositories.Chatrooms;
+using GreenConnectPlatform.Data.Repositories.Messages;
+using GreenConnectPlatform.Data.Repositories.Transactions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.SignalR;
+
+namespace GreenConnectPlatform.Business.Services.Chat;
+
+public class ChatService : IChatService
+{
+    private readonly IChatRoomRepository _roomRepository;
+    private readonly IMessageRepository _messageRepository;
+    private readonly ITransactionRepository _transactionRepository;
+    private readonly IHubContext<ChatHub> _hubContext;
+
+    public ChatService(IChatRoomRepository roomRepository, 
+        IMessageRepository messageRepository, 
+        ITransactionRepository transactionRepository, 
+        IHubContext<ChatHub> hubContext)
+    {
+        _roomRepository = roomRepository;
+        _messageRepository = messageRepository;
+        _transactionRepository = transactionRepository;
+        _hubContext = hubContext;
+    }
+    
+    public async Task<MessageModel> SendMessageAsync(SendMessageModel model)
+    {
+        var room = await _roomRepository.GetChatRoomByTransactionId(model.TransactionId);
+        if (room == null)
+        {
+            var transaction = await _transactionRepository.GetByIdWithDetailsAsync(model.TransactionId);
+            if(transaction == null)
+                throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404",
+                    "Không tìm thấy giao dịch này");
+            room = new ChatRoom
+            {
+                ChatRoomId = Guid.NewGuid(),
+                TransactionId = model.TransactionId,
+                CreatedAt = DateTime.UtcNow,
+                ChatParticipants = new List<ChatParticipant>()
+            };
+            
+            room.ChatParticipants.Add(new ChatParticipant
+            {
+                UserId = transaction.HouseholdId,
+                ChatRoomId = room.ChatRoomId,
+                JoinedAt = DateTime.UtcNow
+            });
+            room.ChatParticipants.Add(new ChatParticipant
+            {
+                UserId = transaction.ScrapCollectorId,
+                ChatRoomId = room.ChatRoomId,
+                JoinedAt = DateTime.UtcNow
+            });
+            await _roomRepository.AddAsync(room);
+        }
+
+        var message = new Message
+        {
+            MessageId = Guid.NewGuid(),
+            ChatRoomId = room.ChatRoomId,
+            SenderId = model.SenderId,
+            Content = model.Content,
+            Timestamp = DateTime.UtcNow,
+            IsRead = false
+        };
+        await _messageRepository.AddAsync(message);
+
+        var messageModel = new MessageModel
+        {
+            MessageId = message.MessageId,
+            SenderId = message.SenderId,
+            Content = message.Content,
+            Timestamp = message.Timestamp,
+            IsRead = message.IsRead,
+            SenderName = message.Sender.FullName,
+            SenderAvatar = message.Sender.Profile.AvatarUrl
+        };
+
+        await _hubContext.Clients.Group(model.TransactionId.ToString())
+            .SendAsync("ReceiveMessage", messageModel);
+        return messageModel;
+    }
+
+    public async Task<PaginatedResult<MessageModel>> GetChatHistoryAsync(int pageIndex, int pageSize, Guid chatRoomId)
+    {
+        var (items, totalCount) = await _messageRepository.GetMessagesByRoomIdAsync(chatRoomId, pageIndex, pageSize);
+
+        var messageDto = items.Select(m => new MessageModel
+        {
+            MessageId = m.MessageId,
+            SenderId = m.SenderId,
+            Content = m.Content,
+            Timestamp = m.Timestamp,
+            IsRead = m.IsRead,
+            SenderName = m.Sender?.FullName ?? "Unknown",
+            SenderAvatar = m.Sender?.Profile?.AvatarUrl ?? ""
+        }).ToList();
+
+        return new PaginatedResult<MessageModel>
+        {
+            Data = messageDto,
+            Pagination = new PaginationModel(totalCount, pageIndex, pageSize)
+        };
+    }
+
+    public async Task<PaginatedResult<ChatRoomModel>> GetMyChatRoomAsync(Guid userId, int pageIndex, int pageSize)
+    {
+        var (items, totalCount) = await _roomRepository.GetChatRooms(userId, pageIndex, pageSize);
+        var data = items.Select(room =>
+        {
+            var partner = room.ChatParticipants.FirstOrDefault(p => p.UserId != userId)?.User;
+            var lastMessage = room.Messages.OrderByDescending(m => m.Timestamp).FirstOrDefault();
+            var unreadCount = room.Messages.Count(m => !m.IsRead && m.SenderId != userId);
+            return new ChatRoomModel
+            {
+                ChatRoomId = room.ChatRoomId,
+                PartnerName = partner?.FullName ?? "Người dùng",
+                PartnerAvatar = partner?.Profile?.AvatarUrl ?? "",
+                LastMessage = lastMessage?.Content ?? "",
+                LastMessageTime = lastMessage?.Timestamp,
+                UnreadCount = unreadCount
+            };
+        }).ToList();
+        return new PaginatedResult<ChatRoomModel>
+        {
+            Data = data,
+            Pagination = new PaginationModel(totalCount, pageIndex, pageSize)
+        };
+    }
+
+    public async Task MardAllAsReadAsync(Guid chatRoomId, Guid userId)
+    {
+        var messages = await _messageRepository.GetAllMessageUnRead(chatRoomId, userId);
+        if (messages.Any())
+        {
+            foreach (var message in messages)
+            {
+                message.IsRead = true;
+                await _messageRepository.UpdateAsync(message);
+            }
+        }
+    }
+}

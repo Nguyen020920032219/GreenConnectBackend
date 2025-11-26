@@ -3,7 +3,9 @@ using GreenConnectPlatform.Business.Models.CollectionOffers;
 using GreenConnectPlatform.Business.Models.CollectionOffers.OfferDetails;
 using GreenConnectPlatform.Business.Models.Exceptions;
 using GreenConnectPlatform.Business.Models.Paging;
+using GreenConnectPlatform.Business.Models.Transactions;
 using GreenConnectPlatform.Business.Services.CollectionOffers;
+using GreenConnectPlatform.Business.Services.Transactions;
 using GreenConnectPlatform.Data.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,10 +18,12 @@ namespace GreenConnectPlatform.Api.Controllers;
 public class CollectionOfferController : ControllerBase
 {
     private readonly ICollectionOfferService _service;
+    private readonly ITransactionService _transactionService;
 
-    public CollectionOfferController(ICollectionOfferService service)
+    public CollectionOfferController(ICollectionOfferService service, ITransactionService transactionService)
     {
         _service = service;
+        _transactionService = transactionService;
     }
 
     /// <summary>
@@ -201,6 +205,31 @@ public class CollectionOfferController : ControllerBase
         var userId = GetCurrentUserId();
         await _service.DeleteDetailAsync(userId, id, detailId);
         return NoContent();
+    }
+    
+    /// <summary>
+    ///  Người dùng có thể lấy tất cả các giao dịch của đề nghị
+    /// </summary>
+    /// <param name="id">ID của đề nghị</param>
+    /// <param name="status">Tìm kiếm theo trạng thái của giao dịch</param>
+    /// <param name="sortByCreateAtDesc">Sắp xếp theo ngày tạo</param>
+    /// <param name="sortByUpdateAtDesc">Sắp xếp theo ngày cập nhật</param>
+    /// <param name="pageNumber"></param>
+    /// <param name="pageSize"></param>
+    /// <returns></returns>
+    [HttpGet("{id:Guid}/transactions")]
+    [Authorize]
+    [ProducesResponseType(typeof(TransactionOveralModel), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetTransactions(Guid id, 
+        [FromQuery]TransactionStatus? status,
+        [FromQuery]bool sortByCreateAtDesc = true, 
+        [FromQuery]bool sortByUpdateAtDesc = true,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10
+        )
+    {
+        return Ok(await _transactionService.GetByOfferIdAsync(id, status, sortByCreateAtDesc, sortByUpdateAtDesc, pageNumber, pageSize));
     }
 
     private Guid GetCurrentUserId()

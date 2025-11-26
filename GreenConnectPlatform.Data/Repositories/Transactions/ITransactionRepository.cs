@@ -1,4 +1,5 @@
 ﻿using GreenConnectPlatform.Data.Entities;
+using GreenConnectPlatform.Data.Enums;
 using GreenConnectPlatform.Data.Repositories.Base;
 
 namespace GreenConnectPlatform.Data.Repositories.Transactions;
@@ -10,6 +11,14 @@ public interface ITransactionRepository : IBaseRepository<Transaction, Guid>
     Task<(List<Transaction> Items, int TotalCount)> GetByUserIdAsync(
         Guid userId,
         string role,
+        bool sortByCreateAtDesc,
+        bool sortByUpdateAtDesc,
+        int pageIndex,
+        int pageSize);
+    
+    Task<(List<Transaction> Items, int TotalCount)> GetByOfferIdAsync(
+        Guid offerId,
+        TransactionStatus? status,
         bool sortByCreateAtDesc,
         bool sortByUpdateAtDesc,
         int pageIndex,

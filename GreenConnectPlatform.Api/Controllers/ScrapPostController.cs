@@ -287,4 +287,24 @@ public class ScrapPostController : ControllerBase
         var result = await _collectionOfferService.CreateAsync(userId, id, request);
         return Ok(await _collectionOfferService.GetByIdAsync(result.CollectionOfferId));
     }
+
+    /// <summary>
+    ///     (Household) có thể xem tất cả các đề nghị dành cho bài đăng của mình
+    /// </summary>
+    /// <param name="id">Id của bài đăng</param>
+    /// <param name="status">Sắp xếp theo trạng thái của đề nghĩ</param>
+    /// <param name="pageNumber"></param>
+    /// <param name="pageSize"></param>
+    /// <returns></returns>
+    [HttpGet("{id:Guid}/offers")]
+    [Authorize(Roles = "Household")]
+    [ProducesResponseType(typeof(CollectionOfferOveralForHouseModel), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetOffers(Guid id, [FromQuery] OfferStatus? status = null,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10)
+    {
+        return Ok(await _collectionOfferService.GetByPostAsync(pageNumber, pageSize, status, id));
+    }
 }

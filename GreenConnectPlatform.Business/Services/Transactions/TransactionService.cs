@@ -80,6 +80,23 @@ public class TransactionService : ITransactionService
         return transactionModel;
     }
 
+    public async Task<PaginatedResult<TransactionOveralModel>> GetByOfferIdAsync(Guid offerId,
+        TransactionStatus? status,
+        bool sortByCreateAtDesc,
+        bool sortByUpdateAtDesc,
+        int pageIndex,
+        int pageSize)
+    {
+        var (items, totalCount) = await _transactionRepository.GetByOfferIdAsync(offerId,status,
+            sortByCreateAtDesc, sortByUpdateAtDesc, pageIndex, pageSize);
+        var data = _mapper.Map<List<TransactionOveralModel>>(items);
+        return new PaginatedResult<TransactionOveralModel>
+        {
+            Data = data,
+            Pagination = new PaginationModel(totalCount, pageIndex, pageSize)
+        };
+    }
+
     public async Task<PaginatedResult<TransactionOveralModel>> GetListAsync(
         Guid userId, string role, int pageNumber, int pageSize, bool sortByCreateAt, bool sortByUpdateAt)
     {

@@ -1,5 +1,6 @@
 ﻿using GreenConnectPlatform.Data.Configurations;
 using GreenConnectPlatform.Data.Entities;
+using GreenConnectPlatform.Data.Enums;
 using GreenConnectPlatform.Data.Repositories.Base;
 using Microsoft.EntityFrameworkCore;
 
@@ -40,6 +41,32 @@ public class TransactionRepository : BaseRepository<GreenConnectDbContext, Trans
 
         var totalCount = await query.CountAsync();
 
+        if (sortByUpdateAtDesc)
+            query = query.OrderByDescending(t => t.UpdatedAt);
+        else if (sortByCreateAtDesc)
+            query = query.OrderByDescending(t => t.CreatedAt);
+        else
+            query = query.OrderBy(t => t.CreatedAt);
+
+        var items = await query
+            .Include(t => t.Household)
+            .Include(t => t.ScrapCollector)
+            .Include(t => t.Offer).ThenInclude(o => o.ScrapPost)
+            .Skip((pageIndex - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (items, totalCount);
+    }
+
+    public async Task<(List<Transaction> Items, int TotalCount)> GetByOfferIdAsync(Guid offerId,TransactionStatus? status, bool sortByCreateAtDesc, bool sortByUpdateAtDesc, int pageIndex, int pageSize)
+    {
+        var query = _dbSet.AsNoTracking()
+            .Where(t => t.OfferId == offerId);
+
+        var totalCount = await query.CountAsync();
+        if (status.HasValue)
+            query = query.Where(t => t.Status == status.Value);
         if (sortByUpdateAtDesc)
             query = query.OrderByDescending(t => t.UpdatedAt);
         else if (sortByCreateAtDesc)

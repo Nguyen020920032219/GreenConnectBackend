@@ -1,6 +1,6 @@
-﻿using System.Transactions;
-using GreenConnectPlatform.Business.Models.CollectionOffers;
+﻿using GreenConnectPlatform.Business.Models.CollectionOffers;
 using GreenConnectPlatform.Business.Models.Users;
+using GreenConnectPlatform.Data.Enums;
 
 namespace GreenConnectPlatform.Business.Models.Transactions;
 

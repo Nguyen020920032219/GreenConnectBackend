@@ -67,6 +67,7 @@ public class CollectionOfferRepository : BaseRepository<GreenConnectDbContext, C
 
         var items = await query
             .Include(o => o.ScrapCollector).ThenInclude(u => u.Profile).ThenInclude(p => p!.Rank)
+            .Include(o => o.ScrapPost)
             .Include(o => o.OfferDetails)
             .OrderByDescending(o => o.CreatedAt)
             .Skip((pageIndex - 1) * pageSize)

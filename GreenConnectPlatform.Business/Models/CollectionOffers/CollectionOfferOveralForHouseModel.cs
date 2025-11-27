@@ -11,7 +11,7 @@ public class CollectionOfferOveralForHouseModel
     public Guid ScrapPostId { get; set; }
     public ScrapPostModel ScrapPost { get; set; } = new();
 
-    public UserViewModel Collector { get; set; } = new();
+    public UserViewModel ScrapCollector { get; set; } = new();
 
     public OfferStatus Status { get; set; }
 

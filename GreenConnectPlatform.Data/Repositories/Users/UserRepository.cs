@@ -49,6 +49,7 @@ public class UserRepository : BaseRepository<GreenConnectDbContext, User, Guid>,
     public async Task<User?> GetUserByIdAsync(Guid userId)
     {
         return await _dbSet
+            .Include(u => u.Profile)
             .FirstOrDefaultAsync(u => u.Id == userId);
     }
 

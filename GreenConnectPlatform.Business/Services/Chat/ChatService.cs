@@ -6,6 +6,7 @@ using GreenConnectPlatform.Data.Entities;
 using GreenConnectPlatform.Data.Repositories.Chatrooms;
 using GreenConnectPlatform.Data.Repositories.Messages;
 using GreenConnectPlatform.Data.Repositories.Transactions;
+using GreenConnectPlatform.Data.Repositories.Users;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 
@@ -16,20 +17,23 @@ public class ChatService : IChatService
     private readonly IChatRoomRepository _roomRepository;
     private readonly IMessageRepository _messageRepository;
     private readonly ITransactionRepository _transactionRepository;
+    private readonly IUserRepository _userRepository;
     private readonly IHubContext<ChatHub> _hubContext;
 
     public ChatService(IChatRoomRepository roomRepository, 
         IMessageRepository messageRepository, 
         ITransactionRepository transactionRepository, 
+        IUserRepository userRepository,
         IHubContext<ChatHub> hubContext)
     {
         _roomRepository = roomRepository;
         _messageRepository = messageRepository;
         _transactionRepository = transactionRepository;
+        _userRepository = userRepository;
         _hubContext = hubContext;
     }
     
-    public async Task<MessageModel> SendMessageAsync(SendMessageModel model)
+    public async Task<MessageModel> SendMessageAsync(Guid senderId,SendMessageModel model)
     {
         var room = await _roomRepository.GetChatRoomByTransactionId(model.TransactionId);
         if (room == null)
@@ -65,13 +69,13 @@ public class ChatService : IChatService
         {
             MessageId = Guid.NewGuid(),
             ChatRoomId = room.ChatRoomId,
-            SenderId = model.SenderId,
+            SenderId = senderId,
             Content = model.Content,
             Timestamp = DateTime.UtcNow,
             IsRead = false
         };
         await _messageRepository.AddAsync(message);
-
+        var user = await _userRepository.GetUserByIdAsync(senderId);
         var messageModel = new MessageModel
         {
             MessageId = message.MessageId,
@@ -79,12 +83,55 @@ public class ChatService : IChatService
             Content = message.Content,
             Timestamp = message.Timestamp,
             IsRead = message.IsRead,
-            SenderName = message.Sender.FullName,
-            SenderAvatar = message.Sender.Profile.AvatarUrl
+            SenderName = user.FullName,
+            SenderAvatar = user.Profile.AvatarUrl
         };
 
         await _hubContext.Clients.Group(model.TransactionId.ToString())
             .SendAsync("ReceiveMessage", messageModel);
+
+        var participants = room.ChatParticipants;
+        
+        if (participants == null || !participants.Any())
+        {
+            var trans = await _transactionRepository.GetByIdWithDetailsAsync(model.TransactionId);
+            if(trans != null) {
+                participants = new List<ChatParticipant> {
+                    new ChatParticipant { UserId = trans.HouseholdId },
+                    new ChatParticipant { UserId = trans.ScrapCollectorId }
+                };
+            }
+        }
+
+        if (participants != null)
+        {
+            foreach (var participant in participants)
+            {
+                var partnerId = participants.FirstOrDefault(p => p.UserId != participant.UserId)?.UserId;
+                if (partnerId == null) continue;
+
+                var partnerUser = await _userRepository.GetUserByIdAsync(partnerId.Value);
+
+                int unreadCount = (participant.UserId != senderId) ? 1 : 0;
+
+                var chatListItem = new ChatRoomModel
+                {
+                    ChatRoomId = room.ChatRoomId,
+                    TransactionId = room.TransactionId,
+                    LastMessage = message.Content,
+                    LastMessageTime = message.Timestamp,
+                    UnreadCount = unreadCount,
+                
+                    PartnerName = partnerUser?.FullName ?? "Người dùng",
+                    PartnerAvatar = partnerUser?.Profile?.AvatarUrl ?? ""
+                };
+
+                string groupName = $"User_{participant.UserId.ToString().ToLower()}";
+
+                await _hubContext.Clients.Group(groupName)
+                    .SendAsync("UpdateChatList", chatListItem);
+            }
+        }
         return messageModel;
     }
 
@@ -121,6 +168,7 @@ public class ChatService : IChatService
             return new ChatRoomModel
             {
                 ChatRoomId = room.ChatRoomId,
+                TransactionId = room.TransactionId,
                 PartnerName = partner?.FullName ?? "Người dùng",
                 PartnerAvatar = partner?.Profile?.AvatarUrl ?? "",
                 LastMessage = lastMessage?.Content ?? "",
@@ -135,7 +183,7 @@ public class ChatService : IChatService
         };
     }
 
-    public async Task MardAllAsReadAsync(Guid chatRoomId, Guid userId)
+    public async Task MarkAllAsReadAsync(Guid chatRoomId, Guid userId)
     {
         var messages = await _messageRepository.GetAllMessageUnRead(chatRoomId, userId);
         if (messages.Any())

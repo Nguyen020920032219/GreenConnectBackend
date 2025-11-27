@@ -13,7 +13,7 @@ namespace GreenConnectPlatform.Api.Controllers;
 public class ChatController(IChatService chatService) : ControllerBase
 {
     [HttpGet("rooms")]
-    public async Task<IActionResult> GetMyRooms([FromQuery] int pageNumber = 10, [FromQuery] int pageSize = 10)
+    public async Task<IActionResult> GetMyRooms([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
         var userId = GetCurrentUserId();
         return Ok(await chatService.GetMyChatRoomAsync(userId, pageNumber, pageSize));
@@ -29,10 +29,18 @@ public class ChatController(IChatService chatService) : ControllerBase
     [HttpPost("sendMessage")]
     public async Task<IActionResult> SendMessage([FromBody] SendMessageModel request)
     { 
-        var result = await chatService.SendMessageAsync(request);
+        var userId = GetCurrentUserId();
+        var result = await chatService.SendMessageAsync(userId, request);
         return Ok(result);
     }
     
+    [HttpPatch("rooms/{id:Guid}/read")]
+    public async Task<IActionResult> MarkAsRead([FromRoute] Guid id)
+    {
+        var userId = GetCurrentUserId();
+        await chatService.MarkAllAsReadAsync(id, userId);
+        return Ok();
+    }
     
     private Guid GetCurrentUserId()
     {

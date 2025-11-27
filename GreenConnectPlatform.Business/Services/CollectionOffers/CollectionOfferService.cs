@@ -5,6 +5,7 @@ using GreenConnectPlatform.Business.Models.Exceptions;
 using GreenConnectPlatform.Business.Models.Paging;
 using GreenConnectPlatform.Data.Entities;
 using GreenConnectPlatform.Data.Enums;
+using GreenConnectPlatform.Data.Repositories.Chatrooms;
 using GreenConnectPlatform.Data.Repositories.CollectionOffers;
 using GreenConnectPlatform.Data.Repositories.ScrapPosts;
 using GreenConnectPlatform.Data.Repositories.Transactions;
@@ -18,16 +19,19 @@ public class CollectionOfferService : ICollectionOfferService
     private readonly ICollectionOfferRepository _offerRepository;
     private readonly IScrapPostRepository _postRepository;
     private readonly ITransactionRepository _transactionRepository;
+    private readonly IChatRoomRepository _roomRepository;
 
     public CollectionOfferService(
         ICollectionOfferRepository offerRepository,
         IScrapPostRepository postRepository,
         ITransactionRepository transactionRepository,
+        IChatRoomRepository roomRepository,
         IMapper mapper)
     {
         _offerRepository = offerRepository;
         _postRepository = postRepository;
         _transactionRepository = transactionRepository;
+        _roomRepository = roomRepository;
         _mapper = mapper;
     }
 
@@ -172,6 +176,26 @@ public class CollectionOfferService : ICollectionOfferService
             }).ToList();
 
             await _transactionRepository.AddAsync(transaction);
+
+            var chatRoom = new ChatRoom
+            {
+                ChatRoomId = Guid.NewGuid(),
+                TransactionId = transaction.TransactionId,
+                CreatedAt = DateTime.UtcNow
+            };
+            chatRoom.ChatParticipants.Add(new ChatParticipant
+            {
+                UserId = householdId,
+                ChatRoomId = chatRoom.ChatRoomId,
+                JoinedAt = DateTime.UtcNow
+            });
+            chatRoom.ChatParticipants.Add(new ChatParticipant
+            {
+                UserId = offer.ScrapCollectorId,
+                ChatRoomId = chatRoom.ChatRoomId,
+                JoinedAt = DateTime.UtcNow
+            });
+            await _roomRepository.AddAsync(chatRoom);
         }
         else
         {

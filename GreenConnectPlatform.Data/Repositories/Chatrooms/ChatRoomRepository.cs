@@ -16,6 +16,9 @@ public class ChatRoomRepository : BaseRepository<GreenConnectDbContext, ChatRoom
         return await _dbSet
             .AsNoTracking()
             .Include(r => r.ChatParticipants)
+            .ThenInclude(cp => cp.User)   
+            .ThenInclude(u => u.Profile)  
+            .Include(r => r.Messages)
             .AsSplitQuery()
             .FirstOrDefaultAsync(r => r.TransactionId == transactionId);
     }

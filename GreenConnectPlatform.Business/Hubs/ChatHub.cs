@@ -9,6 +9,11 @@ public class ChatHub : Hub
         await Groups.AddToGroupAsync(Context.ConnectionId, transactionId);
     }
 
+    public async Task JoinUserTopic(string userId)
+    {
+        await Groups.AddToGroupAsync(Context.ConnectionId, $"User_{userId.ToLower()}");
+    }
+    
     public async Task LeaveChatRoom(string transactionId)
     {
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, transactionId);

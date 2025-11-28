@@ -17,22 +17,16 @@ public class RewardItemRepository : BaseRepository<GreenConnectDbContext, Reward
             .FirstOrDefaultAsync(r => r.RewardItemId == id);
     }
 
-    public async Task<(List<RewardItem> Items, int TotalCount)> GetRewardItemsAsync(int pageIndex, int pageSize, string? name, bool sortByPoint)
+    public async Task<(List<RewardItem> Items, int TotalCount)> GetRewardItemsAsync(int pageIndex, int pageSize,
+        string? name, bool sortByPoint)
     {
         var query = _dbSet.AsNoTracking();
-        if (!string.IsNullOrEmpty(name))
-        {
-            query = query.Where(r => r.ItemName.ToLower().Contains(name.ToLower()));
-        }
+        if (!string.IsNullOrEmpty(name)) query = query.Where(r => r.ItemName.ToLower().Contains(name.ToLower()));
 
         if (sortByPoint)
-        {
             query = query.OrderByDescending(r => r.PointsCost);
-        }
         else
-        {
             query = query.OrderBy(r => r.PointsCost);
-        }
         var totalCount = await query.CountAsync();
         var rewardItems = await query
             .Skip((pageIndex - 1) * pageSize)

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GreenConnectPlatform.Api.Controllers;
+
 [ApiController]
 [Route("api/v1/reports")]
 [Tags("16. Report")]

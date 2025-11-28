@@ -8,6 +8,5 @@ public class UserPackageRepository : BaseRepository<GreenConnectDbContext, UserP
 {
     public UserPackageRepository(GreenConnectDbContext dbContext) : base(dbContext)
     {
-        
     }
 }

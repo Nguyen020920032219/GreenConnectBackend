@@ -14,8 +14,8 @@ namespace GreenConnectPlatform.Api.Controllers;
 public class PaymentPackageController(IPaymentPackageService packageService) : ControllerBase
 {
     /// <summary>
-    ///  User can get a list of payment packages with pagination, sorting and filtering options.
-    /// If the user is an Admin, they can see all packages including inactive ones.
+    ///     User can get a list of payment packages with pagination, sorting and filtering options.
+    ///     If the user is an Admin, they can see all packages including inactive ones.
     /// </summary>
     /// <param name="pageNumber"></param>
     /// <param name="pageSize"></param>
@@ -24,8 +24,8 @@ public class PaymentPackageController(IPaymentPackageService packageService) : C
     /// <param name="name">Search by name of payment package</param>
     /// <returns></returns>
     [HttpGet]
-    [ProducesResponseType(typeof(PaginatedResult<PaymentPackageOverallModel>),StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ExceptionModel),StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(PaginatedResult<PaymentPackageOverallModel>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetPaymentPackages(
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10,
@@ -34,10 +34,11 @@ public class PaymentPackageController(IPaymentPackageService packageService) : C
         [FromQuery] string? name = null)
     {
         var roleName = User.Claims.FirstOrDefault(c => c.Type == "role")?.Value;
-        var result = await packageService.GetPaymentPackages(pageNumber, pageSize, roleName, sortByPrice, packageType, name);
+        var result =
+            await packageService.GetPaymentPackages(pageNumber, pageSize, roleName, sortByPrice, packageType, name);
         return Ok(result);
     }
-    
+
     /// <summary>
     ///     (All) Xem chi tiết gói nạp tiền.
     /// </summary>
@@ -50,15 +51,15 @@ public class PaymentPackageController(IPaymentPackageService packageService) : C
     /// <response code="401">Chưa đăng nhập (nếu hệ thống yêu cầu).</response>
     /// <response code="404">Không tìm thấy gói nạp với ID này.</response>
     [HttpGet("{packageId:Guid}")]
-    [ProducesResponseType(typeof(PaymentPackageModel),StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ExceptionModel),StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ExceptionModel),StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(PaymentPackageModel), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetPaymentPackage([FromRoute] Guid packageId)
     {
-        var result =  await packageService.GetPaymentPackage(packageId);
+        var result = await packageService.GetPaymentPackage(packageId);
         return Ok(result);
     }
-    
+
     /// <summary>
     ///     (Admin) Tạo mới gói nạp tiền.
     /// </summary>
@@ -74,10 +75,10 @@ public class PaymentPackageController(IPaymentPackageService packageService) : C
     /// <response code="500">Lỗi server nội bộ.</response>
     [HttpPost]
     [Authorize(Roles = "Admin")]
-    [ProducesResponseType(typeof(PaymentPackageModel),StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(ExceptionModel),StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ExceptionModel),StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(ExceptionModel),StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(PaymentPackageModel), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CreatePaymentPackage([FromBody] PaymentPackageCreateModel model)
     {
         if (!ModelState.IsValid)
@@ -86,18 +87,20 @@ public class PaymentPackageController(IPaymentPackageService packageService) : C
                 .SelectMany(v => v.Errors)
                 .Select(e => e.ErrorMessage)
                 .ToList();
-            string message = string.Join("; ", errorMessages);
+            var message = string.Join("; ", errorMessages);
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", message);
         }
+
         var result = await packageService.CreatePaymentPackage(model);
         return CreatedAtAction(nameof(GetPaymentPackage), new { packageId = result.PackageId }, result);
     }
-    
+
     /// <summary>
     ///     (Admin) Cập nhật thông tin gói nạp tiền.
     /// </summary>
     /// <remarks>
-    ///     Cho phép Admin chỉnh sửa thông tin của gói nạp đã tồn tại (Ví dụ: Thay đổi giá tiền, Tên gói, Số coin khuyến mãi...).
+    ///     Cho phép Admin chỉnh sửa thông tin của gói nạp đã tồn tại (Ví dụ: Thay đổi giá tiền, Tên gói, Số coin khuyến
+    ///     mãi...).
     /// </remarks>
     /// <param name="packageId">ID của gói nạp cần sửa.</param>
     /// <param name="model">Dữ liệu cần cập nhật (`PaymentPackageUpdateModel`).</param>
@@ -109,12 +112,13 @@ public class PaymentPackageController(IPaymentPackageService packageService) : C
     /// <response code="500">Lỗi server nội bộ.</response>
     [HttpPatch("{packageId:Guid}")]
     [Authorize(Roles = "Admin")]
-    [ProducesResponseType(typeof(PaymentPackageModel),StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ExceptionModel),StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ExceptionModel),StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(ExceptionModel),StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ExceptionModel),StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> UpdatePaymentPackage([FromRoute] Guid packageId, [FromBody] PaymentPackageUpdateModel model)
+    [ProducesResponseType(typeof(PaymentPackageModel), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> UpdatePaymentPackage([FromRoute] Guid packageId,
+        [FromBody] PaymentPackageUpdateModel model)
     {
         if (!ModelState.IsValid)
         {
@@ -122,18 +126,19 @@ public class PaymentPackageController(IPaymentPackageService packageService) : C
                 .SelectMany(v => v.Errors)
                 .Select(e => e.ErrorMessage)
                 .ToList();
-            string message = string.Join("; ", errorMessages);
+            var message = string.Join("; ", errorMessages);
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", message);
         }
+
         var result = await packageService.UpdatePaymentPackage(packageId, model);
         return Ok(result);
     }
-    
+
     /// <summary>
     ///     (Admin) Ngưng hoạt động gói nạp tiền.
     /// </summary>
     /// <remarks>
-    ///     Chuyển trạng thái gói nạp sang "Inactive" (hoặc xóa mềm). 
+    ///     Chuyển trạng thái gói nạp sang "Inactive" (hoặc xóa mềm).
     ///     Gói này sẽ không còn hiển thị cho người dùng mua nữa, nhưng vẫn lưu trong Database để đối soát lịch sử.
     /// </remarks>
     /// <param name="packageId">ID của gói nạp cần ngưng hoạt động.</param>
@@ -144,11 +149,11 @@ public class PaymentPackageController(IPaymentPackageService packageService) : C
     /// <response code="500">Lỗi server nội bộ.</response>
     [HttpPatch("{packageId:Guid}/inactivate")]
     [Authorize(Roles = "Admin")]
-    [ProducesResponseType(typeof(string),StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ExceptionModel),StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ExceptionModel),StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(ExceptionModel),StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ExceptionModel),StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> InactivatePaymentPackage([FromRoute] Guid packageId)
     {
         await packageService.InActivePaymentPackage(packageId);

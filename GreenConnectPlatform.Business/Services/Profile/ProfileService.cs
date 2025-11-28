@@ -45,7 +45,9 @@ public class ProfileService : IProfileService
             ProfileId = profile.ProfileId,
             FullName = profile.User.FullName ?? "",
             PhoneNumber = profile.User.PhoneNumber ?? "",
-            AvatarUrl = profile.AvatarUrl,
+            AvatarUrl = profile.AvatarUrl != null
+                ? _fileStorageService.GetReadSignedUrlAsync(profile.AvatarUrl).Result
+                : "",
             PointBalance = profile.PointBalance,
             Rank = profile.Rank?.Name ?? "Bronze",
             Roles = roles,

@@ -39,26 +39,17 @@ public class ComplaintRepository : BaseRepository<GreenConnectDbContext, Complai
             .FirstOrDefaultAsync(c => c.ComplaintId == complaintId);
     }
 
-    public async Task<(List<Complaint> Items, int TotalCount)> GetComplaintsAsync(int pageIndex, int pageSize, bool sortByCreatedAt, ComplaintStatus? sortByStatus, Guid? userId,
+    public async Task<(List<Complaint> Items, int TotalCount)> GetComplaintsAsync(int pageIndex, int pageSize,
+        bool sortByCreatedAt, ComplaintStatus? sortByStatus, Guid? userId,
         string? roleName)
     {
         var query = _dbSet.AsNoTracking();
-        if (userId.HasValue && roleName != "Admin")
-        {
-            query = query.Where(c => c.ComplainantId == userId);
-        }
+        if (userId.HasValue && roleName != "Admin") query = query.Where(c => c.ComplainantId == userId);
         if (sortByCreatedAt)
-        {
             query = query.OrderByDescending(c => c.CreatedAt);
-        }
         else
-        {
             query = query.OrderBy(c => c.CreatedAt);
-        }
-        if (sortByStatus.HasValue)
-        {
-            query = query.Where(c => c.Status == sortByStatus.Value);
-        }
+        if (sortByStatus.HasValue) query = query.Where(c => c.Status == sortByStatus.Value);
         var totalCount = await query.CountAsync();
         var items = await query
             .Include(c => c.Complainant)

@@ -22,10 +22,11 @@ public class VerificationInfoRepository : BaseRepository<GreenConnectDbContext, 
             .FirstOrDefaultAsync(v => v.UserId == userId);
     }
 
-    public async Task<(List<CollectorVerificationInfo> Items, int TotalCount)> SearchAsync(bool sortBySubmittedAt, VerificationStatus? status, int pageIndex, int pageSize)
+    public async Task<(List<CollectorVerificationInfo> Items, int TotalCount)> SearchAsync(bool sortBySubmittedAt,
+        VerificationStatus? status, int pageIndex, int pageSize)
     {
         var query = _dbSet.AsNoTracking();
-        if(sortBySubmittedAt)
+        if (sortBySubmittedAt)
             query = query.OrderByDescending(v => v.SubmittedAt);
         else
             query = query.OrderBy(v => v.SubmittedAt);

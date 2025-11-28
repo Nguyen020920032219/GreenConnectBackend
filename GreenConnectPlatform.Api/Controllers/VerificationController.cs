@@ -28,15 +28,16 @@ public class VerificationController(IVerificationInfoService verificationInfoSer
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetVerifications(
-        [FromQuery] int pageNumber = 1, 
-        [FromQuery] int pageSize = 10, 
-        [FromQuery] bool sortBySubmittedAt = true, 
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] bool sortBySubmittedAt = true,
         [FromQuery] VerificationStatus? sortByStatus = null)
     {
-        var result = await verificationInfoService.GetVerificationInfos(pageNumber, pageSize, sortBySubmittedAt, sortByStatus);
+        var result =
+            await verificationInfoService.GetVerificationInfos(pageNumber, pageSize, sortBySubmittedAt, sortByStatus);
         return Ok(result);
     }
-    
+
     /// <summary>
     ///     Admin có thể lấy chi tiết đơn xác minh người thu gom bằng userId.
     /// </summary>
@@ -51,12 +52,12 @@ public class VerificationController(IVerificationInfoService verificationInfoSer
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetVerificationByUserId([FromRoute] Guid userId)
     {
-        var result =  await verificationInfoService.GetVerificationInfo(userId);
+        var result = await verificationInfoService.GetVerificationInfo(userId);
         return Ok(result);
     }
-    
+
     /// <summary>
-    ///  Admin có thể chấp nhận hoặc từ chối đơn xác minh người thu gom
+    ///     Admin có thể chấp nhận hoặc từ chối đơn xác minh người thu gom
     /// </summary>
     /// <param name="userId">Id của user</param>
     /// <param name="isAccepted">Nếu đông ý là True và từ chối là False</param>
@@ -70,7 +71,7 @@ public class VerificationController(IVerificationInfoService verificationInfoSer
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> UpdateVerificationStatus(
-        [FromRoute] Guid userId, 
+        [FromRoute] Guid userId,
         [FromQuery] bool isAccepted,
         [FromQuery] string? reviewerNote)
     {
@@ -79,7 +80,7 @@ public class VerificationController(IVerificationInfoService verificationInfoSer
         await verificationInfoService.VerifyCollector(userId, collectorId, isAccepted, reviewerNote);
         return Ok(isAccepted ? "Verification accepted" : "Verification rejected");
     }
-    
+
     /// <summary>
     ///     (InvidualCollector/BusinessCollector) có thể cập nhật thông tin đơn xác minh của mình
     /// </summary>
@@ -100,10 +101,12 @@ public class VerificationController(IVerificationInfoService verificationInfoSer
         [FromQuery] BuyerType? buyerType)
     {
         var collectorId = GetCurrentUserId();
-        var result = await verificationInfoService.UpdateVerificationInfo(collectorId,buyerType, documentFrontUrl, documentBackUrl);
+        var result =
+            await verificationInfoService.UpdateVerificationInfo(collectorId, buyerType, documentFrontUrl,
+                documentBackUrl);
         return Ok(result);
     }
-    
+
     private Guid GetCurrentUserId()
     {
         var idStr = User.FindFirstValue(ClaimTypes.NameIdentifier);

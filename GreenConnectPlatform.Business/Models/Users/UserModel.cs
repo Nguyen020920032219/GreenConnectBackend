@@ -10,7 +10,7 @@ public class UserModel
     public int PointBalance { get; set; }
     public string Rank { get; set; } = "Bronze";
     public IList<string> Roles { get; set; } = new List<string>();
-    public UserStatus Status { get; set; } 
+    public UserStatus Status { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 }

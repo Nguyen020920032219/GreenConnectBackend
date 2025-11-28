@@ -10,9 +10,10 @@ public class MessageRepository : BaseRepository<GreenConnectDbContext, Message, 
     public MessageRepository(GreenConnectDbContext context) : base(context)
     {
     }
-    
 
-    public async Task<(List<Message> Items, int TotalCount)> GetMessagesByRoomIdAsync(Guid chatRoomId, int pageIndex, int pageSize)
+
+    public async Task<(List<Message> Items, int TotalCount)> GetMessagesByRoomIdAsync(Guid chatRoomId, int pageIndex,
+        int pageSize)
     {
         var query = _dbSet
             .AsQueryable()
@@ -29,7 +30,7 @@ public class MessageRepository : BaseRepository<GreenConnectDbContext, Message, 
 
     public async Task<List<Message>> GetAllMessageUnRead(Guid chatRoomId, Guid userId)
     {
-        return await _dbSet.Where(m => m.ChatRoomId == chatRoomId 
+        return await _dbSet.Where(m => m.ChatRoomId == chatRoomId
                                        && m.SenderId != userId
                                        && !m.IsRead)
             .ToListAsync();

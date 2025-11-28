@@ -6,22 +6,22 @@ using GreenConnectPlatform.Data.Entities;
 using GreenConnectPlatform.Data.Enums;
 using GreenConnectPlatform.Data.Repositories.PaymentPackages;
 using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
 
 namespace GreenConnectPlatform.Business.Services.PaymentPackages;
 
 public class PaymentPackageService : IPaymentPackageService
 {
-    private readonly IPaymentPackageRepository _paymentPackageRepository;
     private readonly IMapper _mapper;
+    private readonly IPaymentPackageRepository _paymentPackageRepository;
 
     public PaymentPackageService(IPaymentPackageRepository paymentPackageRepository, IMapper mapper)
     {
         _paymentPackageRepository = paymentPackageRepository;
         _mapper = mapper;
     }
-    
-    public async Task<PaginatedResult<PaymentPackageOverallModel>> GetPaymentPackages(int pageNumber, int pageSize, string? roleName,
+
+    public async Task<PaginatedResult<PaymentPackageOverallModel>> GetPaymentPackages(int pageNumber, int pageSize,
+        string? roleName,
         bool? sortByPrice, PackageType? packageType, string? name)
     {
         var (items, totalCount) = await _paymentPackageRepository.GetPaymentPackagesAsync(
@@ -35,7 +35,7 @@ public class PaymentPackageService : IPaymentPackageService
         return new PaginatedResult<PaymentPackageOverallModel>
         {
             Data = paymentPackageOverallModels,
-            Pagination = new  PaginationModel(totalCount, pageNumber, pageSize)
+            Pagination = new PaginationModel(totalCount, pageNumber, pageSize)
         };
     }
 
@@ -61,9 +61,9 @@ public class PaymentPackageService : IPaymentPackageService
         var paymentPackage = await _paymentPackageRepository.GetPaymentPackageByIdAsync(packageId);
         if (paymentPackage == null)
             throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Gói cước không tồn tại");
-        if(model.Price == null) model.Price = paymentPackage.Price;
-        if(model.ConnectionAmount == null) model.ConnectionAmount = paymentPackage.ConnectionAmount;
-        if(model.PackageType == null) model.PackageType = (int)paymentPackage.PackageType;
+        if (model.Price == null) model.Price = paymentPackage.Price;
+        if (model.ConnectionAmount == null) model.ConnectionAmount = paymentPackage.ConnectionAmount;
+        if (model.PackageType == null) model.PackageType = (int)paymentPackage.PackageType;
         _mapper.Map(model, paymentPackage);
         await _paymentPackageRepository.UpdateAsync(paymentPackage);
         return _mapper.Map<PaymentPackageModel>(paymentPackage);

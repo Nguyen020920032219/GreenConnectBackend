@@ -18,8 +18,8 @@ public class CollectionOfferService : ICollectionOfferService
     private readonly IMapper _mapper;
     private readonly ICollectionOfferRepository _offerRepository;
     private readonly IScrapPostRepository _postRepository;
-    private readonly ITransactionRepository _transactionRepository;
     private readonly IChatRoomRepository _roomRepository;
+    private readonly ITransactionRepository _transactionRepository;
 
     public CollectionOfferService(
         ICollectionOfferRepository offerRepository,
@@ -63,7 +63,8 @@ public class CollectionOfferService : ICollectionOfferService
     public async Task<CollectionOfferModel> GetByIdAsync(Guid id)
     {
         var offer = await _offerRepository.GetByIdWithDetailsAsync(id);
-        if (offer == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Đề nghị thu gom không tìm thấy");
+        if (offer == null)
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Đề nghị thu gom không tìm thấy");
         return _mapper.Map<CollectionOfferModel>(offer);
     }
 
@@ -89,13 +90,13 @@ public class CollectionOfferService : ICollectionOfferService
                 "Bài đăng yêu cầu thu gom toàn bộ lô hàng.");
 
         var unavailableItems = post.ScrapPostDetails
-            .Where(detail => offerCategoryIds.Contains(detail.ScrapCategoryId) 
-                             && detail.Status != PostDetailStatus.Available) 
+            .Where(detail => offerCategoryIds.Contains(detail.ScrapCategoryId)
+                             && detail.Status != PostDetailStatus.Available)
             .ToList();
-        if(unavailableItems.Any())
+        if (unavailableItems.Any())
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Có mục trong đề nghị không còn sẵn sàng để thu gom.");
-        
+
         var offer = _mapper.Map<CollectionOffer>(request);
         offer.CollectionOfferId = Guid.NewGuid();
         offer.ScrapPostId = postId;
@@ -117,16 +118,14 @@ public class CollectionOfferService : ICollectionOfferService
         {
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Lịch hẹn đề xuất bắt buộc phải có");
         }
+
         var scrapPostDetailToUpdate = post.ScrapPostDetails
             .Where(d => offerCategoryIds.Contains(d.ScrapCategoryId))
             .ToList();
 
         if (scrapPostDetailToUpdate.Any())
         {
-            foreach (var detail in scrapPostDetailToUpdate)
-            {
-                detail.Status = PostDetailStatus.Booked;
-            }
+            foreach (var detail in scrapPostDetailToUpdate) detail.Status = PostDetailStatus.Booked;
             var isFullOffer = offerCategoryIds.Count == postCategoryIds.Count;
             post.Status = isFullOffer ? PostStatus.FullyBooked : PostStatus.PartiallyBooked;
             await _postRepository.UpdateAsync(post);
@@ -139,7 +138,8 @@ public class CollectionOfferService : ICollectionOfferService
     public async Task ProcessOfferAsync(Guid householdId, Guid offerId, bool isAccepted)
     {
         var offer = await _offerRepository.GetByIdWithDetailsAsync(offerId);
-        if (offer == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Đề nghị thu gom không tìm thấy");
+        if (offer == null)
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Đề nghị thu gom không tìm thấy");
 
         if (offer.ScrapPost.HouseholdId != householdId)
             throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Bạn không có quyền.");
@@ -203,10 +203,10 @@ public class CollectionOfferService : ICollectionOfferService
             var offerCategoryIds = offer.OfferDetails.Select(d => d.ScrapCategoryId).ToList();
             var post = offer.ScrapPost.ScrapPostDetails
                 .Where(d => offerCategoryIds.Contains(d.ScrapCategoryId)).ToList();
-            
+
             foreach (var detail in post)
                 detail.Status = PostDetailStatus.Available;
-            
+
             var detailsBooked = offer.ScrapPost.ScrapPostDetails
                 .Any(d => d.Status == PostDetailStatus.Booked);
             offer.ScrapPost.Status = detailsBooked ? PostStatus.PartiallyBooked : PostStatus.Open;
@@ -219,26 +219,28 @@ public class CollectionOfferService : ICollectionOfferService
     public async Task ToggleCancelAsync(Guid collectorId, Guid offerId)
     {
         var offer = await _offerRepository.GetByIdWithDetailsAsync(offerId);
-        if (offer == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Đề nghị thu gom không tìm thấy.");
+        if (offer == null)
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Đề nghị thu gom không tìm thấy.");
         if (offer.ScrapCollectorId != collectorId)
             throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Bạn không có quyền.");
 
         if (offer.Status == OfferStatus.Accepted)
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Bạn không thể hủy hoặc mở lại đề nghị đã được chấp nhận.");
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "Bạn không thể hủy hoặc mở lại đề nghị đã được chấp nhận.");
 
         var offerCategoryIds = offer.OfferDetails.Select(d => d.ScrapCategoryId).ToList();
         var post = offer.ScrapPost.ScrapPostDetails
             .Where(d => offerCategoryIds.Contains(d.ScrapCategoryId)).ToList();
         var detailsBooked = offer.ScrapPost.ScrapPostDetails
             .Any(d => d.Status == PostDetailStatus.Booked);
-        
+
         if (offer.Status == OfferStatus.Pending)
         {
             offer.Status = OfferStatus.Canceled;
-            
+
             foreach (var detail in post)
                 detail.Status = PostDetailStatus.Available;
-            
+
             offer.ScrapPost.Status = detailsBooked ? PostStatus.PartiallyBooked : PostStatus.Open;
             await _postRepository.UpdateAsync(offer.ScrapPost);
         }
@@ -247,7 +249,7 @@ public class CollectionOfferService : ICollectionOfferService
             offer.Status = OfferStatus.Pending;
             foreach (var detail in post)
             {
-                if(detail.Status == PostDetailStatus.Booked || detail.Status == PostDetailStatus.Collected)
+                if (detail.Status == PostDetailStatus.Booked || detail.Status == PostDetailStatus.Collected)
                     throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                         $"Không thể mở lại đề nghị thu gom cho {detail.ScrapCategory.CategoryName} vì đang có trạng thái là {detail.Status}.");
                 detail.Status = PostDetailStatus.Booked;
@@ -263,12 +265,14 @@ public class CollectionOfferService : ICollectionOfferService
     public async Task AddDetailAsync(Guid collectorId, Guid offerId, OfferDetailCreateModel detailRequest)
     {
         var offer = await _offerRepository.GetByIdWithDetailsAsync(offerId);
-        if (offer == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Đề nghị thu gom không tìm thấy.");
+        if (offer == null)
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Đề nghị thu gom không tìm thấy.");
         if (offer.ScrapCollectorId != collectorId)
             throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Bạn không có quyền.");
 
         if (offer.Status == OfferStatus.Accepted)
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Bạn không thể thêm mới khi đề nghị đã được chấp nhận.");
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "Bạn không thể thêm mới khi đề nghị đã được chấp nhận.");
 
         if (offer.OfferDetails.Any(d => d.ScrapCategoryId == detailRequest.ScrapCategoryId))
             throw new ApiExceptionModel(StatusCodes.Status409Conflict, "409", "Đề nghị cho loại này đã có.");
@@ -284,8 +288,8 @@ public class CollectionOfferService : ICollectionOfferService
         var postDetail = post.ScrapPostDetails
             .First(d => d.ScrapCategoryId == detailRequest.ScrapCategoryId);
         postDetail.Status = PostDetailStatus.Booked;
-        
-        var isFullOffer = offer.OfferDetails.Select(d => d.ScrapCategoryId).Distinct().Count() 
+
+        var isFullOffer = offer.OfferDetails.Select(d => d.ScrapCategoryId).Distinct().Count()
                           == post.ScrapPostDetails.Count;
         post.Status = isFullOffer ? PostStatus.FullyBooked : PostStatus.PartiallyBooked;
         await _postRepository.UpdateAsync(post);
@@ -295,7 +299,8 @@ public class CollectionOfferService : ICollectionOfferService
     {
         var offer = await _offerRepository.GetByIdWithDetailsAsync(offerId);
         var detail = offer!.OfferDetails.FirstOrDefault(d => d.OfferDetailId == detailId);
-        if (detail == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Đề nghị thu gom không tìm thấy.");
+        if (detail == null)
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Đề nghị thu gom không tìm thấy.");
 
         _mapper.Map(request, detail);
         await _offerRepository.UpdateAsync(offer);
@@ -304,18 +309,22 @@ public class CollectionOfferService : ICollectionOfferService
     public async Task DeleteDetailAsync(Guid collectorId, Guid offerId, Guid detailId)
     {
         var offer = await _offerRepository.GetByIdWithDetailsAsync(offerId);
-        if (offer == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Đề nghị thu gom không tìm thấy.");
+        if (offer == null)
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Đề nghị thu gom không tìm thấy.");
         if (offer.ScrapCollectorId != collectorId)
             throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Bạn không có quyền.");
         var detail = offer.OfferDetails.FirstOrDefault(d => d.OfferDetailId == detailId);
         if (detail == null)
-            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Đề nghị thu gom chi tiết không tìm thấy.");
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404",
+                "Đề nghị thu gom chi tiết không tìm thấy.");
         if (offer.Status == OfferStatus.Accepted)
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Bạn không thể xóa khi đề nghị đã được chấp nhận.");
-        
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "Bạn không thể xóa khi đề nghị đã được chấp nhận.");
+
         var post = await _postRepository.GetByIdWithDetailsAsync(offer.ScrapPostId);
         if (post!.MustTakeAll && offer.OfferDetails.Count <= post.ScrapPostDetails.Count)
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Bạn không thể xóa chi tiết đề nghị vì bài đăng yêu cầu thu gom toàn bộ lô hàng.");
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "Bạn không thể xóa chi tiết đề nghị vì bài đăng yêu cầu thu gom toàn bộ lô hàng.");
 
         offer.OfferDetails.Remove(detail);
         await _offerRepository.UpdateAsync(offer);

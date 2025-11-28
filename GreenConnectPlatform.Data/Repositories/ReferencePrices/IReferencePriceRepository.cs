@@ -7,7 +7,7 @@ public interface IReferencePriceRepository : IBaseRepository<ReferencePrice, Gui
 {
     Task<ReferencePrice?> GetReferencePriceById(Guid referencePriceId);
     Task<ReferencePrice?> GetReferencePriceByCategoryId(int categoryId);
-    
+
     Task<(List<ReferencePrice> Items, int TotalCount)> GetReferencePrices(
         int pageIndex,
         int pageSize,

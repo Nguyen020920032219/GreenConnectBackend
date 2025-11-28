@@ -122,7 +122,7 @@ public class CollectionOfferController : ControllerBase
     /// <response code="403">Bạn không phải chủ bài đăng.</response>
     [HttpPatch("{id:guid}/process")]
     [Authorize(Roles = "Household")]
-    [ProducesResponseType(typeof(string),StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> ProcessOffer(Guid id, [FromQuery] bool isAccepted)
@@ -206,9 +206,9 @@ public class CollectionOfferController : ControllerBase
         await _service.DeleteDetailAsync(userId, id, detailId);
         return NoContent();
     }
-    
+
     /// <summary>
-    ///  Người dùng có thể lấy tất cả các giao dịch của đề nghị
+    ///     Người dùng có thể lấy tất cả các giao dịch của đề nghị
     /// </summary>
     /// <param name="id">ID của đề nghị</param>
     /// <param name="status">Tìm kiếm theo trạng thái của giao dịch</param>
@@ -221,15 +221,16 @@ public class CollectionOfferController : ControllerBase
     [Authorize]
     [ProducesResponseType(typeof(TransactionOveralModel), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> GetTransactions(Guid id, 
-        [FromQuery]TransactionStatus? status,
-        [FromQuery]bool sortByCreateAtDesc = true, 
-        [FromQuery]bool sortByUpdateAtDesc = true,
+    public async Task<IActionResult> GetTransactions(Guid id,
+        [FromQuery] TransactionStatus? status,
+        [FromQuery] bool sortByCreateAtDesc = true,
+        [FromQuery] bool sortByUpdateAtDesc = true,
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10
-        )
+    )
     {
-        return Ok(await _transactionService.GetByOfferIdAsync(id, status, sortByCreateAtDesc, sortByUpdateAtDesc, pageNumber, pageSize));
+        return Ok(await _transactionService.GetByOfferIdAsync(id, status, sortByCreateAtDesc, sortByUpdateAtDesc,
+            pageNumber, pageSize));
     }
 
     private Guid GetCurrentUserId()

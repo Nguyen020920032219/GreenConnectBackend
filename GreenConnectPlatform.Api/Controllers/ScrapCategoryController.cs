@@ -87,7 +87,7 @@ public class ScrapCategoryController : ControllerBase
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> Create([FromQuery]string categoryName, [FromQuery]string description)
+    public async Task<IActionResult> Create([FromQuery] string categoryName, [FromQuery] string description)
     {
         var result = await _service.CreateAsync(categoryName, description);
         return CreatedAtAction(nameof(GetById), new { id = result.ScrapCategoryId }, result);
@@ -111,7 +111,7 @@ public class ScrapCategoryController : ControllerBase
     [ProducesResponseType(typeof(ScrapCategoryModel), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Update(int id, [FromQuery]string? categoryName, [FromQuery]string? description)
+    public async Task<IActionResult> Update(int id, [FromQuery] string? categoryName, [FromQuery] string? description)
     {
         var result = await _service.UpdateAsync(id, categoryName, description);
         return Ok(result);

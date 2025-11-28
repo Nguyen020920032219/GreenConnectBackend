@@ -77,7 +77,7 @@ public class FilesController : ControllerBase
     [ProducesResponseType(typeof(FileUploadResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<FileUploadResponse>> UploadScrapPost([FromBody] EntityFileUploadRequest request)
+    public async Task<ActionResult<FileUploadResponse>> UploadScrapPost([FromBody] FileUploadBaseRequest request)
     {
         var userId = GetCurrentUserId();
         var result = await _storageService.GenerateScrapPostUploadUrlAsync(userId, request);
@@ -125,6 +125,23 @@ public class FilesController : ControllerBase
         var userId = GetCurrentUserId();
         await _storageService.DeleteFileAsync(userId, request.FilePath);
         return NoContent();
+    }
+
+    /// <summary>
+    ///     (All) Xin link upload ảnh bằng chứng khiếu nại.
+    /// </summary>
+    /// <remarks>
+    ///     Dùng khi user tạo khiếu nại và muốn đính kèm ảnh. <br />
+    ///     User phải là người tạo khiếu nại (`EntityId` = `ComplaintId`).
+    /// </remarks>
+    [HttpPost("upload-url/complaint")]
+    [ProducesResponseType(typeof(FileUploadResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<FileUploadResponse>> UploadComplaintImage([FromBody] EntityFileUploadRequest request)
+    {
+        var userId = GetCurrentUserId();
+        return Ok(await _storageService.GenerateComplaintImageUploadUrlAsync(userId, request));
     }
 
     // --- Helper ---

@@ -24,7 +24,7 @@ public class Program
             .Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
         builder.Services.AddSignalR();
-        
+
         builder.Services.AddCors(opt =>
         {
             opt.AddPolicy("Default", p =>

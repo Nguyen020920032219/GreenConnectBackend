@@ -89,13 +89,11 @@ public class ScrapCategoryService : IScrapCategoryService
                     throw new ApiExceptionModel(StatusCodes.Status409Conflict, "409",
                         $"Danh mục '{categoryName}' đã tồn tại.");
             }
+
             entity.CategoryName = categoryName;
         }
 
-        if (!string.IsNullOrWhiteSpace(description))
-        {
-            entity.Description = description;
-        }
+        if (!string.IsNullOrWhiteSpace(description)) entity.Description = description;
         await _repository.UpdateAsync(entity);
         return _mapper.Map<ScrapCategoryModel>(entity);
     }

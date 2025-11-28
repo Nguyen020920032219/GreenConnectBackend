@@ -9,11 +9,11 @@ namespace GreenConnectPlatform.Business.Services.Reports;
 
 public class ReportService : IReportService
 {
-    private readonly IRewardItemRepository _itemRepository;
     private readonly IComplaintRepository _complaintRepository;
+    private readonly IRewardItemRepository _itemRepository;
     private readonly IScrapPostRepository _scrapPostRepository;
-    private readonly IUserRepository _userRepository;
     private readonly ITransactionRepository _transactionRepository;
+    private readonly IUserRepository _userRepository;
 
     public ReportService(IRewardItemRepository rewardItemRepository,
         IComplaintRepository complaintRepository,
@@ -27,7 +27,7 @@ public class ReportService : IReportService
         _userRepository = userRepository;
         _transactionRepository = transactionRepository;
     }
-    
+
     public async Task<ReportModel> GetReport(DateTime startDate, DateTime endDate)
     {
         var totalRewardItems = await _itemRepository.GetRewardItemsForReport();

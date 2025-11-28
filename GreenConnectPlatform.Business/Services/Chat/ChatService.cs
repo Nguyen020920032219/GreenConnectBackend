@@ -14,15 +14,15 @@ namespace GreenConnectPlatform.Business.Services.Chat;
 
 public class ChatService : IChatService
 {
-    private readonly IChatRoomRepository _roomRepository;
+    private readonly IHubContext<ChatHub> _hubContext;
     private readonly IMessageRepository _messageRepository;
+    private readonly IChatRoomRepository _roomRepository;
     private readonly ITransactionRepository _transactionRepository;
     private readonly IUserRepository _userRepository;
-    private readonly IHubContext<ChatHub> _hubContext;
 
-    public ChatService(IChatRoomRepository roomRepository, 
-        IMessageRepository messageRepository, 
-        ITransactionRepository transactionRepository, 
+    public ChatService(IChatRoomRepository roomRepository,
+        IMessageRepository messageRepository,
+        ITransactionRepository transactionRepository,
         IUserRepository userRepository,
         IHubContext<ChatHub> hubContext)
     {
@@ -32,14 +32,14 @@ public class ChatService : IChatService
         _userRepository = userRepository;
         _hubContext = hubContext;
     }
-    
-    public async Task<MessageModel> SendMessageAsync(Guid senderId,SendMessageModel model)
+
+    public async Task<MessageModel> SendMessageAsync(Guid senderId, SendMessageModel model)
     {
         var room = await _roomRepository.GetChatRoomByTransactionId(model.TransactionId);
         if (room == null)
         {
             var transaction = await _transactionRepository.GetByIdWithDetailsAsync(model.TransactionId);
-            if(transaction == null)
+            if (transaction == null)
                 throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404",
                     "Không tìm thấy giao dịch này");
             room = new ChatRoom
@@ -49,7 +49,7 @@ public class ChatService : IChatService
                 CreatedAt = DateTime.UtcNow,
                 ChatParticipants = new List<ChatParticipant>()
             };
-            
+
             room.ChatParticipants.Add(new ChatParticipant
             {
                 UserId = transaction.HouseholdId,
@@ -91,20 +91,19 @@ public class ChatService : IChatService
             .SendAsync("ReceiveMessage", messageModel);
 
         var participants = room.ChatParticipants;
-        
+
         if (participants == null || !participants.Any())
         {
             var trans = await _transactionRepository.GetByIdWithDetailsAsync(model.TransactionId);
-            if(trans != null) {
-                participants = new List<ChatParticipant> {
-                    new ChatParticipant { UserId = trans.HouseholdId },
-                    new ChatParticipant { UserId = trans.ScrapCollectorId }
+            if (trans != null)
+                participants = new List<ChatParticipant>
+                {
+                    new() { UserId = trans.HouseholdId },
+                    new() { UserId = trans.ScrapCollectorId }
                 };
-            }
         }
 
         if (participants != null)
-        {
             foreach (var participant in participants)
             {
                 var partnerId = participants.FirstOrDefault(p => p.UserId != participant.UserId)?.UserId;
@@ -112,7 +111,7 @@ public class ChatService : IChatService
 
                 var partnerUser = await _userRepository.GetUserByIdAsync(partnerId.Value);
 
-                int unreadCount = (participant.UserId != senderId) ? 1 : 0;
+                var unreadCount = participant.UserId != senderId ? 1 : 0;
 
                 var chatListItem = new ChatRoomModel
                 {
@@ -121,17 +120,17 @@ public class ChatService : IChatService
                     LastMessage = message.Content,
                     LastMessageTime = message.Timestamp,
                     UnreadCount = unreadCount,
-                
+
                     PartnerName = partnerUser?.FullName ?? "Người dùng",
                     PartnerAvatar = partnerUser?.Profile?.AvatarUrl ?? ""
                 };
 
-                string groupName = $"User_{participant.UserId.ToString().ToLower()}";
+                var groupName = $"User_{participant.UserId.ToString().ToLower()}";
 
                 await _hubContext.Clients.Group(groupName)
                     .SendAsync("UpdateChatList", chatListItem);
             }
-        }
+
         return messageModel;
     }
 
@@ -187,12 +186,10 @@ public class ChatService : IChatService
     {
         var messages = await _messageRepository.GetAllMessageUnRead(chatRoomId, userId);
         if (messages.Any())
-        {
             foreach (var message in messages)
             {
                 message.IsRead = true;
                 await _messageRepository.UpdateAsync(message);
             }
-        }
     }
 }

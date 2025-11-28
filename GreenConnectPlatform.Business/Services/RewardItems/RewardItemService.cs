@@ -10,18 +10,20 @@ namespace GreenConnectPlatform.Business.Services.RewardItems;
 
 public class RewardItemService : IRewardItemService
 {
-    private readonly IRewardItemRepository _rewardItemRepository;
     private readonly IMapper _mapper;
+    private readonly IRewardItemRepository _rewardItemRepository;
 
     public RewardItemService(IRewardItemRepository rewardItemRepository, IMapper mapper)
     {
         _rewardItemRepository = rewardItemRepository;
         _mapper = mapper;
     }
-        
-    public async Task<PaginatedResult<RewardItemModel>> GetRewardItems(int pageIndex, int pageSize, string? name, bool sortByPoint)
+
+    public async Task<PaginatedResult<RewardItemModel>> GetRewardItems(int pageIndex, int pageSize, string? name,
+        bool sortByPoint)
     {
-        var (items, totalCount) = await _rewardItemRepository.GetRewardItemsAsync(pageIndex, pageSize, name, sortByPoint);
+        var (items, totalCount) =
+            await _rewardItemRepository.GetRewardItemsAsync(pageIndex, pageSize, name, sortByPoint);
         var data = _mapper.Map<List<RewardItemModel>>(items);
         return new PaginatedResult<RewardItemModel>
         {
@@ -52,7 +54,7 @@ public class RewardItemService : IRewardItemService
         var rewardItem = await _rewardItemRepository.GetByRewardItemIdAsync(id);
         if (rewardItem == null)
             throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Không tìm thấy phần thưởng");
-        if(model.PointsCost == null) model.PointsCost = rewardItem.PointsCost;
+        if (model.PointsCost == null) model.PointsCost = rewardItem.PointsCost;
         _mapper.Map(model, rewardItem);
         await _rewardItemRepository.UpdateAsync(rewardItem);
         return _mapper.Map<RewardItemModel>(rewardItem);

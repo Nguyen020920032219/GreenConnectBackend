@@ -11,9 +11,10 @@ public class UserRepository : BaseRepository<GreenConnectDbContext, User, Guid>,
     {
     }
 
-    public async Task<(List<User> Items,Dictionary<Guid, List<string>> RolesMap, int TotalCount)> GetUsersAsync(int pageIndex, int pageSize, Guid? roleId, string? fullName)
+    public async Task<(List<User> Items, Dictionary<Guid, List<string>> RolesMap, int TotalCount)> GetUsersAsync(
+        int pageIndex, int pageSize, Guid? roleId, string? fullName)
     {
-        var query = _dbSet.AsNoTracking() ;
+        var query = _dbSet.AsNoTracking();
         if (roleId != null)
         {
             var userIdInRole = _context.UserRoles
@@ -21,10 +22,9 @@ public class UserRepository : BaseRepository<GreenConnectDbContext, User, Guid>,
                 .Select(ur => ur.UserId);
             query = query.Where(u => userIdInRole.Contains(u.Id));
         }
+
         if (!string.IsNullOrEmpty(fullName))
-        {
             query = query.Where(u => u.FullName.ToLower().Contains(fullName.ToLower()));
-        }
         var totalCount = await query.CountAsync();
         var users = await query
             .OrderBy(u => u.FullName)
@@ -35,10 +35,10 @@ public class UserRepository : BaseRepository<GreenConnectDbContext, User, Guid>,
         var rawRoles = await (from ur in _context.UserRoles
             join r in _context.Roles on ur.RoleId equals r.Id
             where userIds.Contains(ur.UserId)
-            select new 
-            { 
-                ur.UserId, 
-                RoleName = r.Name 
+            select new
+            {
+                ur.UserId,
+                RoleName = r.Name
             }).ToListAsync();
         var rolesMap = rawRoles
             .GroupBy(x => x.UserId)

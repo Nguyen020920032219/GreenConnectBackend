@@ -2,6 +2,7 @@ using FirebaseAdmin.Auth;
 using GreenConnectPlatform.Business.Models.Auth;
 using GreenConnectPlatform.Business.Models.Exceptions;
 using GreenConnectPlatform.Business.Models.Users;
+using GreenConnectPlatform.Business.Services.FileStorage;
 using GreenConnectPlatform.Business.Services.Jwt;
 using GreenConnectPlatform.Data.Entities;
 using GreenConnectPlatform.Data.Enums;
@@ -13,6 +14,7 @@ namespace GreenConnectPlatform.Business.Services.Auth;
 
 public class AuthService : IAuthService
 {
+    private readonly IFileStorageService _fileStorageService;
     private readonly FirebaseAuth _firebaseAuth;
     private readonly IJwtService _jwtService;
     private readonly IProfileRepository _profileRepository;
@@ -22,12 +24,14 @@ public class AuthService : IAuthService
         UserManager<User> userManager,
         IProfileRepository profileRepository,
         IJwtService jwtService,
-        FirebaseAuth firebaseAuth)
+        FirebaseAuth firebaseAuth,
+        IFileStorageService fileStorageService)
     {
         _userManager = userManager;
         _profileRepository = profileRepository;
         _jwtService = jwtService;
         _firebaseAuth = firebaseAuth;
+        _fileStorageService = fileStorageService;
     }
 
     public async Task<(AuthResponse Response, bool IsNewUser)> LoginOrRegisterAsync(LoginOrRegisterRequest request)
@@ -161,7 +165,9 @@ public class AuthService : IAuthService
             Id = user.Id,
             FullName = user.FullName,
             PhoneNumber = user.PhoneNumber,
-            AvatarUrl = profile?.AvatarUrl,
+            AvatarUrl = profile?.AvatarUrl != null
+                ? await _fileStorageService.GetReadSignedUrlAsync(profile.AvatarUrl)
+                : null,
             PointBalance = profile?.PointBalance ?? 0,
             Rank = rankName,
             Roles = roles

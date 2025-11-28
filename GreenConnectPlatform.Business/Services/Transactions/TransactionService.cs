@@ -87,7 +87,7 @@ public class TransactionService : ITransactionService
         int pageIndex,
         int pageSize)
     {
-        var (items, totalCount) = await _transactionRepository.GetByOfferIdAsync(offerId,status,
+        var (items, totalCount) = await _transactionRepository.GetByOfferIdAsync(offerId, status,
             sortByCreateAtDesc, sortByUpdateAtDesc, pageIndex, pageSize);
         var data = _mapper.Map<List<TransactionOveralModel>>(items);
         return new PaginatedResult<TransactionOveralModel>
@@ -163,7 +163,8 @@ public class TransactionService : ITransactionService
             throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Bạn không có quyền.");
 
         if (transaction.Status != TransactionStatus.InProgress)
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Trạng thái giao dịch không phải là progress.");
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "Trạng thái giao dịch không phải là progress.");
 
         if (isAccepted && !transaction.TransactionDetails.Any())
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
@@ -194,16 +195,18 @@ public class TransactionService : ITransactionService
         await _transactionRepository.UpdateAsync(transaction);
     }
 
-    public async Task  ToggleCancelAsync(Guid transactionId, Guid collectorId)
+    public async Task ToggleCancelAsync(Guid transactionId, Guid collectorId)
     {
         var transaction = await _transactionRepository.GetByIdAsync(transactionId);
-        if (transaction == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Giao dịch không tìm thấy.");
+        if (transaction == null)
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Giao dịch không tìm thấy.");
 
         if (transaction.ScrapCollectorId != collectorId)
             throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Bạn không có quyền");
 
         if (transaction.Status == TransactionStatus.Completed)
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Bạn không thể hủy hoặc mở lại giao dịch khi đã hoàn thành.");
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "Bạn không thể hủy hoặc mở lại giao dịch khi đã hoàn thành.");
 
         if (transaction.Status == TransactionStatus.CanceledByUser)
             transaction.Status = TransactionStatus.InProgress;

@@ -11,22 +11,25 @@ namespace GreenConnectPlatform.Business.Services.ReferencePrices;
 
 public class ReferencePriceService : IReferencePriceService
 {
+    private readonly IMapper _mapper;
     private readonly IReferencePriceRepository _referencePriceRepository;
     private readonly IScrapCategoryRepository _scrapCategoryRepository;
-    private readonly IMapper _mapper;
-    
-    public ReferencePriceService(IReferencePriceRepository referencePriceRepository,IScrapCategoryRepository categoryRepository, IMapper mapper)
+
+    public ReferencePriceService(IReferencePriceRepository referencePriceRepository,
+        IScrapCategoryRepository categoryRepository, IMapper mapper)
     {
         _referencePriceRepository = referencePriceRepository;
         _scrapCategoryRepository = categoryRepository;
         _mapper = mapper;
     }
-    
-    public async Task<PaginatedResult<ReferencePriceModel>> GetReferencePrices(int pageNumber, int pageSize, string? scrapCategoryName, bool? sortByPrice,
+
+    public async Task<PaginatedResult<ReferencePriceModel>> GetReferencePrices(int pageNumber, int pageSize,
+        string? scrapCategoryName, bool? sortByPrice,
         bool sortByUpdateAt)
     {
-        var (items, totalCount) = await _referencePriceRepository.GetReferencePrices(pageNumber, pageSize, scrapCategoryName, sortByPrice, sortByUpdateAt);
-        
+        var (items, totalCount) = await _referencePriceRepository.GetReferencePrices(pageNumber, pageSize,
+            scrapCategoryName, sortByPrice, sortByUpdateAt);
+
         var referencePriceModels = _mapper.Map<List<ReferencePriceModel>>(items);
 
         return new PaginatedResult<ReferencePriceModel>
@@ -47,12 +50,13 @@ public class ReferencePriceService : IReferencePriceService
     public async Task<ReferencePriceModel> CreateReferencePrice(int scrapCategoryId, decimal pricePerKg, Guid userId)
     {
         var scrapCategory = await _scrapCategoryRepository.GetByIdAsync(scrapCategoryId);
-        if(scrapCategory == null)
+        if (scrapCategory == null)
             throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Loại phế liệu không tồn tại");
         var existingReferencePrice = await _referencePriceRepository.GetReferencePriceByCategoryId(scrapCategoryId);
-        if(existingReferencePrice != null)
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Giá tham khảo cho loại phế liệu này đã tồn tại");
-        if(pricePerKg <= 0)
+        if (existingReferencePrice != null)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "Giá tham khảo cho loại phế liệu này đã tồn tại");
+        if (pricePerKg <= 0)
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Giá cho 1 kg phải lớn hơn 0");
         var referencePrice = new ReferencePrice
         {
@@ -72,10 +76,11 @@ public class ReferencePriceService : IReferencePriceService
         if (referencePrice == null)
             throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Giá tham khảo không tồn tại");
         if (pricePerKg.HasValue && pricePerKg.Value <= 0)
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Giá tham khảo cho 1 kg phải lớn hơn 0");
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "Giá tham khảo cho 1 kg phải lớn hơn 0");
         if (pricePerKg.HasValue)
             referencePrice.PricePerKg = pricePerKg.Value;
-        if(referencePrice.UpdatedByAdminId != userId)
+        if (referencePrice.UpdatedByAdminId != userId)
             referencePrice.UpdatedByAdminId = userId;
         referencePrice.LastUpdated = DateTime.UtcNow;
         await _referencePriceRepository.UpdateAsync(referencePrice);

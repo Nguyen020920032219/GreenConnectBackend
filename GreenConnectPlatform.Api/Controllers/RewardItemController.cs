@@ -27,9 +27,9 @@ public class RewardItemController(IRewardItemService rewardItemService) : Contro
     /// <response code="403">Không có quyền truy cập.</response>
     [HttpGet]
     [Authorize]
-    [ProducesResponseType(typeof(RewardItemModel),StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ExceptionModel),StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ExceptionModel),StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(RewardItemModel), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetRewardItems([FromQuery] int pageIndex = 1,
         [FromQuery] int pageSize = 10,
         [FromQuery] string? name = null,
@@ -38,7 +38,7 @@ public class RewardItemController(IRewardItemService rewardItemService) : Contro
         var result = await rewardItemService.GetRewardItems(pageIndex, pageSize, name, sortByPoint);
         return Ok(result);
     }
-    
+
     /// <summary>
     ///     (All) Xem chi tiết vật phẩm đổi thưởng.
     /// </summary>
@@ -53,10 +53,10 @@ public class RewardItemController(IRewardItemService rewardItemService) : Contro
     /// <response code="403">Không có quyền truy cập.</response>
     [HttpGet("{id:int}")]
     [Authorize]
-    [ProducesResponseType(typeof(RewardItemModel),StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ExceptionModel),StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ExceptionModel),StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ExceptionModel),StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(RewardItemModel), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetRewardItemById([FromRoute] int id)
     {
         var result = await rewardItemService.GetByRewardItemIdAsync(id);
@@ -89,7 +89,8 @@ public class RewardItemController(IRewardItemService rewardItemService) : Contro
     ///     (Admin) Cập nhật vật phẩm đổi thưởng.
     /// </summary>
     /// <remarks>
-    ///     Cho phép Admin chỉnh sửa thông tin vật phẩm (Ví dụ: Thay đổi số điểm yêu cầu, cập nhật số lượng kho, sửa tên/mô tả).
+    ///     Cho phép Admin chỉnh sửa thông tin vật phẩm (Ví dụ: Thay đổi số điểm yêu cầu, cập nhật số lượng kho, sửa tên/mô
+    ///     tả).
     /// </remarks>
     /// <param name="id">ID của vật phẩm cần sửa.</param>
     /// <param name="rewardItem">Dữ liệu cần cập nhật (`RewardItemUpdateModel`).</param>
@@ -113,7 +114,7 @@ public class RewardItemController(IRewardItemService rewardItemService) : Contro
     ///     (Admin) Xóa vật phẩm đổi thưởng.
     /// </summary>
     /// <remarks>
-    ///     Xóa vật phẩm khỏi danh sách đổi thưởng. 
+    ///     Xóa vật phẩm khỏi danh sách đổi thưởng.
     ///     Lưu ý: Nếu vật phẩm đã từng được đổi, hệ thống có thể chỉ xóa mềm (ẩn đi) thay vì xóa vĩnh viễn khỏi Database.
     /// </remarks>
     /// <param name="id">ID của vật phẩm cần xóa.</param>

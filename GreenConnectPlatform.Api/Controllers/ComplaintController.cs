@@ -18,7 +18,7 @@ public class ComplaintController(IComplaintService complaintService) : Controlle
     /// </summary>
     /// <remarks>
     ///     Lấy danh sách các khiếu nại trong hệ thống có hỗ trợ phân trang và lọc.
-    ///     <br/>
+    ///     <br />
     ///     - **Admin**: Xem được tất cả khiếu nại của hệ thống.
     ///     - **User/Collector**: Chỉ xem được lịch sử khiếu nại của chính mình (liên quan đến mình).
     /// </remarks>
@@ -39,15 +39,13 @@ public class ComplaintController(IComplaintService complaintService) : Controlle
     {
         Guid? userId = null;
         var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (!string.IsNullOrEmpty(userIdString) && Guid.TryParse(userIdString, out Guid parsedId))
-        {
-            userId = parsedId;
-        }        
+        if (!string.IsNullOrEmpty(userIdString) && Guid.TryParse(userIdString, out var parsedId)) userId = parsedId;
         var userRole = User.FindFirstValue(ClaimTypes.Role);
-        var result = await complaintService.GetComplaints(pageNumber, pageSize, sortByCreatedAt, sortByStatus, userId, userRole);
+        var result =
+            await complaintService.GetComplaints(pageNumber, pageSize, sortByCreatedAt, sortByStatus, userId, userRole);
         return Ok(result);
     }
-    
+
     /// <summary>
     ///     (All) Xem chi tiết một khiếu nại.
     /// </summary>
@@ -66,13 +64,13 @@ public class ComplaintController(IComplaintService complaintService) : Controlle
         var result = await complaintService.GetComplaint(id);
         return Ok(result);
     }
-    
+
     /// <summary>
     ///     (Admin) Xử lý/Duyệt khiếu nại.
     /// </summary>
     /// <remarks>
     ///     Cho phép Admin đưa ra quyết định cuối cùng về khiếu nại.
-    ///     <br/>
+    ///     <br />
     ///     - Nếu **Accept (true)**: Khiếu nại đúng. Hệ thống sẽ xử phạt người bị tố cáo (trừ điểm uy tín, hoàn tiền...).
     ///     - Nếu **Reject (false)**: Khiếu nại sai/không đủ bằng chứng. Hủy bỏ khiếu nại.
     /// </remarks>
@@ -85,7 +83,7 @@ public class ComplaintController(IComplaintService complaintService) : Controlle
     /// <response code="404">Không tìm thấy khiếu nại.</response>
     [HttpPatch("{id:Guid}/process")]
     [Authorize(Roles = "Admin")]
-    [ProducesResponseType(typeof(string),StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
@@ -95,6 +93,7 @@ public class ComplaintController(IComplaintService complaintService) : Controlle
         await complaintService.ProcessComplaintAsync(id, isAccept);
         return Ok("Xử lý khiếu nại thành công");
     }
+
     private Guid GetCurrentUserId()
     {
         var idStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -106,7 +105,7 @@ public class ComplaintController(IComplaintService complaintService) : Controlle
     /// </summary>
     /// <remarks>
     ///     Gửi yêu cầu khiếu nại/tố cáo về một giao dịch hoặc người dùng khác.
-    ///     <br/>
+    ///     <br />
     ///     Ví dụ: Người thu gom không đến đúng giờ, thái độ không tốt, hoặc hủy kèo không lý do.
     ///     Yêu cầu: Phải có `TransactionId` hợp lệ.
     /// </remarks>
@@ -135,7 +134,7 @@ public class ComplaintController(IComplaintService complaintService) : Controlle
     /// </summary>
     /// <remarks>
     ///     Cho phép người tạo khiếu nại chỉnh sửa lý do hoặc cập nhật lại link bằng chứng (ảnh/video).
-    ///     <br/>
+    ///     <br />
     ///     **Lưu ý:** Chỉ được phép sửa khi khiếu nại đang ở trạng thái `Pending` (Chưa được Admin xử lý).
     /// </remarks>
     /// <param name="id">ID của khiếu nại cần sửa.</param>
@@ -184,5 +183,4 @@ public class ComplaintController(IComplaintService complaintService) : Controlle
         await complaintService.ReopenComplaint(id, userId);
         return Ok("Mở lại phàn nàn thành công");
     }
-
 }

@@ -2,9 +2,11 @@
 using GreenConnectPlatform.Business.Models.Exceptions;
 using GreenConnectPlatform.Business.Models.Paging;
 using GreenConnectPlatform.Business.Models.Users;
+using GreenConnectPlatform.Data.Entities;
 using GreenConnectPlatform.Data.Enums;
 using GreenConnectPlatform.Data.Repositories.Users;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 
 namespace GreenConnectPlatform.Business.Services.Users;
 
@@ -12,6 +14,7 @@ public class UserService : IUserService
 {
     private readonly IMapper _mapper;
     private readonly IUserRepository _userRepository;
+    private readonly UserManager<User> _userManager;
 
     public UserService(IUserRepository userRepository, IMapper mapper)
     {
@@ -37,11 +40,13 @@ public class UserService : IUserService
         };
     }
 
-    public async Task BanOrUnbanUserAsync(Guid userId)
+    public async Task BanOrUnbanUserAsync(Guid userId, Guid currentUserId)
     {
         var user = await _userRepository.GetUserByIdAsync(userId);
         if (user == null)
             throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Người dùng không tồn tại");
+        if(user.Id == currentUserId)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Người dùng không thể tự cấm hoặc mở lại tài khoản của chính mình");
         if (user.Status == UserStatus.Blocked)
             user.Status = UserStatus.Active;
         else

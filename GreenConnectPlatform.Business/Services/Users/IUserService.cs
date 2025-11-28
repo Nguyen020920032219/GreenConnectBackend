@@ -11,5 +11,5 @@ public interface IUserService
         Guid? roleId,
         string? fullName);
 
-    Task BanOrUnbanUserAsync(Guid userId);
+    Task BanOrUnbanUserAsync(Guid userId, Guid currentUserId);
 }

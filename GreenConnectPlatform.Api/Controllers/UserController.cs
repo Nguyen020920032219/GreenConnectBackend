@@ -1,4 +1,5 @@
-﻿using GreenConnectPlatform.Business.Models.Exceptions;
+﻿using System.Security.Claims;
+using GreenConnectPlatform.Business.Models.Exceptions;
 using GreenConnectPlatform.Business.Models.Paging;
 using GreenConnectPlatform.Business.Models.Users;
 using GreenConnectPlatform.Business.Services.Users;
@@ -43,11 +44,19 @@ public class UserController(IUserService userService) : ControllerBase
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> BanOrUnbanUser([FromRoute] Guid userId)
     {
-        await userService.BanOrUnbanUserAsync(userId);
+        var currentUserId = GetCurrentUserId();
+        await userService.BanOrUnbanUserAsync(userId, currentUserId);
         return Ok("Người dùng đã bị cấm hoặc mở lại thành công");
+    }
+    
+    private Guid GetCurrentUserId()
+    {
+        var idStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return Guid.TryParse(idStr, out var id) ? id : Guid.Empty;
     }
 }

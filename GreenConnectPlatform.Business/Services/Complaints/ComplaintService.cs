@@ -2,6 +2,7 @@
 using GreenConnectPlatform.Business.Models.Complaints;
 using GreenConnectPlatform.Business.Models.Exceptions;
 using GreenConnectPlatform.Business.Models.Paging;
+using GreenConnectPlatform.Business.Services.FileStorage;
 using GreenConnectPlatform.Data.Entities;
 using GreenConnectPlatform.Data.Enums;
 using GreenConnectPlatform.Data.Repositories.Complaints;
@@ -13,14 +14,16 @@ namespace GreenConnectPlatform.Business.Services.Complaints;
 public class ComplaintService : IComplaintService
 {
     private readonly IComplaintRepository _complaintRepository;
+    private readonly IFileStorageService _fileStorageService;
     private readonly IMapper _mapper;
     private readonly ITransactionRepository _transactionRepository;
 
     public ComplaintService(IComplaintRepository complaintRepository, ITransactionRepository transactionRepository,
-        IMapper mapper)
+        IFileStorageService fileStorageService, IMapper mapper)
     {
         _complaintRepository = complaintRepository;
         _transactionRepository = transactionRepository;
+        _fileStorageService = fileStorageService;
         _mapper = mapper;
     }
 
@@ -35,6 +38,11 @@ public class ComplaintService : IComplaintService
             userId,
             roleName);
         var complaintModels = _mapper.Map<List<ComplaintModel>>(items);
+        foreach (var complaintModel in complaintModels)
+            if (!string.IsNullOrEmpty(complaintModel.EvidenceUrl))
+                complaintModel.EvidenceUrl =
+                    await _fileStorageService.GetReadSignedUrlAsync(complaintModel.EvidenceUrl);
+
         return new PaginatedResult<ComplaintModel>
         {
             Data = complaintModels,
@@ -47,7 +55,10 @@ public class ComplaintService : IComplaintService
         var complaintTask = await _complaintRepository.GetComplaintByIdAsync(complaintId);
         if (complaintTask == null)
             throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Khiếu nại không tồn tại");
-        return _mapper.Map<ComplaintModel>(complaintTask);
+        var complaintModel = _mapper.Map<ComplaintModel>(complaintTask);
+        if (!string.IsNullOrEmpty(complaintModel.EvidenceUrl))
+            complaintModel.EvidenceUrl = await _fileStorageService.GetReadSignedUrlAsync(complaintModel.EvidenceUrl);
+        return complaintModel;
     }
 
     public async Task ProcessComplaintAsync(Guid complaintId, bool isAccept)

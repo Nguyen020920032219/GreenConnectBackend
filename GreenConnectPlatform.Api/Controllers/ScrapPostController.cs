@@ -60,7 +60,9 @@ public class ScrapPostController : ControllerBase
         [FromQuery] int pageSize = 10)
     {
         var userId = GetCurrentUserId();
-        var result = await _service.SearchPostsAsync(pageNumber, pageSize, categoryName, status, sortByLocation,
+        var roleName = User.FindFirstValue(ClaimTypes.Role) ?? "";
+        var result = await _service.SearchPostsAsync(roleName, pageNumber, pageSize, categoryName, status,
+            sortByLocation,
             sortByCreateAt, userId);
         return Ok(result);
     }

@@ -8,6 +8,7 @@ namespace GreenConnectPlatform.Business.Services.ScrapPosts;
 public interface IScrapPostService
 {
     Task<PaginatedResult<ScrapPostOverralModel>> SearchPostsAsync(
+        string roleName,
         int pageNumber, int pageSize,
         string? categoryName, PostStatus? status,
         bool sortByLocation, bool sortByCreateAt,

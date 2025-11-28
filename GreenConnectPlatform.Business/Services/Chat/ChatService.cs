@@ -2,6 +2,7 @@
 using GreenConnectPlatform.Business.Models.Chat;
 using GreenConnectPlatform.Business.Models.Exceptions;
 using GreenConnectPlatform.Business.Models.Paging;
+using GreenConnectPlatform.Business.Services.FileStorage;
 using GreenConnectPlatform.Data.Entities;
 using GreenConnectPlatform.Data.Repositories.Chatrooms;
 using GreenConnectPlatform.Data.Repositories.Messages;
@@ -14,6 +15,7 @@ namespace GreenConnectPlatform.Business.Services.Chat;
 
 public class ChatService : IChatService
 {
+    private readonly IFileStorageService _fileStorageService;
     private readonly IHubContext<ChatHub> _hubContext;
     private readonly IMessageRepository _messageRepository;
     private readonly IChatRoomRepository _roomRepository;
@@ -24,46 +26,23 @@ public class ChatService : IChatService
         IMessageRepository messageRepository,
         ITransactionRepository transactionRepository,
         IUserRepository userRepository,
-        IHubContext<ChatHub> hubContext)
+        IHubContext<ChatHub> hubContext,
+        IFileStorageService fileStorageService)
     {
         _roomRepository = roomRepository;
         _messageRepository = messageRepository;
         _transactionRepository = transactionRepository;
         _userRepository = userRepository;
         _hubContext = hubContext;
+        _fileStorageService = fileStorageService;
     }
 
     public async Task<MessageModel> SendMessageAsync(Guid senderId, SendMessageModel model)
     {
         var room = await _roomRepository.GetChatRoomByTransactionId(model.TransactionId);
         if (room == null)
-        {
-            var transaction = await _transactionRepository.GetByIdWithDetailsAsync(model.TransactionId);
-            if (transaction == null)
-                throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404",
-                    "Không tìm thấy giao dịch này");
-            room = new ChatRoom
-            {
-                ChatRoomId = Guid.NewGuid(),
-                TransactionId = model.TransactionId,
-                CreatedAt = DateTime.UtcNow,
-                ChatParticipants = new List<ChatParticipant>()
-            };
-
-            room.ChatParticipants.Add(new ChatParticipant
-            {
-                UserId = transaction.HouseholdId,
-                ChatRoomId = room.ChatRoomId,
-                JoinedAt = DateTime.UtcNow
-            });
-            room.ChatParticipants.Add(new ChatParticipant
-            {
-                UserId = transaction.ScrapCollectorId,
-                ChatRoomId = room.ChatRoomId,
-                JoinedAt = DateTime.UtcNow
-            });
-            await _roomRepository.AddAsync(room);
-        }
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404",
+                "Không tìm thấy phòng chat cho giao dịch này");
 
         var message = new Message
         {
@@ -84,7 +63,9 @@ public class ChatService : IChatService
             Timestamp = message.Timestamp,
             IsRead = message.IsRead,
             SenderName = user.FullName,
-            SenderAvatar = user.Profile.AvatarUrl
+            SenderAvatar = user.Profile.AvatarUrl != null
+                ? await _fileStorageService.GetReadSignedUrlAsync(user.Profile.AvatarUrl)
+                : null
         };
 
         await _hubContext.Clients.Group(model.TransactionId.ToString())
@@ -122,7 +103,9 @@ public class ChatService : IChatService
                     UnreadCount = unreadCount,
 
                     PartnerName = partnerUser?.FullName ?? "Người dùng",
-                    PartnerAvatar = partnerUser?.Profile?.AvatarUrl ?? ""
+                    PartnerAvatar = partnerUser?.Profile?.AvatarUrl != null
+                        ? await _fileStorageService.GetReadSignedUrlAsync(partnerUser.Profile?.AvatarUrl)
+                        : null
                 };
 
                 var groupName = $"User_{participant.UserId.ToString().ToLower()}";
@@ -137,18 +120,19 @@ public class ChatService : IChatService
     public async Task<PaginatedResult<MessageModel>> GetChatHistoryAsync(int pageIndex, int pageSize, Guid chatRoomId)
     {
         var (items, totalCount) = await _messageRepository.GetMessagesByRoomIdAsync(chatRoomId, pageIndex, pageSize);
-
-        var messageDto = items.Select(m => new MessageModel
+        var tasks = items.Select(async m => new MessageModel
         {
             MessageId = m.MessageId,
             SenderId = m.SenderId,
             Content = m.Content,
             Timestamp = m.Timestamp,
             IsRead = m.IsRead,
-            SenderName = m.Sender?.FullName ?? "Unknown",
-            SenderAvatar = m.Sender?.Profile?.AvatarUrl ?? ""
-        }).ToList();
-
+            SenderName = m.Sender.FullName ?? "Unknown",
+            SenderAvatar = m.Sender?.Profile?.AvatarUrl != null
+                ? await _fileStorageService.GetReadSignedUrlAsync(m.Sender.Profile?.AvatarUrl)
+                : null
+        });
+        var messageDto = (await Task.WhenAll(tasks)).ToList();
         return new PaginatedResult<MessageModel>
         {
             Data = messageDto,
@@ -159,22 +143,26 @@ public class ChatService : IChatService
     public async Task<PaginatedResult<ChatRoomModel>> GetMyChatRoomAsync(Guid userId, int pageIndex, int pageSize)
     {
         var (items, totalCount) = await _roomRepository.GetChatRooms(userId, pageIndex, pageSize);
-        var data = items.Select(room =>
+        var tasks = items.Select(async room =>
         {
             var partner = room.ChatParticipants.FirstOrDefault(p => p.UserId != userId)?.User;
             var lastMessage = room.Messages.OrderByDescending(m => m.Timestamp).FirstOrDefault();
             var unreadCount = room.Messages.Count(m => !m.IsRead && m.SenderId != userId);
+            string? avatarUrl = null;
             return new ChatRoomModel
             {
                 ChatRoomId = room.ChatRoomId,
                 TransactionId = room.TransactionId,
                 PartnerName = partner?.FullName ?? "Người dùng",
-                PartnerAvatar = partner?.Profile?.AvatarUrl ?? "",
+                PartnerAvatar = partner?.Profile?.AvatarUrl != null
+                    ? await _fileStorageService.GetReadSignedUrlAsync(partner?.Profile?.AvatarUrl)
+                    : null,
                 LastMessage = lastMessage?.Content ?? "",
                 LastMessageTime = lastMessage?.Timestamp,
                 UnreadCount = unreadCount
             };
-        }).ToList();
+        });
+        var data = (await Task.WhenAll(tasks)).ToList();
         return new PaginatedResult<ChatRoomModel>
         {
             Data = data,

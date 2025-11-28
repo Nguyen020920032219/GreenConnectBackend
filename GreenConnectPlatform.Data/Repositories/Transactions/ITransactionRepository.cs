@@ -25,4 +25,8 @@ public interface ITransactionRepository : IBaseRepository<Transaction, Guid>
         int pageSize);
 
     Task<List<Transaction>> GetTransactionsForReport(DateTime startDate, DateTime endDate);
+
+    Task<List<Transaction>> GetEarningForCollectorReport(Guid userId, DateTime startDate, DateTime endDate);
+
+    Task<List<Transaction>> GetTransactionsForCollectorReport(Guid userId, DateTime startDate, DateTime endDate);
 }

@@ -10,6 +10,7 @@ public interface IScrapPostRepository : IBaseRepository<ScrapPost, Guid>
     Task<ScrapPost?> GetByIdWithDetailsAsync(Guid id);
 
     Task<(List<ScrapPost> Items, int TotalCount)> SearchAsync(
+        string roleName,
         string? categoryName,
         PostStatus? status,
         Point? userLocation,

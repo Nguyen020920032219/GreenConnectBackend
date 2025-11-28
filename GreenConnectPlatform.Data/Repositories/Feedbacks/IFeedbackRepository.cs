@@ -12,4 +12,6 @@ public interface IFeedbackRepository : IBaseRepository<Feedback, Guid>
         string roleName, bool sortByCreateAt);
 
     Task<Feedback?> GetFeedbackById(Guid id);
+
+    Task<List<Feedback>> GetAllFeedbacks(Guid userId, DateTime startDate, DateTime endDate);
 }

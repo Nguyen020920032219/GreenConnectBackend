@@ -20,4 +20,6 @@ public interface ICollectionOfferRepository : IBaseRepository<CollectionOffer, G
         OfferStatus? status,
         int pageIndex,
         int pageSize);
+
+    Task<List<CollectionOffer>> GetOffersForReport(Guid userId, DateTime startDate, DateTime endDate);
 }

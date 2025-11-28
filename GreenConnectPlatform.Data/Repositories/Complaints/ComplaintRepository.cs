@@ -80,4 +80,17 @@ public class ComplaintRepository : BaseRepository<GreenConnectDbContext, Complai
     {
         return await _dbSet.Where(c => c.CreatedAt >= startDate && c.CreatedAt <= endDate).ToListAsync();
     }
+
+    public async Task<List<Complaint>> GetComplaintsForCollectorReport(Guid userId, DateTime startDate,
+        DateTime endDate)
+    {
+        return await _dbSet
+            .Where(c => c.ComplainantId == userId && c.CreatedAt >= startDate && c.CreatedAt <= endDate).ToListAsync();
+    }
+
+    public async Task<List<Complaint>> GetAccusedForCollectorReport(Guid userId, DateTime startDate, DateTime endDate)
+    {
+        return await _dbSet
+            .Where(c => c.AccusedId == userId && c.CreatedAt >= startDate && c.CreatedAt <= endDate).ToListAsync();
+    }
 }

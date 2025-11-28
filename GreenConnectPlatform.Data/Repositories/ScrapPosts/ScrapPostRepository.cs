@@ -22,7 +22,9 @@ public class ScrapPostRepository : BaseRepository<GreenConnectDbContext, ScrapPo
             .FirstOrDefaultAsync(p => p.ScrapPostId == id);
     }
 
+
     public async Task<(List<ScrapPost> Items, int TotalCount)> SearchAsync(
+        string roleName,
         string? categoryName,
         PostStatus? status,
         Point? userLocation,
@@ -34,10 +36,11 @@ public class ScrapPostRepository : BaseRepository<GreenConnectDbContext, ScrapPo
     {
         var query = _dbSet.AsNoTracking();
 
-        if (status.HasValue)
-            query = query.Where(p => p.Status == status.Value);
-        else
+        if (roleName != "Admin")
             query = query.Where(p => p.Status == PostStatus.Open || p.Status == PostStatus.PartiallyBooked);
+
+        if (status.HasValue)
+            query = query.Where(s => s.Status == status.Value);
 
         if (!string.IsNullOrWhiteSpace(categoryName))
         {

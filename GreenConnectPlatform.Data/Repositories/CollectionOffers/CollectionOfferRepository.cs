@@ -76,4 +76,11 @@ public class CollectionOfferRepository : BaseRepository<GreenConnectDbContext, C
 
         return (items, totalCount);
     }
+
+    public async Task<List<CollectionOffer>> GetOffersForReport(Guid userId, DateTime startDate, DateTime endDate)
+    {
+        return await _dbSet
+            .Where(o => o.ScrapCollectorId == userId && o.CreatedAt >= startDate && o.CreatedAt <= endDate)
+            .ToListAsync();
+    }
 }

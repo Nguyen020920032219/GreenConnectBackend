@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-// Import extension seeding
 
 namespace GreenConnectPlatform.Data.Configurations;
 
@@ -15,7 +14,6 @@ public class GreenConnectDbContext : IdentityDbContext<User, IdentityRole<Guid>,
     {
     }
 
-    // Các DbSet giữ nguyên
     public virtual DbSet<ChatParticipant> ChatParticipants { get; set; }
     public virtual DbSet<ChatRoom> ChatRooms { get; set; }
     public virtual DbSet<CollectionOffer> CollectionOffers { get; set; }
@@ -45,6 +43,8 @@ public class GreenConnectDbContext : IdentityDbContext<User, IdentityRole<Guid>,
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.HasPostgresExtension("postgis");
+        
+        modelBuilder.HasPostgresExtension("unaccent");
 
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 

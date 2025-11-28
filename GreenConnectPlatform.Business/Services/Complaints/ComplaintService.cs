@@ -13,17 +13,18 @@ namespace GreenConnectPlatform.Business.Services.Complaints;
 public class ComplaintService : IComplaintService
 {
     private readonly IComplaintRepository _complaintRepository;
-    private readonly ITransactionRepository _transactionRepository;
     private readonly IMapper _mapper;
-    
-    public ComplaintService(IComplaintRepository complaintRepository,ITransactionRepository transactionRepository, IMapper mapper)
+    private readonly ITransactionRepository _transactionRepository;
+
+    public ComplaintService(IComplaintRepository complaintRepository, ITransactionRepository transactionRepository,
+        IMapper mapper)
     {
         _complaintRepository = complaintRepository;
         _transactionRepository = transactionRepository;
         _mapper = mapper;
     }
-    
-    public async Task<PaginatedResult<ComplaintModel>> GetComplaints(int pageNumber, int pageSize, bool sortByCreatedAt, 
+
+    public async Task<PaginatedResult<ComplaintModel>> GetComplaints(int pageNumber, int pageSize, bool sortByCreatedAt,
         ComplaintStatus? sortByStatus, Guid? userId, string? roleName)
     {
         var (items, totalRecords) = await _complaintRepository.GetComplaintsAsync(
@@ -54,7 +55,7 @@ public class ComplaintService : IComplaintService
         var complaintTask = await _complaintRepository.GetComplaintByIdAsync(complaintId);
         if (complaintTask == null)
             throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Khiếu nại không tồn tại");
-        if(complaintTask.Status != ComplaintStatus.InReview && complaintTask.Status != ComplaintStatus.Submitted)
+        if (complaintTask.Status != ComplaintStatus.InReview && complaintTask.Status != ComplaintStatus.Submitted)
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Khiếu nại đã được xử lý");
         if (isAccept)
         {
@@ -63,11 +64,14 @@ public class ComplaintService : IComplaintService
             complaintTask.Accused.Profile.PointBalance -= 20;
         }
         else
+        {
             complaintTask.Status = ComplaintStatus.Dismissed;
+        }
+
         await _complaintRepository.UpdateAsync(complaintTask);
     }
 
-    public async Task<ComplaintModel> CreateComplaint(Guid userId,string roleName, ComplaintCreateModel model)
+    public async Task<ComplaintModel> CreateComplaint(Guid userId, string roleName, ComplaintCreateModel model)
     {
         var transaction = await _transactionRepository.GetByIdWithDetailsAsync(model.TransactionId);
         if (transaction == null)
@@ -86,13 +90,14 @@ public class ComplaintService : IComplaintService
         }
         else
         {
-            if(transaction.ScrapCollectorId != userId)
+            if (transaction.ScrapCollectorId != userId)
                 throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403",
                     "Bạn không thuộc giao dịch này nên không không có quyền phàn nàn");
             if (transaction.ScrapCollector.Profile.PointBalance < 20)
                 throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                     "Bạn không đủ điểm để làm phàn nàn(cần 20 điểm để có thể làm phàn nàn)");
         }
+
         var complaintModel = _mapper.Map<Complaint>(model);
         complaintModel.Status = ComplaintStatus.Submitted;
         complaintModel.CreatedAt = DateTime.UtcNow;
@@ -111,18 +116,20 @@ public class ComplaintService : IComplaintService
         return _mapper.Map<ComplaintModel>(complaintModel);
     }
 
-    public async Task<ComplaintModel> UpdateComplaint(Guid complaintId, Guid userId, string? reason, string? evidenceUrl)
+    public async Task<ComplaintModel> UpdateComplaint(Guid complaintId, Guid userId, string? reason,
+        string? evidenceUrl)
     {
         var complaint = await _complaintRepository.GetComplaintByIdAsync(complaintId);
         if (complaint == null)
             throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Khiếu nại này không tại");
         if (complaint.Status == ComplaintStatus.Resolved)
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Không thể cập nhật thông tin khi đã hoàn thành");
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "Không thể cập nhật thông tin khi đã hoàn thành");
         if (complaint.ComplainantId != userId)
             throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Bạn không phải người tạo phàn nàn này");
-        if(!string.IsNullOrWhiteSpace(reason))
+        if (!string.IsNullOrWhiteSpace(reason))
             complaint.Reason = reason;
-        if(!string.IsNullOrWhiteSpace(evidenceUrl))
+        if (!string.IsNullOrWhiteSpace(evidenceUrl))
             complaint.EvidenceUrl = evidenceUrl;
         await _complaintRepository.UpdateAsync(complaint);
         return _mapper.Map<ComplaintModel>(complaint);
@@ -134,10 +141,11 @@ public class ComplaintService : IComplaintService
         if (complaint == null)
             throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Khiếu nại này không tại");
         if (complaint.Status != ComplaintStatus.Dismissed)
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Chỉ có thể mở lại phàn nàn khi bị bác bỏ");
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "Chỉ có thể mở lại phàn nàn khi bị bác bỏ");
         if (complaint.ComplainantId != userId)
             throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Bạn không phải người tạo phàn nàn này");
-        if(complaint.Complainant.Profile.PointBalance < 20)
+        if (complaint.Complainant.Profile.PointBalance < 20)
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Bạn không đủ điểm để làm phàn nàn(cần 20 điểm để có thể làm phàn nàn)");
         complaint.Status = ComplaintStatus.Submitted;

@@ -6,6 +6,6 @@ namespace GreenConnectPlatform.Data.Repositories.Chatrooms;
 public interface IChatRoomRepository : IBaseRepository<ChatRoom, Guid>
 {
     Task<ChatRoom?> GetChatRoomByTransactionId(Guid transactionId);
-    
+
     Task<(List<ChatRoom>Items, int TotalCount)> GetChatRooms(Guid userId, int pageIndex, int pageSize);
 }

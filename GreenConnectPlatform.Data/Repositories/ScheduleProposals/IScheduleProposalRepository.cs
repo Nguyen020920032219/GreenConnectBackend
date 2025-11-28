@@ -21,6 +21,6 @@ public interface IScheduleProposalRepository : IBaseRepository<ScheduleProposal,
         bool sortByCreateAtDesc,
         int pageIndex,
         int pageSize);
-    
+
     Task<List<ScheduleProposal>> GetByOffer(Guid offerId);
 }

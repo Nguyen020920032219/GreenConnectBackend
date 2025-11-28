@@ -9,7 +9,7 @@ namespace GreenConnectPlatform.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/feedbacks")]
-[Tags ("17. Feedback (Nhận xét)")]
+[Tags("17. Feedback (Nhận xét)")]
 public class FeedbackController(IFeedbackService feedbackService) : Controller
 {
     /// <summary>
@@ -17,7 +17,7 @@ public class FeedbackController(IFeedbackService feedbackService) : Controller
     /// </summary>
     /// <remarks>
     ///     Lấy danh sách các đánh giá liên quan đến người dùng hiện tại (được phân trang).
-    ///     <br/>
+    ///     <br />
     ///     - **Household**: Xem các đánh giá mình đã viết cho Collector.
     ///     - **Collector**: Xem các đánh giá mà mình nhận được từ Household.
     /// </remarks>
@@ -32,7 +32,7 @@ public class FeedbackController(IFeedbackService feedbackService) : Controller
     [ProducesResponseType(typeof(FeedbackModel), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> GetMyFeedbacks([FromQuery] int pageNumber = 1, 
+    public async Task<IActionResult> GetMyFeedbacks([FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10,
         [FromQuery] bool sortByCreatAt = true)
     {
@@ -57,7 +57,7 @@ public class FeedbackController(IFeedbackService feedbackService) : Controller
     [ProducesResponseType(typeof(FeedbackModel), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetFeedbackById([FromRoute]Guid id)
+    public async Task<IActionResult> GetFeedbackById([FromRoute] Guid id)
     {
         return Ok(await feedbackService.GetFeedbackByIdAsync(id));
     }
@@ -142,7 +142,7 @@ public class FeedbackController(IFeedbackService feedbackService) : Controller
         await feedbackService.DeleteFeedbackAsync(id, userId);
         return Ok("Xóa nhận xét thành công");
     }
-    
+
     private Guid GetCurrentUserId()
     {
         var idStr = User.FindFirstValue(ClaimTypes.NameIdentifier);

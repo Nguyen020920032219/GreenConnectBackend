@@ -59,7 +59,8 @@ public class TransactionRepository : BaseRepository<GreenConnectDbContext, Trans
         return (items, totalCount);
     }
 
-    public async Task<(List<Transaction> Items, int TotalCount)> GetByOfferIdAsync(Guid offerId,TransactionStatus? status, bool sortByCreateAtDesc, bool sortByUpdateAtDesc, int pageIndex, int pageSize)
+    public async Task<(List<Transaction> Items, int TotalCount)> GetByOfferIdAsync(Guid offerId,
+        TransactionStatus? status, bool sortByCreateAtDesc, bool sortByUpdateAtDesc, int pageIndex, int pageSize)
     {
         var query = _dbSet.AsNoTracking()
             .Where(t => t.OfferId == offerId);

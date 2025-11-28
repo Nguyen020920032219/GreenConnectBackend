@@ -17,8 +17,8 @@ namespace GreenConnectPlatform.Api.Controllers;
 [Tags("7. Transactions (Giao Dịch & Thanh Toán)")]
 public class TransactionController : ControllerBase
 {
-    private readonly ITransactionService _service;
     private readonly IFeedbackService _feedbackService;
+    private readonly ITransactionService _service;
 
     public TransactionController(ITransactionService service, IFeedbackService feedbackService)
     {
@@ -163,18 +163,17 @@ public class TransactionController : ControllerBase
     /// <param name="pageNumber"></param>
     /// <param name="pageSize"></param>
     /// <param name="sortByCreateAt">Có thể sắp xếp theo ngày tạo nhận xét</param>
-
     [HttpGet("{id:guid}/feedbacks")]
     [Authorize(Roles = "IndividualCollector, BusinessCollector, Household")]
     [ProducesResponseType(typeof(FeedbackModel), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetFeedbacks([FromRoute] Guid id, 
+    public async Task<IActionResult> GetFeedbacks([FromRoute] Guid id,
         [FromQuery] int pageNumber = 1,
-        [FromQuery]int pageSize = 10,
+        [FromQuery] int pageSize = 10,
         [FromQuery] bool sortByCreateAt = true)
     {
-        return Ok(await _feedbackService.GetFeedbacksAsync(pageNumber, pageSize,id, sortByCreateAt));
+        return Ok(await _feedbackService.GetFeedbacksAsync(pageNumber, pageSize, id, sortByCreateAt));
     }
-    
+
     private Guid GetCurrentUserId()
     {
         var idStr = User.FindFirstValue(ClaimTypes.NameIdentifier);

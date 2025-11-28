@@ -10,6 +10,7 @@ public interface ITransactionService
 {
     Task CheckInAsync(Guid transactionId, Guid collectorId, LocationModel currentLocation);
     Task<TransactionModel> GetByIdAsync(Guid id);
+
     Task<PaginatedResult<TransactionOveralModel>> GetByOfferIdAsync(
         Guid offerId,
         TransactionStatus? status,
@@ -17,6 +18,7 @@ public interface ITransactionService
         bool sortByUpdateAtDesc,
         int pageIndex,
         int pageSize);
+
     Task<PaginatedResult<TransactionOveralModel>> GetListAsync(
         Guid userId, string role, int pageNumber, int pageSize, bool sortByCreateAt, bool sortByUpdateAt);
 

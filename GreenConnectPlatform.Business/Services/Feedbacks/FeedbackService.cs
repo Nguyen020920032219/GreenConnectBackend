@@ -13,19 +13,22 @@ namespace GreenConnectPlatform.Business.Services.Feedbacks;
 public class FeedbackService : IFeedbackService
 {
     private readonly IFeedbackRepository _feedbackRepository;
-    private readonly ITransactionRepository _transactionRepository;
     private readonly IMapper _mapper;
+    private readonly ITransactionRepository _transactionRepository;
 
-    public FeedbackService(IFeedbackRepository feedbackRepository, ITransactionRepository transactionRepository, IMapper mapper)
+    public FeedbackService(IFeedbackRepository feedbackRepository, ITransactionRepository transactionRepository,
+        IMapper mapper)
     {
         _feedbackRepository = feedbackRepository;
         _transactionRepository = transactionRepository;
-        _mapper = mapper; 
+        _mapper = mapper;
     }
-    
-    public async Task<PaginatedResult<FeedbackModel>> GetFeedbacksAsync(int pageNumber, int pageSize, Guid transactionId, bool sortByCreatAt)
+
+    public async Task<PaginatedResult<FeedbackModel>> GetFeedbacksAsync(int pageNumber, int pageSize,
+        Guid transactionId, bool sortByCreatAt)
     {
-        var (items, totalCount) = await _feedbackRepository.GetFeedbackByTransactionId(pageNumber, pageSize,transactionId, sortByCreatAt);
+        var (items, totalCount) =
+            await _feedbackRepository.GetFeedbackByTransactionId(pageNumber, pageSize, transactionId, sortByCreatAt);
         var feedbackModels = _mapper.Map<List<FeedbackModel>>(items);
         return new PaginatedResult<FeedbackModel>
         {
@@ -34,9 +37,11 @@ public class FeedbackService : IFeedbackService
         };
     }
 
-    public async Task<PaginatedResult<FeedbackModel>> GetFeedbacksByUserIdAsync(int pageNumber, int pageSize, Guid userId, string roleName, bool sortByCreatAt)
+    public async Task<PaginatedResult<FeedbackModel>> GetFeedbacksByUserIdAsync(int pageNumber, int pageSize,
+        Guid userId, string roleName, bool sortByCreatAt)
     {
-        var (items, totalCount) = await _feedbackRepository.GetMyFeedback(pageNumber, pageSize, userId, roleName, sortByCreatAt);
+        var (items, totalCount) =
+            await _feedbackRepository.GetMyFeedback(pageNumber, pageSize, userId, roleName, sortByCreatAt);
         var feedbackModels = _mapper.Map<List<FeedbackModel>>(items);
         return new PaginatedResult<FeedbackModel>
         {
@@ -48,7 +53,7 @@ public class FeedbackService : IFeedbackService
     public async Task<FeedbackModel> GetFeedbackByIdAsync(Guid id)
     {
         var feedback = await _feedbackRepository.GetFeedbackById(id);
-        if(feedback == null)
+        if (feedback == null)
             throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Không tìm thấy nhận xét nào");
         return _mapper.Map<FeedbackModel>(feedback);
     }
@@ -92,10 +97,7 @@ public class FeedbackService : IFeedbackService
                     "Bạn chỉ có thể rate từ 1 -5");
         }
 
-        if (!string.IsNullOrWhiteSpace(comment))
-        {
-            feedback.Comment = comment;
-        }
+        if (!string.IsNullOrWhiteSpace(comment)) feedback.Comment = comment;
         await _feedbackRepository.UpdateAsync(feedback);
         return _mapper.Map<FeedbackModel>(feedback);
     }

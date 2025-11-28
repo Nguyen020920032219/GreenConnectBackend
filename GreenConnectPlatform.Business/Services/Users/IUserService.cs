@@ -1,6 +1,5 @@
 ﻿using GreenConnectPlatform.Business.Models.Paging;
 using GreenConnectPlatform.Business.Models.Users;
-using GreenConnectPlatform.Data.Entities;
 
 namespace GreenConnectPlatform.Business.Services.Users;
 
@@ -11,6 +10,6 @@ public interface IUserService
         int pageSize,
         Guid? roleId,
         string? fullName);
-    
+
     Task BanOrUnbanUserAsync(Guid userId);
 }

@@ -25,15 +25,15 @@ public class ChatController(IChatService chatService) : ControllerBase
     {
         return Ok(await chatService.GetChatHistoryAsync(pageNumber, pageSize, id));
     }
-    
+
     [HttpPost("sendMessage")]
     public async Task<IActionResult> SendMessage([FromBody] SendMessageModel request)
-    { 
+    {
         var userId = GetCurrentUserId();
         var result = await chatService.SendMessageAsync(userId, request);
         return Ok(result);
     }
-    
+
     [HttpPatch("rooms/{id:Guid}/read")]
     public async Task<IActionResult> MarkAsRead([FromRoute] Guid id)
     {
@@ -41,7 +41,7 @@ public class ChatController(IChatService chatService) : ControllerBase
         await chatService.MarkAllAsReadAsync(id, userId);
         return Ok();
     }
-    
+
     private Guid GetCurrentUserId()
     {
         var idStr = User.FindFirstValue(ClaimTypes.NameIdentifier);

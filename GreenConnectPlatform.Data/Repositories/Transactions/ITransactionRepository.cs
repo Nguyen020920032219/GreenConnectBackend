@@ -15,7 +15,7 @@ public interface ITransactionRepository : IBaseRepository<Transaction, Guid>
         bool sortByUpdateAtDesc,
         int pageIndex,
         int pageSize);
-    
+
     Task<(List<Transaction> Items, int TotalCount)> GetByOfferIdAsync(
         Guid offerId,
         TransactionStatus? status,
@@ -23,6 +23,6 @@ public interface ITransactionRepository : IBaseRepository<Transaction, Guid>
         bool sortByUpdateAtDesc,
         int pageIndex,
         int pageSize);
-    
+
     Task<List<Transaction>> GetTransactionsForReport(DateTime startDate, DateTime endDate);
 }

@@ -9,11 +9,10 @@ namespace GreenConnectPlatform.Api.Controllers;
 
 [Route("api/v1/users")]
 [Tags("14. Users (Người dùng)")]
-
 public class UserController(IUserService userService) : ControllerBase
 {
     /// <summary>
-    ///  Admin có lấy danh sách tất cả người dùng trong hệ thống
+    ///     Admin có lấy danh sách tất cả người dùng trong hệ thống
     /// </summary>
     /// <param name="pageIndex"></param>
     /// <param name="pageSize"></param>
@@ -34,15 +33,15 @@ public class UserController(IUserService userService) : ControllerBase
         var result = await userService.GetUsersAsync(pageIndex, pageSize, roleId, fullName);
         return Ok(result);
     }
-    
+
     /// <summary>
-    ///  Admin có cấm hoặc mở lại tài khoản cho người dùng
+    ///     Admin có cấm hoặc mở lại tài khoản cho người dùng
     /// </summary>
     /// <param name="userId">Id của người dùng</param>
     /// <returns></returns>
     [HttpPatch("{userId:Guid}/ban-toggle")]
     [Authorize(Roles = "Admin")]
-    [ProducesResponseType(typeof(string),StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
@@ -51,5 +50,4 @@ public class UserController(IUserService userService) : ControllerBase
         await userService.BanOrUnbanUserAsync(userId);
         return Ok("Người dùng đã bị cấm hoặc mở lại thành công");
     }
-    
 }

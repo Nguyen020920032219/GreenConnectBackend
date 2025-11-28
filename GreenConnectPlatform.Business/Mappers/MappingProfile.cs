@@ -83,6 +83,7 @@ public class MappingProfile : Profile
         CreateMap<User, UserModel>();
         CreateMap<CollectorVerificationInfo, VerificationInfoModel>();
         CreateMap<CollectorVerificationInfo, VerificationInfoOveralModel>();
+
         #endregion
 
         #region PaymentPackage

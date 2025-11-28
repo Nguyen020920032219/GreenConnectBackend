@@ -21,7 +21,6 @@ public class FirebaseStorageService : IFileStorageService
         var credential = GoogleCredential.FromFile(serviceAccountPath);
 
         _urlSigner = UrlSigner.FromCredential(credential);
-
         _storageClient = StorageClient.Create(credential);
 
         _bucketName = configuration["firebase_storage:bucket"]
@@ -73,6 +72,7 @@ public class FirebaseStorageService : IFileStorageService
         }
         catch (GoogleApiException ex) when (ex.Error.Code == 404)
         {
+            // Bỏ qua nếu file không tồn tại (Idempotent)
         }
         catch (Exception ex)
         {

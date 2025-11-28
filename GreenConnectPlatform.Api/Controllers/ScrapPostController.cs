@@ -17,8 +17,8 @@ namespace GreenConnectPlatform.Api.Controllers;
 [ApiController]
 public class ScrapPostController : ControllerBase
 {
-    private readonly IScrapPostService _service;
     private readonly ICollectionOfferService _collectionOfferService;
+    private readonly IScrapPostService _service;
 
     public ScrapPostController(IScrapPostService service, ICollectionOfferService collectionOfferService)
     {
@@ -256,13 +256,13 @@ public class ScrapPostController : ControllerBase
         return NoContent();
     }
 
-    
+
     private Guid GetCurrentUserId()
     {
         var idStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
         return Guid.TryParse(idStr, out var id) ? id : Guid.Empty;
     }
-    
+
     /// <summary>
     ///     (IndividualCollector/BusinessCollector) Tạo đề nghị thu gom cho một bài đăng.
     /// </summary>

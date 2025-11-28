@@ -1,7 +1,7 @@
 using GreenConnectPlatform.Business.Models.Exceptions;
 using GreenConnectPlatform.Business.Models.Files;
 using GreenConnectPlatform.Business.Services.FileStorage;
-using GreenConnectPlatform.Data.Repositories.Complaints;
+using GreenConnectPlatform.Data.Repositories.Complaints; // [Cần Import]
 using GreenConnectPlatform.Data.Repositories.ScrapPosts;
 using GreenConnectPlatform.Data.Repositories.Transactions;
 using Microsoft.AspNetCore.Http;
@@ -10,10 +10,10 @@ namespace GreenConnectPlatform.Business.Services.Storage;
 
 public class StorageService : IStorageService
 {
-    private readonly IComplaintRepository _complaintRepository;
     private readonly IFileStorageService _fileStorageService;
     private readonly IScrapPostRepository _scrapPostRepository;
     private readonly ITransactionRepository _transactionRepository;
+    private readonly IComplaintRepository _complaintRepository; // [NEW] Inject để check quyền
 
     public StorageService(
         IFileStorageService fileStorageService,
@@ -27,83 +27,104 @@ public class StorageService : IStorageService
         _complaintRepository = complaintRepository;
     }
 
-    // 1. AVATAR: avatars/{userId}/{guid}.ext
+    // --- 1. UPLOAD LOGIC ---
+
     public async Task<FileUploadResponse> GenerateAvatarUploadUrlAsync(Guid userId, FileUploadBaseRequest request)
     {
-        var extension = Path.GetExtension(request.FileName);
-        var filePath = $"avatars/{userId}/{Guid.NewGuid()}{extension}";
-
-        var signedUrl = await _fileStorageService.GenerateUploadSignedUrlAsync(filePath, request.ContentType);
-        return new FileUploadResponse { UploadUrl = signedUrl, FilePath = filePath };
+        var ext = Path.GetExtension(request.FileName);
+        var path = $"avatars/{userId}/{Guid.NewGuid()}{ext}";
+        var url = await _fileStorageService.GenerateUploadSignedUrlAsync(path, request.ContentType);
+        return new FileUploadResponse { UploadUrl = url, FilePath = path };
     }
 
-    // 2. VERIFICATION: verifications/{userId}/{guid}.ext
     public async Task<FileUploadResponse> GenerateVerificationUploadUrlAsync(Guid userId, FileUploadBaseRequest request)
     {
-        var extension = Path.GetExtension(request.FileName);
-        var filePath = $"verifications/{userId}/{Guid.NewGuid()}{extension}";
-
-        var signedUrl = await _fileStorageService.GenerateUploadSignedUrlAsync(filePath, request.ContentType);
-        return new FileUploadResponse { UploadUrl = signedUrl, FilePath = filePath };
+        var ext = Path.GetExtension(request.FileName);
+        var path = $"verifications/{userId}/{Guid.NewGuid()}{ext}";
+        var url = await _fileStorageService.GenerateUploadSignedUrlAsync(path, request.ContentType);
+        return new FileUploadResponse { UploadUrl = url, FilePath = path };
     }
 
-    // 3. SCRAP POST: scraps/{userId}/{guid}.ext
     public async Task<FileUploadResponse> GenerateScrapPostUploadUrlAsync(Guid userId, FileUploadBaseRequest request)
     {
-        var extension = Path.GetExtension(request.FileName);
-        var filePath = $"scraps/{userId}/{Guid.NewGuid()}{extension}";
-
-        var signedUrl = await _fileStorageService.GenerateUploadSignedUrlAsync(filePath, request.ContentType);
-        return new FileUploadResponse { UploadUrl = signedUrl, FilePath = filePath };
+        var ext = Path.GetExtension(request.FileName);
+        // Lưu theo UserId để dễ quản lý (không cần PostId trước)
+        var path = $"scraps/{userId}/{Guid.NewGuid()}{ext}";
+        var url = await _fileStorageService.GenerateUploadSignedUrlAsync(path, request.ContentType);
+        return new FileUploadResponse { UploadUrl = url, FilePath = path };
     }
 
-    // 4. CHECK-IN: checkins/{transactionId}/{guid}.ext
-    public async Task<FileUploadResponse> GenerateCheckInUploadUrlAsync(Guid userId, EntityFileUploadRequest request)
+    public async Task<FileUploadResponse> GenerateComplaintImageUploadUrlAsync(Guid userId, EntityFileUploadRequest request)
     {
-        var transaction = await _transactionRepository.GetByIdAsync(request.EntityId);
-        if (transaction == null)
-            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Giao dịch không tồn tại.");
-
-        if (transaction.ScrapCollectorId != userId)
-            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403",
-                "Bạn không phải người thu gom của đơn hàng này.");
-
-        var extension = Path.GetExtension(request.FileName);
-        var filePath = $"checkins/{request.EntityId}/{Guid.NewGuid()}{extension}";
-
-        var signedUrl = await _fileStorageService.GenerateUploadSignedUrlAsync(filePath, request.ContentType);
-        return new FileUploadResponse { UploadUrl = signedUrl, FilePath = filePath };
-    }
-
-    // [MỚI] 5. COMPLAINT: complaints/{complaintId}/{guid}.ext
-    public async Task<FileUploadResponse> GenerateComplaintImageUploadUrlAsync(Guid userId,
-        EntityFileUploadRequest request)
-    {
-        // 1. Check quyền: Phải là người tạo khiếu nại (Complainant)
+        // Check quyền Complainant (Người tạo khiếu nại)
         var complaint = await _complaintRepository.GetByIdAsync(request.EntityId);
-
-        if (complaint == null)
-            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Khiếu nại không tồn tại.");
+        if (complaint == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Khiếu nại không tồn tại.");
 
         if (complaint.ComplainantId != userId)
-            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403",
-                "Bạn không phải người tạo khiếu nại này.");
+            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Bạn không phải người tạo khiếu nại này.");
 
-        // 2. Tạo đường dẫn
-        var extension = Path.GetExtension(request.FileName);
-        var filePath = $"complaints/{request.EntityId}/{Guid.NewGuid()}{extension}";
-
-        var signedUrl = await _fileStorageService.GenerateUploadSignedUrlAsync(filePath, request.ContentType);
-        return new FileUploadResponse { UploadUrl = signedUrl, FilePath = filePath };
+        var ext = Path.GetExtension(request.FileName);
+        var path = $"complaints/{request.EntityId}/{Guid.NewGuid()}{ext}";
+        var url = await _fileStorageService.GenerateUploadSignedUrlAsync(path, request.ContentType);
+        return new FileUploadResponse { UploadUrl = url, FilePath = path };
     }
 
-    // 5. GET READ URL
-    public async Task<string> GetFileReadUrlAsync(string filePath)
+    // --- 2. READ LOGIC (Lấy link xem ảnh) ---
+
+    public async Task<string> GetFileReadUrlAsync(Guid userId, string role, string filePath)
     {
+        if (string.IsNullOrEmpty(filePath)) return "";
+
+        var segments = filePath.Split('/');
+        if (segments.Length < 2) return ""; 
+
+        var folderType = segments[0]; // avatars, verifications, scraps, checkins, complaints
+
+        switch (folderType)
+        {
+            case "verifications":
+                // CHỈ CHO PHÉP: Admin hoặc Chính chủ
+                var ownerId = segments[1];
+                if (role != "Admin" && ownerId != userId.ToString())
+                {
+                    throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Bạn không có quyền xem tài liệu này.");
+                }
+                break;
+
+            case "checkins":
+                // CHỈ CHO PHÉP: User đã đăng nhập (Tốt nhất nên check thêm xem có liên quan Transaction không)
+                // Ở mức MVP, yêu cầu đăng nhập là tạm ổn.
+                if (userId == Guid.Empty)
+                {
+                     throw new ApiExceptionModel(StatusCodes.Status401Unauthorized, "401", "Vui lòng đăng nhập để xem.");
+                }
+                break;
+
+            case "complaints":
+                // [MỚI] Check quyền xem bằng chứng khiếu nại
+                var complaintIdStr = segments[1];
+                if (Guid.TryParse(complaintIdStr, out var complaintId))
+                {
+                    var complaint = await _complaintRepository.GetByIdAsync(complaintId);
+                    if (complaint != null)
+                    {
+                        // CHỈ CHO PHÉP: Admin, Người tố cáo, Người bị tố cáo
+                        if (role != "Admin" && 
+                            complaint.ComplainantId != userId && 
+                            complaint.AccusedId != userId)
+                        {
+                            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Bạn không có quyền xem bằng chứng này.");
+                        }
+                    }
+                }
+                break;
+        }
+
         return await _fileStorageService.GetReadSignedUrlAsync(filePath);
     }
 
-    // 6. DELETE
+    // --- 3. DELETE LOGIC ---
+
     public async Task DeleteFileAsync(Guid userId, string filePath)
     {
         if (string.IsNullOrEmpty(filePath)) return;
@@ -111,16 +132,19 @@ public class StorageService : IStorageService
         var segments = filePath.Split('/');
         if (segments.Length < 2) return;
 
-        // Check quyền sở hữu dựa trên cấu trúc thư mục: {type}/{userId}/...
-        if (segments[0] != "checkins")
+        var folderType = segments[0];
+
+        // 1. Chặn xóa các file bằng chứng quan trọng
+        if (folderType == "checkins" || folderType == "complaints")
+        {
+            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Không thể xóa bằng chứng giao dịch/khiếu nại.");
+        }
+
+        // 2. Check quyền sở hữu cho các file cá nhân
+        if (folderType == "avatars" || folderType == "verifications" || folderType == "scraps")
         {
             if (segments[1] != userId.ToString())
                 throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Bạn không có quyền xóa file này.");
-        }
-        else
-        {
-            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403",
-                "Không thể xóa ảnh bằng chứng giao dịch.");
         }
 
         await _fileStorageService.DeleteFileAsync(filePath);

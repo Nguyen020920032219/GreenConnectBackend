@@ -17,6 +17,7 @@ public class Profile
     public string? BankCode { get; set; }
     public string? BankAccountNumber { get; set; }
     public string? BankAccountName { get; set; }
+    public int CreditBalance { get; set; } = 0;
 
     public virtual User? User { get; set; }
     public virtual Rank? Rank { get; set; }

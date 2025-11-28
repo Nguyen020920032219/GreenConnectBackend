@@ -20,7 +20,8 @@ public class ProfileConfiguration : IEntityTypeConfiguration<Profile>
         builder.Property(e => e.BankAccountName).HasMaxLength(100);
         builder.Property(e => e.Gender).HasConversion<string>();
         builder.Property(e => e.Location).HasColumnType("geometry(Point,4326)");
-
+        builder.Property(e => e.PointBalance).HasDefaultValue(200);
+        builder.Property(e => e.CreditBalance).HasDefaultValue(0);
         builder.HasOne(d => d.User)
             .WithOne(p => p.Profile)
             .HasForeignKey<Profile>(d => d.UserId)

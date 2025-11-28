@@ -65,45 +65,25 @@ public class FilesController : ControllerBase
     ///     (Household) Xin link upload ảnh cho bài đăng ve chai.
     /// </summary>
     /// <remarks>
-    ///     **Yêu cầu:** User phải là người tạo ra bài đăng (`EntityId` = `ScrapPostId`). <br />
-    ///     Nếu bài đăng không tồn tại hoặc không phải chính chủ, sẽ trả về lỗi 403/404.
+    ///     **Mục đích:** Cho phép Household upload ảnh rác lên Cloud trước khi tạo bài đăng chính thức. <br/>
+    ///     **Quy trình:** <br/>
+    ///     1. Gọi API này với tên file và loại file. <br/>
+    ///     2. Nhận về `UploadUrl` (để upload) và `FilePath` (đường dẫn file). <br/>
+    ///     3. Sau khi upload thành công, dùng chuỗi `FilePath` này điền vào trường `ImageUrl` khi gọi API tạo bài đăng (`POST /api/v1/posts`).
     /// </remarks>
-    /// <param name="request">Thông tin file và `EntityId` (là `ScrapPostId`).</param>
-    /// <response code="200">Thành công.</response>
-    /// <response code="403">Không phải chủ bài đăng.</response>
-    /// <response code="404">Bài đăng không tồn tại.</response>
+    /// <param name="request">Thông tin file (Tên file, Content-Type).</param>
+    /// <response code="200">Thành công. Trả về Signed URL và FilePath.</response>
+    /// <response code="401">Chưa đăng nhập.</response>
+    /// <response code="403">User không phải là Household.</response>
     [HttpPost("upload-url/scrap-post")]
     [Authorize(Roles = "Household")]
     [ProducesResponseType(typeof(FileUploadResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<FileUploadResponse>> UploadScrapPost([FromBody] FileUploadBaseRequest request)
     {
         var userId = GetCurrentUserId();
         var result = await _storageService.GenerateScrapPostUploadUrlAsync(userId, request);
-        return Ok(result);
-    }
-
-    /// <summary>
-    ///     (Collector) Xin link upload ảnh Check-in giao dịch.
-    /// </summary>
-    /// <remarks>
-    ///     Dùng để upload ảnh chụp tại hiện trường làm bằng chứng. <br />
-    ///     **Yêu cầu:** User phải là Collector được chỉ định trong giao dịch (`EntityId` = `TransactionId`).
-    /// </remarks>
-    /// <param name="request">Thông tin file và `EntityId` (là `TransactionId`).</param>
-    /// <response code="200">Thành công.</response>
-    /// <response code="403">Không phải Collector của đơn hàng này.</response>
-    /// <response code="404">Giao dịch không tồn tại.</response>
-    [HttpPost("upload-url/check-in")]
-    [Authorize(Roles = "IndividualCollector, BusinessCollector")]
-    [ProducesResponseType(typeof(FileUploadResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<FileUploadResponse>> UploadCheckIn([FromBody] EntityFileUploadRequest request)
-    {
-        var userId = GetCurrentUserId();
-        var result = await _storageService.GenerateCheckInUploadUrlAsync(userId, request);
         return Ok(result);
     }
 

@@ -140,9 +140,9 @@ public class ChatService : IChatService
         };
     }
 
-    public async Task<PaginatedResult<ChatRoomModel>> GetMyChatRoomAsync(Guid userId, int pageIndex, int pageSize)
+    public async Task<PaginatedResult<ChatRoomModel>> GetMyChatRoomAsync(Guid userId,string? name, int pageIndex, int pageSize)
     {
-        var (items, totalCount) = await _roomRepository.GetChatRooms(userId, pageIndex, pageSize);
+        var (items, totalCount) = await _roomRepository.GetChatRooms(userId,name, pageIndex, pageSize);
         var tasks = items.Select(async room =>
         {
             var partner = room.ChatParticipants.FirstOrDefault(p => p.UserId != userId)?.User;

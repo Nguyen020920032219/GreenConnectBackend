@@ -9,7 +9,7 @@ public interface IChatService
 
     Task<PaginatedResult<MessageModel>> GetChatHistoryAsync(int pageIndex, int pageSize, Guid chatRoomId);
 
-    Task<PaginatedResult<ChatRoomModel>> GetMyChatRoomAsync(Guid userId, int pageIndex, int pageSize);
+    Task<PaginatedResult<ChatRoomModel>> GetMyChatRoomAsync(Guid userId,string? name, int pageIndex, int pageSize);
 
     Task MarkAllAsReadAsync(Guid chatRoomId, Guid userId);
 }

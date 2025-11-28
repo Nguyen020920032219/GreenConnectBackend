@@ -17,4 +17,6 @@ public interface IComplaintRepository : IBaseRepository<Complaint, Guid>
         string? roleName);
 
     Task<List<Complaint>> GetComplaintsForReport(DateTime startDate, DateTime endDate);
+    Task<List<Complaint>> GetComplaintsForCollectorReport(Guid userId, DateTime startDate, DateTime endDate);
+    Task<List<Complaint>> GetAccusedForCollectorReport(Guid userId, DateTime startDate, DateTime endDate);
 }

@@ -1,14 +1,18 @@
 ﻿using AutoMapper;
 using GreenConnectPlatform.Business.Models.Exceptions;
 using GreenConnectPlatform.Business.Models.Paging;
+using GreenConnectPlatform.Business.Models.ScrapCategories;
 using GreenConnectPlatform.Business.Models.ScrapPosts;
 using GreenConnectPlatform.Business.Models.ScrapPosts.ScrapPostDetails;
+using GreenConnectPlatform.Business.Models.Users;
+using GreenConnectPlatform.Business.Services.FileStorage;
 using GreenConnectPlatform.Data.Entities;
 using GreenConnectPlatform.Data.Enums;
 using GreenConnectPlatform.Data.Repositories.Profiles;
 using GreenConnectPlatform.Data.Repositories.ScrapCategories;
 using GreenConnectPlatform.Data.Repositories.ScrapPosts;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
 
@@ -17,25 +21,32 @@ namespace GreenConnectPlatform.Business.Services.ScrapPosts;
 public class ScrapPostService : IScrapPostService
 {
     private readonly IScrapCategoryRepository _categoryRepository;
+    private readonly IFileStorageService _fileStorageService;
     private readonly GeometryFactory _geometryFactory;
     private readonly IMapper _mapper;
     private readonly IScrapPostRepository _postRepository;
     private readonly IProfileRepository _profileRepository;
+    private readonly UserManager<User> _userManager;
 
     public ScrapPostService(
         IScrapPostRepository postRepository,
         IScrapCategoryRepository categoryRepository,
         IProfileRepository profileRepository,
+        IFileStorageService fileStorageService,
+        UserManager<User> userManager,
         IMapper mapper)
     {
         _postRepository = postRepository;
         _categoryRepository = categoryRepository;
         _profileRepository = profileRepository;
+        _fileStorageService = fileStorageService;
+        _userManager = userManager;
         _mapper = mapper;
         _geometryFactory = NtsGeometryServices.Instance.CreateGeometryFactory(4326);
     }
 
     public async Task<PaginatedResult<ScrapPostOverralModel>> SearchPostsAsync(
+        string roleName,
         int pageNumber, int pageSize, string? categoryName, PostStatus? status,
         bool sortByLocation, bool sortByCreateAt, Guid currentUserId)
     {
@@ -47,6 +58,7 @@ public class ScrapPostService : IScrapPostService
         }
 
         var (items, totalCount) = await _postRepository.SearchAsync(
+            roleName,
             categoryName, status, userLocation,
             sortByLocation, sortByCreateAt, false,
             pageNumber, pageSize);
@@ -80,8 +92,59 @@ public class ScrapPostService : IScrapPostService
         var post = await _postRepository.GetByIdWithDetailsAsync(id);
         if (post == null)
             throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Bài đăng không tồn tại.");
+        var roles = await _userManager.GetRolesAsync(post.Household);
 
-        return _mapper.Map<ScrapPostModel>(post);
+        var scrapPostDetails = new List<ScrapPostDetailModel>();
+
+        if (post.ScrapPostDetails != null)
+            foreach (var detail in post.ScrapPostDetails)
+            {
+                string? detailImageUrl = null;
+                if (!string.IsNullOrEmpty(detail.ImageUrl))
+                    detailImageUrl = await _fileStorageService.GetReadSignedUrlAsync(detail.ImageUrl);
+
+                scrapPostDetails.Add(new ScrapPostDetailModel
+                {
+                    ScrapCategoryId = detail.ScrapCategoryId,
+                    ScrapCategory = new ScrapCategoryModel
+                    {
+                        ScrapCategoryId = detail.ScrapCategory.ScrapCategoryId,
+                        CategoryName = detail.ScrapCategory.CategoryName,
+                        Description = detail.ScrapCategory.Description
+                    },
+                    AmountDescription = detail.AmountDescription,
+                    ImageUrl = detailImageUrl,
+                    Status = detail.Status
+                });
+            }
+
+        var postModel = new ScrapPostModel
+        {
+            ScrapPostId = post.ScrapPostId,
+            Title = post.Title,
+            Description = post.Description,
+            Address = post.Address,
+            AvailableTimeRange = post.AvailableTimeRange,
+            Status = post.Status,
+            CreatedAt = post.CreatedAt,
+            UpdatedAt = post.UpdatedAt,
+            HouseholdId = post.HouseholdId,
+            Household = new UserViewModel
+            {
+                Id = post.Household.Id,
+                FullName = post.Household.FullName,
+                PhoneNumber = post.Household.PhoneNumber,
+                AvatarUrl = post.Household.Profile.AvatarUrl != null
+                    ? await _fileStorageService.GetReadSignedUrlAsync(post.Household.Profile.AvatarUrl)
+                    : null,
+                PointBalance = post.Household.Profile.PointBalance,
+                Rank = post.Household.Profile.Rank.ToString(),
+                Roles = roles
+            },
+            MustTakeAll = post.MustTakeAll,
+            ScrapPostDetails = scrapPostDetails
+        };
+        return postModel;
     }
 
     public async Task<ScrapPostModel> CreateAsync(Guid householdId, ScrapPostCreateModel request)

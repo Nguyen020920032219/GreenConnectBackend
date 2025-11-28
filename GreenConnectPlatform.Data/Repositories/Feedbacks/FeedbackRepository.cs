@@ -88,4 +88,12 @@ public class FeedbackRepository : BaseRepository<GreenConnectDbContext, Feedback
             .Include(f => f.Reviewee)
             .FirstOrDefaultAsync(f => f.FeedbackId == id);
     }
+
+    public async Task<List<Feedback>> GetAllFeedbacks(Guid userId, DateTime startDate, DateTime endDate)
+    {
+        return await _dbSet
+            .Where(f => f.RevieweeId == userId
+                        && f.CreatedAt >= startDate && f.CreatedAt <= endDate)
+            .ToListAsync();
+    }
 }

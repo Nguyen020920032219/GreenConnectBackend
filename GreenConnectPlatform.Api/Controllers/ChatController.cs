@@ -13,10 +13,10 @@ namespace GreenConnectPlatform.Api.Controllers;
 public class ChatController(IChatService chatService) : ControllerBase
 {
     [HttpGet("rooms")]
-    public async Task<IActionResult> GetMyRooms([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+    public async Task<IActionResult> GetMyRooms([FromQuery] string? name, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
         var userId = GetCurrentUserId();
-        return Ok(await chatService.GetMyChatRoomAsync(userId, pageNumber, pageSize));
+        return Ok(await chatService.GetMyChatRoomAsync(userId, name,pageNumber, pageSize));
     }
 
     [HttpGet("rooms/{id:Guid}")]

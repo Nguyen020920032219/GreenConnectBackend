@@ -4,8 +4,10 @@ using GreenConnectPlatform.Business.Models.Paging;
 using GreenConnectPlatform.Business.Models.ScrapPosts;
 using GreenConnectPlatform.Business.Models.Transactions;
 using GreenConnectPlatform.Business.Models.Transactions.TransactionDetails;
+using GreenConnectPlatform.Business.Services.PointHistories;
 using GreenConnectPlatform.Data.Entities;
 using GreenConnectPlatform.Data.Enums;
+using GreenConnectPlatform.Data.Repositories.PointHistories;
 using GreenConnectPlatform.Data.Repositories.Transactions;
 using Microsoft.AspNetCore.Http;
 using NetTopologySuite;
@@ -20,12 +22,15 @@ public class TransactionService : ITransactionService
     private readonly IMapper _mapper;
 
     private readonly ITransactionRepository _transactionRepository;
-
+    private readonly IPointHistoryRepository _pointHistoryRepository;
+    
     public TransactionService(
         ITransactionRepository transactionRepository,
+        IPointHistoryRepository pointHistoryRepository,
         IMapper mapper)
     {
         _transactionRepository = transactionRepository;
+        _pointHistoryRepository = pointHistoryRepository;
         _mapper = mapper;
         _geometryFactory = NtsGeometryServices.Instance.CreateGeometryFactory(4326);
     }
@@ -169,12 +174,20 @@ public class TransactionService : ITransactionService
         if (isAccepted && !transaction.TransactionDetails.Any())
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Người thu gom vẫn chưa gửi bất kỳ vật phẩm nào.");
-
+        
         if (isAccepted)
         {
             transaction.Status = TransactionStatus.Completed;
             transaction.ScrapCollector.Profile.PointBalance += 10;
-
+            var pointCollectorHistory = new PointHistory
+            {
+                PointHistoryId = Guid.NewGuid(),
+                UserId = transaction.ScrapCollectorId,
+                PointChange = 10,
+                Reason = "Hoàn thành thu gom vật phẩm.",
+                CreatedAt = DateTime.UtcNow
+            };
+            await _pointHistoryRepository.AddAsync(pointCollectorHistory);
             foreach (var detail in transaction.Offer.ScrapPost.ScrapPostDetails)
                 detail.Status = PostDetailStatus.Collected;
             var scrapPosts = transaction.Offer.ScrapPost.ScrapPostDetails
@@ -184,6 +197,15 @@ public class TransactionService : ITransactionService
             {
                 transaction.Offer.ScrapPost.Status = PostStatus.Completed;
                 transaction.Household.Profile.PointBalance += 10;
+                var pointHistory = new PointHistory
+                {
+                    PointHistoryId = Guid.NewGuid(),
+                    UserId = transaction.HouseholdId,
+                    PointChange = 10,
+                    Reason = "Hoàn thành thu gom tất cả vật phẩm trong bài đăng.",
+                    CreatedAt = DateTime.UtcNow
+                };
+                await _pointHistoryRepository.AddAsync(pointHistory);
             }
         }
         else

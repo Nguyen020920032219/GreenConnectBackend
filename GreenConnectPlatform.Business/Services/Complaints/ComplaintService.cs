@@ -6,6 +6,7 @@ using GreenConnectPlatform.Business.Services.FileStorage;
 using GreenConnectPlatform.Data.Entities;
 using GreenConnectPlatform.Data.Enums;
 using GreenConnectPlatform.Data.Repositories.Complaints;
+using GreenConnectPlatform.Data.Repositories.PointHistories;
 using GreenConnectPlatform.Data.Repositories.Transactions;
 using Microsoft.AspNetCore.Http;
 
@@ -17,13 +18,15 @@ public class ComplaintService : IComplaintService
     private readonly IFileStorageService _fileStorageService;
     private readonly IMapper _mapper;
     private readonly ITransactionRepository _transactionRepository;
+    private readonly IPointHistoryRepository _pointHistoryRepository;
 
     public ComplaintService(IComplaintRepository complaintRepository, ITransactionRepository transactionRepository,
-        IFileStorageService fileStorageService, IMapper mapper)
+        IFileStorageService fileStorageService, IPointHistoryRepository pointHistoryRepository, IMapper mapper)
     {
         _complaintRepository = complaintRepository;
         _transactionRepository = transactionRepository;
         _fileStorageService = fileStorageService;
+        _pointHistoryRepository = pointHistoryRepository;
         _mapper = mapper;
     }
 
@@ -72,7 +75,9 @@ public class ComplaintService : IComplaintService
         {
             complaintTask.Status = ComplaintStatus.Resolved;
             complaintTask.Complainant.Profile.PointBalance += 30;
+            await AddPointHistory(complaintTask.ComplainantId, 30, "Được hoàn và cộng điểm do khiếu nại thành công");
             complaintTask.Accused.Profile.PointBalance -= 20;
+            await AddPointHistory(complaintTask.AccusedId, -20, "Bị trừ điểm do bị khiếu nại từ người dùng");
         }
         else
         {
@@ -120,9 +125,15 @@ public class ComplaintService : IComplaintService
             complaintModel.AccusedId = transaction.HouseholdId;
         await _complaintRepository.AddAsync(complaintModel);
         if (roleName == "Household")
+        {
             transaction.Household.Profile.PointBalance -= 20;
+            await AddPointHistory(transaction.HouseholdId, -20, "Bị trừ điểm do tạo phàn nàn");
+        }
         else
+        {
             transaction.ScrapCollector.Profile.PointBalance -= 20;
+            await AddPointHistory(transaction.ScrapCollectorId, -20, "Bị trừ điểm do tạo phàn nàn");
+        }
         await _transactionRepository.UpdateAsync(transaction);
         return _mapper.Map<ComplaintModel>(complaintModel);
     }
@@ -161,6 +172,21 @@ public class ComplaintService : IComplaintService
                 "Bạn không đủ điểm để làm phàn nàn(cần 20 điểm để có thể làm phàn nàn)");
         complaint.Status = ComplaintStatus.Submitted;
         complaint.Complainant.Profile.PointBalance -= 20;
+        await AddPointHistory(complaint.ComplainantId, -20, "Bị trừ điểm do mở lại phàn nàn");
         await _complaintRepository.UpdateAsync(complaint);
     }
+    
+    private async Task AddPointHistory(Guid userId, int pointChange, string reason)
+    {
+        var pointHistory = new PointHistory
+        {
+            PointHistoryId = Guid.NewGuid(),
+            UserId = userId,
+            PointChange = pointChange,
+            Reason = reason,
+            CreatedAt = DateTime.UtcNow
+        };
+        await _pointHistoryRepository.AddAsync(pointHistory);
+    }
+    
 }

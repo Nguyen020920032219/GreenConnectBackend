@@ -3,6 +3,7 @@ using GreenConnectPlatform.Business.Models.CollectionOffers.OfferDetails;
 using GreenConnectPlatform.Business.Models.Complaints;
 using GreenConnectPlatform.Business.Models.Feedbacks;
 using GreenConnectPlatform.Business.Models.PaymentPackages;
+using GreenConnectPlatform.Business.Models.PointHistories;
 using GreenConnectPlatform.Business.Models.ReferencePrices;
 using GreenConnectPlatform.Business.Models.RewardItems;
 using GreenConnectPlatform.Business.Models.ScheduleProposals;
@@ -122,6 +123,12 @@ public class MappingProfile : Profile
 
         CreateMap<Feedback, FeedbackModel>();
         CreateMap<FeedbackCreateModel, Feedback>();
+
+        #endregion
+
+        #region PointHistory
+
+        CreateMap<PointHistory, PointHistoryModel>();
 
         #endregion
     }

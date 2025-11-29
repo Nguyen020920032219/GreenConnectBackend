@@ -8,6 +8,7 @@ using GreenConnectPlatform.Business.Services.Feedbacks;
 using GreenConnectPlatform.Business.Services.FileStorage;
 using GreenConnectPlatform.Business.Services.Jwt;
 using GreenConnectPlatform.Business.Services.PaymentPackages;
+using GreenConnectPlatform.Business.Services.PointHistories;
 using GreenConnectPlatform.Business.Services.Profile;
 using GreenConnectPlatform.Business.Services.ReferencePrices;
 using GreenConnectPlatform.Business.Services.Reports;
@@ -26,6 +27,7 @@ using GreenConnectPlatform.Data.Repositories.Complaints;
 using GreenConnectPlatform.Data.Repositories.Feedbacks;
 using GreenConnectPlatform.Data.Repositories.Messages;
 using GreenConnectPlatform.Data.Repositories.PaymentPackages;
+using GreenConnectPlatform.Data.Repositories.PointHistories;
 using GreenConnectPlatform.Data.Repositories.Profiles;
 using GreenConnectPlatform.Data.Repositories.ReferencePrices;
 using GreenConnectPlatform.Data.Repositories.RewardItems;
@@ -68,6 +70,7 @@ public static class ServiceConfiguration
         services.AddScoped<IFeedbackService, FeedbackService>();
         services.AddScoped<IChatService, ChatService>();
         services.AddHttpClient<IScrapRecognitionService, GeminiScrapRecognitionService>();
+        services.AddScoped<IPointHistoryService, PointHistoryService>();
     }
 
     public static void ConfigureRepositories(this IServiceCollection services)
@@ -94,5 +97,6 @@ public static class ServiceConfiguration
         services.AddScoped<IFeedbackRepository, FeedbackRepository>();
         services.AddScoped<IChatRoomRepository, ChatRoomRepository>();
         services.AddScoped<IMessageRepository, MessageRepository>();
+        services.AddScoped<IPointHistoryRepository, PointHistoryRepository>();
     }
 }

@@ -1,7 +1,9 @@
 ﻿using System.Security.Claims;
 using GreenConnectPlatform.Business.Models.Exceptions;
 using GreenConnectPlatform.Business.Models.Paging;
+using GreenConnectPlatform.Business.Models.PointHistories;
 using GreenConnectPlatform.Business.Models.Users;
+using GreenConnectPlatform.Business.Services.PointHistories;
 using GreenConnectPlatform.Business.Services.Users;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +12,7 @@ namespace GreenConnectPlatform.Api.Controllers;
 
 [Route("api/v1/users")]
 [Tags("14. Users (Người dùng)")]
-public class UserController(IUserService userService) : ControllerBase
+public class UserController(IUserService userService, IPointHistoryService pointHistoryService) : ControllerBase
 {
     /// <summary>
     ///     Admin có lấy danh sách tất cả người dùng trong hệ thống
@@ -52,6 +54,29 @@ public class UserController(IUserService userService) : ControllerBase
         var currentUserId = GetCurrentUserId();
         await userService.BanOrUnbanUserAsync(userId, currentUserId);
         return Ok("Người dùng đã bị cấm hoặc mở lại thành công");
+    }
+    
+    /// <summary>
+    ///     Người dùng có thể xem danh sách lịch sử thay đổi điểm của mình hoặc (Admin) có thể xem của người dùng trong hệ thống 
+    /// </summary>
+    /// <param name="userId">Admin có thể xem danh sách lịch sử thay đổi điểm của người dùng</param>
+    /// <param name="pageIndex"></param>
+    /// <param name="pageSize"></param>
+    /// <param name="sortByCreatAt">Có thể sắp xếp theo ngày tạo</param>
+    /// <returns></returns>
+    [HttpGet("points")]
+    [Authorize]
+    [ProducesResponseType(typeof(PaginatedResult<PointHistoryModel>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetUserPointHistories(
+        [FromQuery] Guid? userId,
+        [FromQuery] int pageIndex = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] bool sortByCreatAt = true)
+    {
+        var currentUserId = GetCurrentUserId();
+        var result = await pointHistoryService.GetPointHistoriesAsync(userId,currentUserId, pageIndex, pageSize, sortByCreatAt);
+        return Ok(result);
     }
     
     private Guid GetCurrentUserId()

@@ -1,4 +1,5 @@
 using GreenConnectPlatform.Business.Mappers;
+using GreenConnectPlatform.Business.Services.AI;
 using GreenConnectPlatform.Business.Services.Auth;
 using GreenConnectPlatform.Business.Services.Chat;
 using GreenConnectPlatform.Business.Services.CollectionOffers;
@@ -66,6 +67,7 @@ public static class ServiceConfiguration
         services.AddScoped<IReportService, ReportService>();
         services.AddScoped<IFeedbackService, FeedbackService>();
         services.AddScoped<IChatService, ChatService>();
+        services.AddHttpClient<IScrapRecognitionService, GeminiScrapRecognitionService>();
     }
 
     public static void ConfigureRepositories(this IServiceCollection services)

@@ -1,19 +1,20 @@
 using GreenConnectPlatform.Business.Models.Exceptions;
 using GreenConnectPlatform.Business.Models.Files;
 using GreenConnectPlatform.Business.Services.FileStorage;
-using GreenConnectPlatform.Data.Repositories.Complaints; // [Cần Import]
+using GreenConnectPlatform.Data.Repositories.Complaints;
 using GreenConnectPlatform.Data.Repositories.ScrapPosts;
 using GreenConnectPlatform.Data.Repositories.Transactions;
 using Microsoft.AspNetCore.Http;
+// [Cần Import]
 
 namespace GreenConnectPlatform.Business.Services.Storage;
 
 public class StorageService : IStorageService
 {
+    private readonly IComplaintRepository _complaintRepository; // [NEW] Inject để check quyền
     private readonly IFileStorageService _fileStorageService;
     private readonly IScrapPostRepository _scrapPostRepository;
     private readonly ITransactionRepository _transactionRepository;
-    private readonly IComplaintRepository _complaintRepository; // [NEW] Inject để check quyền
 
     public StorageService(
         IFileStorageService fileStorageService,
@@ -54,14 +55,17 @@ public class StorageService : IStorageService
         return new FileUploadResponse { UploadUrl = url, FilePath = path };
     }
 
-    public async Task<FileUploadResponse> GenerateComplaintImageUploadUrlAsync(Guid userId, EntityFileUploadRequest request)
+    public async Task<FileUploadResponse> GenerateComplaintImageUploadUrlAsync(Guid userId,
+        EntityFileUploadRequest request)
     {
         // Check quyền Complainant (Người tạo khiếu nại)
         var complaint = await _complaintRepository.GetByIdAsync(request.EntityId);
-        if (complaint == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Khiếu nại không tồn tại.");
+        if (complaint == null)
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Khiếu nại không tồn tại.");
 
         if (complaint.ComplainantId != userId)
-            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Bạn không phải người tạo khiếu nại này.");
+            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403",
+                "Bạn không phải người tạo khiếu nại này.");
 
         var ext = Path.GetExtension(request.FileName);
         var path = $"complaints/{request.EntityId}/{Guid.NewGuid()}{ext}";
@@ -76,7 +80,7 @@ public class StorageService : IStorageService
         if (string.IsNullOrEmpty(filePath)) return "";
 
         var segments = filePath.Split('/');
-        if (segments.Length < 2) return ""; 
+        if (segments.Length < 2) return "";
 
         var folderType = segments[0]; // avatars, verifications, scraps, checkins, complaints
 
@@ -86,18 +90,15 @@ public class StorageService : IStorageService
                 // CHỈ CHO PHÉP: Admin hoặc Chính chủ
                 var ownerId = segments[1];
                 if (role != "Admin" && ownerId != userId.ToString())
-                {
-                    throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Bạn không có quyền xem tài liệu này.");
-                }
+                    throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403",
+                        "Bạn không có quyền xem tài liệu này.");
                 break;
 
             case "checkins":
                 // CHỈ CHO PHÉP: User đã đăng nhập (Tốt nhất nên check thêm xem có liên quan Transaction không)
                 // Ở mức MVP, yêu cầu đăng nhập là tạm ổn.
                 if (userId == Guid.Empty)
-                {
-                     throw new ApiExceptionModel(StatusCodes.Status401Unauthorized, "401", "Vui lòng đăng nhập để xem.");
-                }
+                    throw new ApiExceptionModel(StatusCodes.Status401Unauthorized, "401", "Vui lòng đăng nhập để xem.");
                 break;
 
             case "complaints":
@@ -107,16 +108,14 @@ public class StorageService : IStorageService
                 {
                     var complaint = await _complaintRepository.GetByIdAsync(complaintId);
                     if (complaint != null)
-                    {
                         // CHỈ CHO PHÉP: Admin, Người tố cáo, Người bị tố cáo
-                        if (role != "Admin" && 
-                            complaint.ComplainantId != userId && 
+                        if (role != "Admin" &&
+                            complaint.ComplainantId != userId &&
                             complaint.AccusedId != userId)
-                        {
-                            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Bạn không có quyền xem bằng chứng này.");
-                        }
-                    }
+                            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403",
+                                "Bạn không có quyền xem bằng chứng này.");
                 }
+
                 break;
         }
 
@@ -136,17 +135,26 @@ public class StorageService : IStorageService
 
         // 1. Chặn xóa các file bằng chứng quan trọng
         if (folderType == "checkins" || folderType == "complaints")
-        {
-            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Không thể xóa bằng chứng giao dịch/khiếu nại.");
-        }
+            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403",
+                "Không thể xóa bằng chứng giao dịch/khiếu nại.");
 
         // 2. Check quyền sở hữu cho các file cá nhân
         if (folderType == "avatars" || folderType == "verifications" || folderType == "scraps")
-        {
             if (segments[1] != userId.ToString())
                 throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Bạn không có quyền xóa file này.");
-        }
 
         await _fileStorageService.DeleteFileAsync(filePath);
+    }
+
+    public async Task<string> UploadScrapImageDirectAsync(Guid userId, IFormFile file)
+    {
+        var ext = Path.GetExtension(file.FileName);
+        // Tạo đường dẫn: scraps/{userId}/{guid}.ext
+        var objectName = $"scraps/{userId}/{Guid.NewGuid()}{ext}";
+
+        using var stream = file.OpenReadStream();
+        await _fileStorageService.UploadFileStreamAsync(stream, objectName, file.ContentType);
+
+        return objectName;
     }
 }

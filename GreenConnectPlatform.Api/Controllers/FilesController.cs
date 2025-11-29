@@ -65,11 +65,12 @@ public class FilesController : ControllerBase
     ///     (Household) Xin link upload ảnh cho bài đăng ve chai.
     /// </summary>
     /// <remarks>
-    ///     **Mục đích:** Cho phép Household upload ảnh rác lên Cloud trước khi tạo bài đăng chính thức. <br/>
-    ///     **Quy trình:** <br/>
-    ///     1. Gọi API này với tên file và loại file. <br/>
-    ///     2. Nhận về `UploadUrl` (để upload) và `FilePath` (đường dẫn file). <br/>
-    ///     3. Sau khi upload thành công, dùng chuỗi `FilePath` này điền vào trường `ImageUrl` khi gọi API tạo bài đăng (`POST /api/v1/posts`).
+    ///     **Mục đích:** Cho phép Household upload ảnh rác lên Cloud trước khi tạo bài đăng chính thức. <br />
+    ///     **Quy trình:** <br />
+    ///     1. Gọi API này với tên file và loại file. <br />
+    ///     2. Nhận về `UploadUrl` (để upload) và `FilePath` (đường dẫn file). <br />
+    ///     3. Sau khi upload thành công, dùng chuỗi `FilePath` này điền vào trường `ImageUrl` khi gọi API tạo bài đăng (`POST
+    ///     /api/v1/posts`).
     /// </remarks>
     /// <param name="request">Thông tin file (Tên file, Content-Type).</param>
     /// <response code="200">Thành công. Trả về Signed URL và FilePath.</response>

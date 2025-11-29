@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-
 namespace GreenConnectPlatform.Data.Configurations;
 
 public class GreenConnectDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
@@ -43,7 +42,7 @@ public class GreenConnectDbContext : IdentityDbContext<User, IdentityRole<Guid>,
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.HasPostgresExtension("postgis");
-        
+
         modelBuilder.HasPostgresExtension("unaccent");
 
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());

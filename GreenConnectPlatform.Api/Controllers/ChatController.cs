@@ -28,11 +28,12 @@ public class ChatController(IChatService chatService) : ControllerBase
     /// <response code="200">Thành công. Trả về danh sách phòng chat phân trang.</response>
     /// <response code="401">Chưa đăng nhập (Unauthorized).</response>
     [HttpGet("rooms")]
-    [ProducesResponseType(typeof(PaginatedResult<ChatRoomModel>),StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetMyRooms([FromQuery] string? name, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+    [ProducesResponseType(typeof(PaginatedResult<ChatRoomModel>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetMyRooms([FromQuery] string? name, [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10)
     {
         var userId = GetCurrentUserId();
-        return Ok(await chatService.GetMyChatRoomAsync(userId, name,pageNumber, pageSize));
+        return Ok(await chatService.GetMyChatRoomAsync(userId, name, pageNumber, pageSize));
     }
 
     /// <summary>
@@ -40,7 +41,8 @@ public class ChatController(IChatService chatService) : ControllerBase
     /// </summary>
     /// <remarks>
     ///     Lấy chi tiết danh sách tin nhắn trong một cuộc hội thoại dựa trên `id` phòng chat. <br />
-    ///     Danh sách tin nhắn được sắp xếp theo thời gian từ mới nhất trở về trước (thường dùng để load trang đầu tiên của khung chat).
+    ///     Danh sách tin nhắn được sắp xếp theo thời gian từ mới nhất trở về trước (thường dùng để load trang đầu tiên của
+    ///     khung chat).
     /// </remarks>
     /// <param name="id">ID của phòng chat (ChatRoomId).</param>
     /// <param name="pageNumber">Số trang hiện tại (Dùng để load more tin nhắn cũ).</param>
@@ -49,7 +51,7 @@ public class ChatController(IChatService chatService) : ControllerBase
     /// <response code="401">Chưa đăng nhập hoặc không phải thành viên của phòng chat này.</response>
     /// <response code="404">Không tìm thấy phòng chat.</response>
     [HttpGet("rooms/{id:Guid}")]
-    [ProducesResponseType(typeof(PaginatedResult<MessageModel>),StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PaginatedResult<MessageModel>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetMessages([FromRoute] Guid id, [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10)
     {
@@ -61,16 +63,17 @@ public class ChatController(IChatService chatService) : ControllerBase
     /// </summary>
     /// <remarks>
     ///     Gửi một tin nhắn văn bản đến phòng chat. <br />
-    ///     Nếu gửi thành công, tin nhắn sẽ được lưu vào cơ sở dữ liệu và gửi thông báo realtime (nếu có SignalR) đến người nhận.
+    ///     Nếu gửi thành công, tin nhắn sẽ được lưu vào cơ sở dữ liệu và gửi thông báo realtime (nếu có SignalR) đến người
+    ///     nhận.
     /// </remarks>
     /// <param name="request">Thông tin tin nhắn (Nội dung, ID phòng chat hoặc ID người nhận...).</param>
     /// <response code="200">Gửi thành công. Trả về thông tin tin nhắn vừa tạo.</response>
     /// <response code="400">Dữ liệu không hợp lệ (Nội dung rỗng, sai ID...).</response>
     /// <response code="401">Chưa đăng nhập.</response>
     [HttpPost("sendMessage")]
-    [ProducesResponseType(typeof(MessageModel),StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ExceptionModel),StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ExceptionModel),StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(MessageModel), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> SendMessage([FromBody] SendMessageModel request)
     {
         var userId = GetCurrentUserId();

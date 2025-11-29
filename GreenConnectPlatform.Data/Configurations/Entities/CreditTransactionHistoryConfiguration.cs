@@ -20,7 +20,7 @@ public class CreditTransactionHistoryConfiguration : IEntityTypeConfiguration<Cr
         builder.HasIndex(e => e.UserId);
 
         builder.HasOne(d => d.User)
-            .WithMany() 
+            .WithMany()
             .HasForeignKey(d => d.UserId)
             .OnDelete(DeleteBehavior.Cascade);
     }

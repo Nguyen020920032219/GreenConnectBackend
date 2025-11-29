@@ -49,28 +49,20 @@ public class StorageService : IStorageService
     public async Task<FileUploadResponse> GenerateScrapPostUploadUrlAsync(Guid userId, FileUploadBaseRequest request)
     {
         var ext = Path.GetExtension(request.FileName);
-        // Lưu theo UserId để dễ quản lý (không cần PostId trước)
         var path = $"scraps/{userId}/{Guid.NewGuid()}{ext}";
+        
         var url = await _fileStorageService.GenerateUploadSignedUrlAsync(path, request.ContentType);
         return new FileUploadResponse { UploadUrl = url, FilePath = path };
     }
 
-    public async Task<FileUploadResponse> GenerateComplaintImageUploadUrlAsync(Guid userId,
-        EntityFileUploadRequest request)
+    public async Task<FileUploadResponse> GenerateComplaintImageUploadUrlAsync(Guid userId, FileUploadBaseRequest request)
     {
-        // Check quyền Complainant (Người tạo khiếu nại)
-        var complaint = await _complaintRepository.GetByIdAsync(request.EntityId);
-        if (complaint == null)
-            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Khiếu nại không tồn tại.");
+        
+        var extension = Path.GetExtension(request.FileName);
+        var filePath = $"complaints/{userId}/{Guid.NewGuid()}{extension}";
 
-        if (complaint.ComplainantId != userId)
-            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403",
-                "Bạn không phải người tạo khiếu nại này.");
-
-        var ext = Path.GetExtension(request.FileName);
-        var path = $"complaints/{request.EntityId}/{Guid.NewGuid()}{ext}";
-        var url = await _fileStorageService.GenerateUploadSignedUrlAsync(path, request.ContentType);
-        return new FileUploadResponse { UploadUrl = url, FilePath = path };
+        var signedUrl = await _fileStorageService.GenerateUploadSignedUrlAsync(filePath, request.ContentType);
+        return new FileUploadResponse { UploadUrl = signedUrl, FilePath = filePath };
     }
 
     // --- 2. READ LOGIC (Lấy link xem ảnh) ---

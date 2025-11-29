@@ -112,17 +112,23 @@ public class FilesController : ControllerBase
     ///     (All) Xin link upload ảnh bằng chứng khiếu nại.
     /// </summary>
     /// <remarks>
-    ///     Dùng khi user tạo khiếu nại và muốn đính kèm ảnh. <br />
-    ///     User phải là người tạo khiếu nại (`EntityId` = `ComplaintId`).
+    ///     **Mục đích:** Upload ảnh bằng chứng trước khi tạo khiếu nại. <br/>
+    ///     **Quy trình:** <br/>
+    ///     1. Gọi API này để lấy `UploadUrl` và `FilePath`. <br/>
+    ///     2. Upload ảnh lên Cloud. <br/>
+    ///     3. Dùng `FilePath` gửi vào API `POST /api/v1/complaints` (trường `EvidenceUrl`).
     /// </remarks>
+    /// <param name="request">Thông tin file.</param>
+    /// <response code="200">Thành công. Trả về Signed URL.</response>
+    /// <response code="401">Chưa đăng nhập.</response>
     [HttpPost("upload-url/complaint")]
     [ProducesResponseType(typeof(FileUploadResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<FileUploadResponse>> UploadComplaintImage([FromBody] EntityFileUploadRequest request)
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<FileUploadResponse>> UploadComplaintImage([FromBody] FileUploadBaseRequest request)
     {
         var userId = GetCurrentUserId();
-        return Ok(await _storageService.GenerateComplaintImageUploadUrlAsync(userId, request));
+        var result = await _storageService.GenerateComplaintImageUploadUrlAsync(userId, request);
+        return Ok(result);
     }
 
     // --- Helper ---

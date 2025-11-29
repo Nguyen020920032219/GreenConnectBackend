@@ -79,4 +79,23 @@ public class FirebaseStorageService : IFileStorageService
             throw new Exception($"Lỗi khi xóa tệp {objectName}: {ex.Message}", ex);
         }
     }
+
+    public async Task<string> UploadFileStreamAsync(Stream fileStream, string objectName, string contentType)
+    {
+        try
+        {
+            // Đảm bảo stream ở vị trí đầu
+            if (fileStream.Position > 0) fileStream.Position = 0;
+
+            // Upload lên Bucket
+            await _storageClient.UploadObjectAsync(_bucketName, objectName, contentType, fileStream);
+
+            // Trả về objectName (FilePath) để lưu vào DB
+            return objectName;
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Lỗi khi upload file lên Firebase từ Server: {ex.Message}", ex);
+        }
+    }
 }

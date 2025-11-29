@@ -23,7 +23,8 @@ public class ChatRoomRepository : BaseRepository<GreenConnectDbContext, ChatRoom
             .FirstOrDefaultAsync(r => r.TransactionId == transactionId);
     }
 
-    public async Task<(List<ChatRoom> Items, int TotalCount)> GetChatRooms(Guid userId,string? name, int pageIndex, int pageSize)
+    public async Task<(List<ChatRoom> Items, int TotalCount)> GetChatRooms(Guid userId, string? name, int pageIndex,
+        int pageSize)
     {
         var query = _dbSet
             .Include(c => c.ChatParticipants)
@@ -32,10 +33,10 @@ public class ChatRoomRepository : BaseRepository<GreenConnectDbContext, ChatRoom
             .Include(c => c.Messages)
             .AsNoTracking()
             .Where(c => c.ChatParticipants.Any(p => p.UserId == userId));
-        if(!string.IsNullOrWhiteSpace(name))
-            query = query.Where(r => r.ChatParticipants.Any(p => 
-                    p.UserId != userId && 
-                    p.User.FullName.ToLower().Contains(name.ToLower()) 
+        if (!string.IsNullOrWhiteSpace(name))
+            query = query.Where(r => r.ChatParticipants.Any(p =>
+                p.UserId != userId &&
+                p.User.FullName.ToLower().Contains(name.ToLower())
             ));
         var totalCount = await query.CountAsync();
         var items = await query

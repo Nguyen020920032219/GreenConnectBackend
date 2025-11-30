@@ -5,13 +5,12 @@ using GreenConnectPlatform.Data.Repositories.Complaints;
 using GreenConnectPlatform.Data.Repositories.ScrapPosts;
 using GreenConnectPlatform.Data.Repositories.Transactions;
 using Microsoft.AspNetCore.Http;
-// [Cần Import]
 
 namespace GreenConnectPlatform.Business.Services.Storage;
 
 public class StorageService : IStorageService
 {
-    private readonly IComplaintRepository _complaintRepository; // [NEW] Inject để check quyền
+    private readonly IComplaintRepository _complaintRepository;
     private readonly IFileStorageService _fileStorageService;
     private readonly IScrapPostRepository _scrapPostRepository;
     private readonly ITransactionRepository _transactionRepository;
@@ -50,17 +49,15 @@ public class StorageService : IStorageService
     {
         var ext = Path.GetExtension(request.FileName);
         var path = $"scraps/{userId}/{Guid.NewGuid()}{ext}";
-        
         var url = await _fileStorageService.GenerateUploadSignedUrlAsync(path, request.ContentType);
         return new FileUploadResponse { UploadUrl = url, FilePath = path };
     }
 
-    public async Task<FileUploadResponse> GenerateComplaintImageUploadUrlAsync(Guid userId, FileUploadBaseRequest request)
+    public async Task<FileUploadResponse> GenerateComplaintImageUploadUrlAsync(Guid userId,
+        FileUploadBaseRequest request)
     {
-        
         var extension = Path.GetExtension(request.FileName);
         var filePath = $"complaints/{userId}/{Guid.NewGuid()}{extension}";
-
         var signedUrl = await _fileStorageService.GenerateUploadSignedUrlAsync(filePath, request.ContentType);
         return new FileUploadResponse { UploadUrl = signedUrl, FilePath = filePath };
     }
@@ -141,12 +138,9 @@ public class StorageService : IStorageService
     public async Task<string> UploadScrapImageDirectAsync(Guid userId, IFormFile file)
     {
         var ext = Path.GetExtension(file.FileName);
-        // Tạo đường dẫn: scraps/{userId}/{guid}.ext
         var objectName = $"scraps/{userId}/{Guid.NewGuid()}{ext}";
-
         using var stream = file.OpenReadStream();
         await _fileStorageService.UploadFileStreamAsync(stream, objectName, file.ContentType);
-
         return objectName;
     }
 }

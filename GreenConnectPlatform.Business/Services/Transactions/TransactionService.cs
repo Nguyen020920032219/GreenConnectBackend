@@ -4,7 +4,6 @@ using GreenConnectPlatform.Business.Models.Paging;
 using GreenConnectPlatform.Business.Models.ScrapPosts;
 using GreenConnectPlatform.Business.Models.Transactions;
 using GreenConnectPlatform.Business.Models.Transactions.TransactionDetails;
-using GreenConnectPlatform.Business.Services.PointHistories;
 using GreenConnectPlatform.Data.Entities;
 using GreenConnectPlatform.Data.Enums;
 using GreenConnectPlatform.Data.Repositories.PointHistories;
@@ -20,10 +19,10 @@ public class TransactionService : ITransactionService
     private const double CheckinRadiusMeters = 100.0;
     private readonly GeometryFactory _geometryFactory;
     private readonly IMapper _mapper;
+    private readonly IPointHistoryRepository _pointHistoryRepository;
 
     private readonly ITransactionRepository _transactionRepository;
-    private readonly IPointHistoryRepository _pointHistoryRepository;
-    
+
     public TransactionService(
         ITransactionRepository transactionRepository,
         IPointHistoryRepository pointHistoryRepository,
@@ -174,7 +173,7 @@ public class TransactionService : ITransactionService
         if (isAccepted && !transaction.TransactionDetails.Any())
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Người thu gom vẫn chưa gửi bất kỳ vật phẩm nào.");
-        
+
         if (isAccepted)
         {
             transaction.Status = TransactionStatus.Completed;

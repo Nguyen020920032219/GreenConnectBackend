@@ -356,6 +356,27 @@ namespace GreenConnectPlatform.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "UserDevices",
+                columns: table => new
+                {
+                    DeviceId = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    FcmToken = table.Column<string>(type: "text", nullable: false),
+                    Platform = table.Column<string>(type: "text", nullable: true),
+                    LastUpdated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserDevices", x => x.DeviceId);
+                    table.ForeignKey(
+                        name: "FK_UserDevices_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "PaymentTransactions",
                 columns: table => new
                 {
@@ -1050,6 +1071,17 @@ namespace GreenConnectPlatform.Data.Migrations
                 column: "ScrapCollectorId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_UserDevices_FcmToken",
+                table: "UserDevices",
+                column: "FcmToken",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserDevices_UserId",
+                table: "UserDevices",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_UserPackages_PackageId",
                 table: "UserPackages",
                 column: "PackageId");
@@ -1127,6 +1159,9 @@ namespace GreenConnectPlatform.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "TransactionDetails");
+
+            migrationBuilder.DropTable(
+                name: "UserDevices");
 
             migrationBuilder.DropTable(
                 name: "UserPackages");

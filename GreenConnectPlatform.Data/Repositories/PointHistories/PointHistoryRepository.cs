@@ -11,21 +11,18 @@ public class PointHistoryRepository : BaseRepository<GreenConnectDbContext, Poin
     {
     }
 
-    public async Task<(List<PointHistory> Items, int TotalCount)> GetPagedPointHistoriesAsync(Guid? userId, Guid currentUserId, bool sortByCreateAtDesc, int pageIndex, int pageSize)
+    public async Task<(List<PointHistory> Items, int TotalCount)> GetPagedPointHistoriesAsync(Guid? userId,
+        Guid currentUserId, bool sortByCreateAtDesc, int pageIndex, int pageSize)
     {
-        var query  = _dbSet
+        var query = _dbSet
             .Include(x => x.User)
             .ThenInclude(u => u.Profile)
             .AsQueryable();
         if (userId != null)
-        {
             query = query.Where(x => x.UserId == userId);
-        }
         else
-        {
             query = query.Where(x => x.UserId == currentUserId);
-        }
-        if(sortByCreateAtDesc)
+        if (sortByCreateAtDesc)
             query = query.OrderByDescending(x => x.CreatedAt);
         else
             query = query.OrderBy(x => x.CreatedAt);

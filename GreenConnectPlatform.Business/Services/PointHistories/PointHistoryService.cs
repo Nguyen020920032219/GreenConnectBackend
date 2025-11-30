@@ -7,16 +7,21 @@ namespace GreenConnectPlatform.Business.Services.PointHistories;
 
 public class PointHistoryService : IPointHistoryService
 {
-    private readonly IPointHistoryRepository _pointHistoryRepository;
     private readonly IMapper _mapper;
+    private readonly IPointHistoryRepository _pointHistoryRepository;
+
     public PointHistoryService(IPointHistoryRepository pointHistoryRepository, IMapper mapper)
     {
         _pointHistoryRepository = pointHistoryRepository;
         _mapper = mapper;
     }
-    public async Task<PaginatedResult<PointHistoryModel>> GetPointHistoriesAsync(Guid? userId, Guid currentUserId, int pageNumber, int pageSize, bool sortDescending)
+
+    public async Task<PaginatedResult<PointHistoryModel>> GetPointHistoriesAsync(Guid? userId, Guid currentUserId,
+        int pageNumber, int pageSize, bool sortDescending)
     {
-        var (pointHistories, totalCount) = await _pointHistoryRepository.GetPagedPointHistoriesAsync(userId, currentUserId, sortDescending, pageNumber, pageSize);
+        var (pointHistories, totalCount) =
+            await _pointHistoryRepository.GetPagedPointHistoriesAsync(userId, currentUserId, sortDescending, pageNumber,
+                pageSize);
         var pointHistoryModels = _mapper.Map<List<PointHistoryModel>>(pointHistories);
         return new PaginatedResult<PointHistoryModel>
         {

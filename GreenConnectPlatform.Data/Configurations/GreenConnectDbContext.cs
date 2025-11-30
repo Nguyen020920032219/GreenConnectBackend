@@ -36,6 +36,7 @@ public class GreenConnectDbContext : IdentityDbContext<User, IdentityRole<Guid>,
     public virtual DbSet<ReferencePrice> ReferencePrices { get; set; }
     public virtual DbSet<PointHistory> PointHistories { get; set; }
     public virtual DbSet<Rank> Ranks { get; set; }
+    public virtual DbSet<UserDevice> UserDevices { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

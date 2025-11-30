@@ -17,8 +17,8 @@ public class ComplaintService : IComplaintService
     private readonly IComplaintRepository _complaintRepository;
     private readonly IFileStorageService _fileStorageService;
     private readonly IMapper _mapper;
-    private readonly ITransactionRepository _transactionRepository;
     private readonly IPointHistoryRepository _pointHistoryRepository;
+    private readonly ITransactionRepository _transactionRepository;
 
     public ComplaintService(IComplaintRepository complaintRepository, ITransactionRepository transactionRepository,
         IFileStorageService fileStorageService, IPointHistoryRepository pointHistoryRepository, IMapper mapper)
@@ -134,6 +134,7 @@ public class ComplaintService : IComplaintService
             transaction.ScrapCollector.Profile.PointBalance -= 20;
             await AddPointHistory(transaction.ScrapCollectorId, -20, "Bị trừ điểm do tạo phàn nàn");
         }
+
         await _transactionRepository.UpdateAsync(transaction);
         return _mapper.Map<ComplaintModel>(complaintModel);
     }
@@ -175,7 +176,7 @@ public class ComplaintService : IComplaintService
         await AddPointHistory(complaint.ComplainantId, -20, "Bị trừ điểm do mở lại phàn nàn");
         await _complaintRepository.UpdateAsync(complaint);
     }
-    
+
     private async Task AddPointHistory(Guid userId, int pointChange, string reason)
     {
         var pointHistory = new PointHistory
@@ -188,5 +189,4 @@ public class ComplaintService : IComplaintService
         };
         await _pointHistoryRepository.AddAsync(pointHistory);
     }
-    
 }

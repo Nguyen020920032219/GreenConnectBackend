@@ -5,7 +5,6 @@ using GreenConnectPlatform.Business.Models.ScrapPosts;
 using GreenConnectPlatform.Business.Models.Transactions;
 using GreenConnectPlatform.Business.Models.Transactions.TransactionDetails;
 using GreenConnectPlatform.Business.Services.FileStorage;
-using GreenConnectPlatform.Business.Services.PointHistories;
 using GreenConnectPlatform.Data.Entities;
 using GreenConnectPlatform.Data.Enums;
 using GreenConnectPlatform.Data.Repositories.PointHistories;
@@ -48,9 +47,12 @@ public class TransactionService : ITransactionService
         if (transaction.ScrapCollectorId != collectorId)
             throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Bạn không có quyền.");
 
-        if (transaction.Status != TransactionStatus.Scheduled)
+        if (transaction.Status == TransactionStatus.InProgress)
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
-                "Bạn phải check-in trước khi bắt đầu thu gom.");
+                "Bạn đã checkin rồi.");
+        if(transaction.Status == TransactionStatus.CanceledBySystem || transaction.Status == TransactionStatus.CanceledByUser || transaction.Status == TransactionStatus.Completed)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "Giao dịch đã bị huỷ hoặc hoàn thành rồi không thể checkin.");
 
         var postLocation = transaction.Offer.ScrapPost.Location;
         if (postLocation == null)

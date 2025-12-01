@@ -5,5 +5,6 @@ namespace GreenConnectPlatform.Business.Services.PointHistories;
 
 public interface IPointHistoryService
 {
-    Task<PaginatedResult<PointHistoryModel>> GetPointHistoriesAsync(Guid? userId,Guid currentUserId, int pageNumber, int pageSize, bool sortDescending);
+    Task<PaginatedResult<PointHistoryModel>> GetPointHistoriesAsync(Guid? userId, Guid currentUserId, int pageNumber,
+        int pageSize, bool sortDescending);
 }

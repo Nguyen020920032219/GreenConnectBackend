@@ -5,6 +5,7 @@ using GreenConnectPlatform.Business.Models.ScrapPosts;
 using GreenConnectPlatform.Business.Models.Transactions;
 using GreenConnectPlatform.Business.Models.Transactions.TransactionDetails;
 using GreenConnectPlatform.Business.Services.FileStorage;
+using GreenConnectPlatform.Business.Services.Notifications;
 using GreenConnectPlatform.Data.Entities;
 using GreenConnectPlatform.Data.Enums;
 using GreenConnectPlatform.Data.Repositories.PointHistories;
@@ -18,22 +19,25 @@ namespace GreenConnectPlatform.Business.Services.Transactions;
 public class TransactionService : ITransactionService
 {
     private const double CheckinRadiusMeters = 100.0;
+    private readonly IFileStorageService _fileStorageService;
     private readonly GeometryFactory _geometryFactory;
     private readonly IMapper _mapper;
+    private readonly INotificationService _notificationService;
+    private readonly IPointHistoryRepository _pointHistoryRepository;
 
     private readonly ITransactionRepository _transactionRepository;
-    private readonly IPointHistoryRepository _pointHistoryRepository;
-    private readonly IFileStorageService _fileStorageService;
-    
+
     public TransactionService(
         ITransactionRepository transactionRepository,
         IPointHistoryRepository pointHistoryRepository,
         IFileStorageService fileStorageService,
+        INotificationService notificationService,
         IMapper mapper)
     {
         _transactionRepository = transactionRepository;
         _pointHistoryRepository = pointHistoryRepository;
         _fileStorageService = fileStorageService;
+        _notificationService = notificationService;
         _mapper = mapper;
         _geometryFactory = NtsGeometryServices.Instance.CreateGeometryFactory(4326);
     }
@@ -50,7 +54,8 @@ public class TransactionService : ITransactionService
         if (transaction.Status == TransactionStatus.InProgress)
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Bạn đã checkin rồi.");
-        if(transaction.Status == TransactionStatus.CanceledBySystem || transaction.Status == TransactionStatus.CanceledByUser || transaction.Status == TransactionStatus.Completed)
+        if (transaction.Status == TransactionStatus.CanceledBySystem ||
+            transaction.Status == TransactionStatus.CanceledByUser || transaction.Status == TransactionStatus.Completed)
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Giao dịch đã bị huỷ hoặc hoàn thành rồi không thể checkin.");
 
@@ -65,7 +70,6 @@ public class TransactionService : ITransactionService
             _geometryFactory.CreatePoint(
                 new Coordinate(currentLocation.Longitude.Value, currentLocation.Latitude.Value));
 
-        // Tính khoảng cách (Độ -> Mét, xấp xỉ)
         var distanceInDegrees = postLocation.Distance(collectorPoint);
         var distanceInMeters = distanceInDegrees * 111319.9;
 
@@ -79,6 +83,12 @@ public class TransactionService : ITransactionService
         transaction.UpdatedAt = DateTime.UtcNow;
 
         await _transactionRepository.UpdateAsync(transaction);
+
+        var householdId = transaction.HouseholdId;
+        var title = "Người thu gom đã đến!";
+        var body = $"Người thu gom {transaction.ScrapCollector?.FullName ?? "ẩn danh"} đã check-in tại điểm thu gom.";
+        var data = new Dictionary<string, string> { { "type", "Transaction" }, { "id", transactionId.ToString() } };
+        _ = _notificationService.SendNotificationAsync(householdId, title, body, data);
     }
 
     public async Task<TransactionModel> GetByIdAsync(Guid id)
@@ -88,12 +98,9 @@ public class TransactionService : ITransactionService
             throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Giao dịch không tìm thấy.");
         var transactionModel = _mapper.Map<TransactionModel>(transaction);
         foreach (var d in transactionModel.Offer.ScrapPost.ScrapPostDetails)
-        {
             if (!string.IsNullOrEmpty(d.ImageUrl))
-            {
                 d.ImageUrl = await _fileStorageService.GetReadSignedUrlAsync(d.ImageUrl);
-            }
-        }
+
         transactionModel.TotalPrice = transaction.TransactionDetails.Sum(d => d.FinalPrice);
         return transactionModel;
     }
@@ -109,15 +116,10 @@ public class TransactionService : ITransactionService
             sortByCreateAtDesc, sortByUpdateAtDesc, pageIndex, pageSize);
         var data = _mapper.Map<List<TransactionOveralModel>>(items);
         foreach (var d in data)
-        {
-            foreach (var p in d.Offer.ScrapPost.ScrapPostDetails)
-            {
-                if (!string.IsNullOrEmpty(p.ImageUrl))
-                {
-                    p.ImageUrl = await _fileStorageService.GetReadSignedUrlAsync(p.ImageUrl);
-                }
-            }
-        }
+        foreach (var p in d.Offer.ScrapPost.ScrapPostDetails)
+            if (!string.IsNullOrEmpty(p.ImageUrl))
+                p.ImageUrl = await _fileStorageService.GetReadSignedUrlAsync(p.ImageUrl);
+
         return new PaginatedResult<TransactionOveralModel>
         {
             Data = data,
@@ -133,15 +135,10 @@ public class TransactionService : ITransactionService
 
         var data = _mapper.Map<List<TransactionOveralModel>>(items);
         foreach (var d in data)
-        {
-            foreach (var p in d.Offer.ScrapPost.ScrapPostDetails)
-            {
-                if (!string.IsNullOrEmpty(p.ImageUrl))
-                {
-                    p.ImageUrl = await _fileStorageService.GetReadSignedUrlAsync(p.ImageUrl);
-                }
-            }
-        }
+        foreach (var p in d.Offer.ScrapPost.ScrapPostDetails)
+            if (!string.IsNullOrEmpty(p.ImageUrl))
+                p.ImageUrl = await _fileStorageService.GetReadSignedUrlAsync(p.ImageUrl);
+
         return new PaginatedResult<TransactionOveralModel>
             { Data = data, Pagination = new PaginationModel(total, pageNumber, pageSize) };
     }
@@ -160,34 +157,32 @@ public class TransactionService : ITransactionService
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Phải check-in trước khi gửi chi tiết thu gom.");
 
-        // Validate: Categories có khớp với Offer đã chốt không?
         var offerCategoryIds = transaction.Offer.OfferDetails.Select(d => d.ScrapCategoryId).ToList();
         var inputCategoryIds = details.Select(d => d.ScrapCategoryId).ToList();
 
         if (inputCategoryIds.Except(offerCategoryIds).Any())
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Contains item not in original Offer.");
 
-        // --- LOGIC MỚI: Update trực tiếp trên List TransactionDetails ---
-
-        // 1. Xóa các item cũ
         transaction.TransactionDetails.Clear();
 
-        // 2. Thêm item mới
         var newDetails = _mapper.Map<List<TransactionDetail>>(details);
         foreach (var d in newDetails)
         {
             d.TransactionId = transactionId;
             d.FinalPrice = d.PricePerUnit * (decimal)d.Quantity;
-            transaction.TransactionDetails.Add(d); // Add vào Collection của Parent
+            transaction.TransactionDetails.Add(d);
         }
 
         transaction.UpdatedAt = DateTime.UtcNow;
 
-        // 3. Lưu Parent (EF Core sẽ tự xử lý Children)
         await _transactionRepository.UpdateAsync(transaction);
 
-        // Vì Repository AddAsync/UpdateAsync có thể không return full details ngay
-        // Nên map lại từ danh sách vừa add
+        var householdId = transaction.HouseholdId;
+        var title = "Xác nhận số lượng!";
+        var body = "Người thu gom đã cập nhật số lượng và giá. Vui lòng kiểm tra và chốt đơn.";
+        var data = new Dictionary<string, string> { { "type", "Transaction" }, { "id", transactionId.ToString() } };
+        _ = _notificationService.SendNotificationAsync(householdId, title, body, data);
+
         return _mapper.Map<List<TransactionDetailModel>>(transaction.TransactionDetails);
     }
 
@@ -207,7 +202,7 @@ public class TransactionService : ITransactionService
         if (isAccepted && !transaction.TransactionDetails.Any())
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Người thu gom vẫn chưa gửi bất kỳ vật phẩm nào.");
-        
+
         if (isAccepted)
         {
             transaction.Status = TransactionStatus.Completed;
@@ -240,10 +235,20 @@ public class TransactionService : ITransactionService
                 };
                 await _pointHistoryRepository.AddAsync(pointHistory);
             }
+
+            var title = "Giao dịch thành công!";
+            var body = "Chúc mừng! Đơn hàng đã hoàn tất. Bạn nhận được +10 điểm thưởng.";
+            var data = new Dictionary<string, string> { { "type", "Transaction" }, { "id", transactionId.ToString() } };
+            _ = _notificationService.SendNotificationAsync(transaction.ScrapCollectorId, title, body, data);
         }
         else
         {
             transaction.Status = TransactionStatus.CanceledByUser;
+
+            var title = "Giao dịch bị hủy";
+            var body = "Hộ gia đình đã từ chối kết quả cân đo và hủy giao dịch.";
+            var data = new Dictionary<string, string> { { "type", "Transaction" }, { "id", transactionId.ToString() } };
+            _ = _notificationService.SendNotificationAsync(transaction.ScrapCollectorId, title, body, data);
         }
 
         transaction.UpdatedAt = DateTime.UtcNow;
@@ -252,7 +257,10 @@ public class TransactionService : ITransactionService
 
     public async Task ToggleCancelAsync(Guid transactionId, Guid collectorId)
     {
-        var transaction = await _transactionRepository.GetByIdAsync(transactionId);
+        var transaction =
+            await _transactionRepository
+                .GetByIdWithDetailsAsync(
+                    transactionId); // Fix: Dùng GetByIdWithDetailsAsync để lấy HouseholdId cho noti
         if (transaction == null)
             throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Giao dịch không tìm thấy.");
 
@@ -264,9 +272,18 @@ public class TransactionService : ITransactionService
                 "Bạn không thể hủy hoặc mở lại giao dịch khi đã hoàn thành.");
 
         if (transaction.Status == TransactionStatus.CanceledByUser)
+        {
             transaction.Status = TransactionStatus.InProgress;
+        }
         else
+        {
             transaction.Status = TransactionStatus.CanceledByUser;
+
+            var title = "Giao dịch bị hủy";
+            var body = "Người thu gom đã hủy giao dịch vì sự cố.";
+            var data = new Dictionary<string, string> { { "type", "Transaction" }, { "id", transactionId.ToString() } };
+            _ = _notificationService.SendNotificationAsync(transaction.HouseholdId, title, body, data);
+        }
 
         transaction.UpdatedAt = DateTime.UtcNow;
         await _transactionRepository.UpdateAsync(transaction);

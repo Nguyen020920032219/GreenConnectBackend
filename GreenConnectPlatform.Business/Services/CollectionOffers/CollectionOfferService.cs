@@ -4,11 +4,12 @@ using GreenConnectPlatform.Business.Models.CollectionOffers.OfferDetails;
 using GreenConnectPlatform.Business.Models.Exceptions;
 using GreenConnectPlatform.Business.Models.Paging;
 using GreenConnectPlatform.Business.Services.FileStorage;
-using GreenConnectPlatform.Business.Services.Storage;
+using GreenConnectPlatform.Business.Services.Notifications;
 using GreenConnectPlatform.Data.Entities;
 using GreenConnectPlatform.Data.Enums;
 using GreenConnectPlatform.Data.Repositories.Chatrooms;
 using GreenConnectPlatform.Data.Repositories.CollectionOffers;
+using GreenConnectPlatform.Data.Repositories.ScrapCategories;
 using GreenConnectPlatform.Data.Repositories.ScrapPosts;
 using GreenConnectPlatform.Data.Repositories.Transactions;
 using Microsoft.AspNetCore.Http;
@@ -17,12 +18,14 @@ namespace GreenConnectPlatform.Business.Services.CollectionOffers;
 
 public class CollectionOfferService : ICollectionOfferService
 {
+    private readonly IFileStorageService _fileStorageService;
     private readonly IMapper _mapper;
+    private readonly INotificationService _notificationService;
     private readonly ICollectionOfferRepository _offerRepository;
     private readonly IScrapPostRepository _postRepository;
     private readonly IChatRoomRepository _roomRepository;
+    private readonly IScrapCategoryRepository _scrapCategoryRepository;
     private readonly ITransactionRepository _transactionRepository;
-    private readonly IFileStorageService _fileStorageService;
 
     public CollectionOfferService(
         ICollectionOfferRepository offerRepository,
@@ -30,14 +33,18 @@ public class CollectionOfferService : ICollectionOfferService
         ITransactionRepository transactionRepository,
         IChatRoomRepository roomRepository,
         IFileStorageService fileStorageService,
-        IMapper mapper)
+        IScrapCategoryRepository scrapCategoryRepository,
+        IMapper mapper,
+        INotificationService notificationService)
     {
         _offerRepository = offerRepository;
         _postRepository = postRepository;
         _transactionRepository = transactionRepository;
         _roomRepository = roomRepository;
         _fileStorageService = fileStorageService;
+        _scrapCategoryRepository = scrapCategoryRepository;
         _mapper = mapper;
+        _notificationService = notificationService;
     }
 
     public async Task<PaginatedResult<CollectionOfferOveralForCollectorModel>> GetByCollectorAsync(
@@ -47,15 +54,10 @@ public class CollectionOfferService : ICollectionOfferService
             await _offerRepository.GetByCollectorAsync(collectorId, status, sortByCreateAtDesc, pageNumber, pageSize);
         var data = _mapper.Map<List<CollectionOfferOveralForCollectorModel>>(items);
         foreach (var d in data)
-        {
-            foreach (var detail in d.ScrapPost.ScrapPostDetails)
-            {
-                if (!string.IsNullOrEmpty(detail.ImageUrl))
-                {
-                    detail.ImageUrl = await _fileStorageService.GetReadSignedUrlAsync(detail.ImageUrl);
-                }
-            }
-        }
+        foreach (var detail in d.ScrapPost.ScrapPostDetails)
+            if (!string.IsNullOrEmpty(detail.ImageUrl))
+                detail.ImageUrl = await _fileStorageService.GetReadSignedUrlAsync(detail.ImageUrl);
+
         return new PaginatedResult<CollectionOfferOveralForCollectorModel>
         {
             Data = data,
@@ -69,15 +71,10 @@ public class CollectionOfferService : ICollectionOfferService
         var (items, totalCount) = await _offerRepository.GetByPostIdAsync(postId, status, pageNumber, pageSize);
         var data = _mapper.Map<List<CollectionOfferOveralForHouseModel>>(items);
         foreach (var d in data)
-        {
-            foreach (var detail in d.ScrapPost.ScrapPostDetails)
-            {
-                if (!string.IsNullOrEmpty(detail.ImageUrl))
-                {
-                    detail.ImageUrl = await _fileStorageService.GetReadSignedUrlAsync(detail.ImageUrl);
-                }
-            }
-        }
+        foreach (var detail in d.ScrapPost.ScrapPostDetails)
+            if (!string.IsNullOrEmpty(detail.ImageUrl))
+                detail.ImageUrl = await _fileStorageService.GetReadSignedUrlAsync(detail.ImageUrl);
+
         return new PaginatedResult<CollectionOfferOveralForHouseModel>
         {
             Data = data,
@@ -89,15 +86,12 @@ public class CollectionOfferService : ICollectionOfferService
     {
         var offer = await _offerRepository.GetByIdWithDetailsAsync(id);
         if (offer == null)
-            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Đề nghị thu gom không tìm thấy");
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Đề nghị thu gom không tìm thấy.");
         var offerModel = _mapper.Map<CollectionOfferModel>(offer);
         foreach (var detail in offerModel.ScrapPost.ScrapPostDetails)
-        {
             if (!string.IsNullOrEmpty(detail.ImageUrl))
-            {
                 detail.ImageUrl = await _fileStorageService.GetReadSignedUrlAsync(detail.ImageUrl);
-            }
-        }
+
         return offerModel;
     }
 
@@ -105,7 +99,7 @@ public class CollectionOfferService : ICollectionOfferService
         CollectionOfferCreateModel request)
     {
         var post = await _postRepository.GetByIdWithDetailsAsync(postId);
-        if (post == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Bài đăng không tìm thấy");
+        if (post == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Bài đăng không tìm thấy.");
 
         if (post.HouseholdId == collectorId)
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
@@ -149,7 +143,7 @@ public class CollectionOfferService : ICollectionOfferService
         }
         else
         {
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Lịch hẹn đề xuất bắt buộc phải có");
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Lịch hẹn đề xuất bắt buộc phải có.");
         }
 
         var scrapPostDetailToUpdate = post.ScrapPostDetails
@@ -165,6 +159,17 @@ public class CollectionOfferService : ICollectionOfferService
         }
 
         await _offerRepository.AddAsync(offer);
+
+        var notiTitle = "Đề nghị thu gom mới!";
+        var notiBody = $"Có người vừa báo giá cho bài đăng '{post.Title}' của bạn.";
+        var notiData = new Dictionary<string, string>
+        {
+            { "type", "Offer" },
+            { "id", offer.CollectionOfferId.ToString() },
+            { "postId", post.ScrapPostId.ToString() }
+        };
+        _ = _notificationService.SendNotificationAsync(post.HouseholdId, notiTitle, notiBody, notiData);
+
         return await GetByIdAsync(offer.CollectionOfferId);
     }
 
@@ -172,7 +177,7 @@ public class CollectionOfferService : ICollectionOfferService
     {
         var offer = await _offerRepository.GetByIdWithDetailsAsync(offerId);
         if (offer == null)
-            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Đề nghị thu gom không tìm thấy");
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Đề nghị thu gom không tìm thấy.");
 
         if (offer.ScrapPost.HouseholdId != householdId)
             throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Bạn không có quyền.");
@@ -229,6 +234,17 @@ public class CollectionOfferService : ICollectionOfferService
                 JoinedAt = DateTime.UtcNow
             });
             await _roomRepository.AddAsync(chatRoom);
+
+            offer.ScrapPost.Status = PostStatus.FullyBooked;
+
+            var notiTitle = "Đề nghị được chấp nhận!";
+            var notiBody = "Chúc mừng! Hộ gia đình đã đồng ý bán cho bạn. Giao dịch đã được tạo.";
+            var notiData = new Dictionary<string, string>
+            {
+                { "type", "Transaction" },
+                { "id", transaction.TransactionId.ToString() }
+            };
+            _ = _notificationService.SendNotificationAsync(offer.ScrapCollectorId, notiTitle, notiBody, notiData);
         }
         else
         {
@@ -244,6 +260,15 @@ public class CollectionOfferService : ICollectionOfferService
                 .Any(d => d.Status == PostDetailStatus.Booked);
             offer.ScrapPost.Status = detailsBooked ? PostStatus.PartiallyBooked : PostStatus.Open;
             await _postRepository.UpdateAsync(offer.ScrapPost);
+
+            var notiTitle = "Đề nghị bị từ chối";
+            var notiBody = $"Hộ gia đình đã từ chối đề nghị của bạn cho bài đăng '{offer.ScrapPost.Title}'.";
+            var notiData = new Dictionary<string, string>
+            {
+                { "type", "Offer" },
+                { "id", offer.CollectionOfferId.ToString() }
+            };
+            _ = _notificationService.SendNotificationAsync(offer.ScrapCollectorId, notiTitle, notiBody, notiData);
         }
 
         await _offerRepository.UpdateAsync(offer);
@@ -276,6 +301,10 @@ public class CollectionOfferService : ICollectionOfferService
 
             offer.ScrapPost.Status = detailsBooked ? PostStatus.PartiallyBooked : PostStatus.Open;
             await _postRepository.UpdateAsync(offer.ScrapPost);
+
+            var notiTitle = "Đề nghị bị hủy";
+            var notiBody = $"Người thu gom đã hủy báo giá cho bài đăng '{offer.ScrapPost.Title}'.";
+            _ = _notificationService.SendNotificationAsync(offer.ScrapPost.HouseholdId, notiTitle, notiBody);
         }
         else if (offer.Status == OfferStatus.Canceled || offer.Status == OfferStatus.Rejected)
         {
@@ -286,10 +315,11 @@ public class CollectionOfferService : ICollectionOfferService
                     throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                         $"Không thể mở lại đề nghị thu gom cho {detail.ScrapCategory.CategoryName} vì đang có trạng thái là {detail.Status}.");
                 detail.Status = PostDetailStatus.Booked;
-                var isFullBooked = offerCategoryIds.Count == offer.ScrapPost.ScrapPostDetails.Count;
-                offer.ScrapPost.Status = isFullBooked ? PostStatus.FullyBooked : PostStatus.PartiallyBooked;
-                await _postRepository.UpdateAsync(offer.ScrapPost);
             }
+
+            var isFullBooked = offerCategoryIds.Count == offer.ScrapPost.ScrapPostDetails.Count;
+            offer.ScrapPost.Status = isFullBooked ? PostStatus.FullyBooked : PostStatus.PartiallyBooked;
+            await _postRepository.UpdateAsync(offer.ScrapPost);
         }
 
         await _offerRepository.UpdateAsync(offer);
@@ -307,6 +337,10 @@ public class CollectionOfferService : ICollectionOfferService
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Bạn không thể thêm mới khi đề nghị đã được chấp nhận.");
 
+        var scrapCategory = await _scrapCategoryRepository.GetByIdAsync(detailRequest.ScrapCategoryId);
+        if (scrapCategory == null)
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Loại ve chai không tồn tại.");
+
         if (offer.OfferDetails.Any(d => d.ScrapCategoryId == detailRequest.ScrapCategoryId))
             throw new ApiExceptionModel(StatusCodes.Status409Conflict, "409", "Đề nghị cho loại này đã có.");
 
@@ -318,6 +352,7 @@ public class CollectionOfferService : ICollectionOfferService
         detail.CollectionOfferId = offerId;
         offer.OfferDetails.Add(detail);
         await _offerRepository.UpdateAsync(offer);
+
         var postDetail = post.ScrapPostDetails
             .First(d => d.ScrapCategoryId == detailRequest.ScrapCategoryId);
         postDetail.Status = PostDetailStatus.Booked;

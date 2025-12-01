@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GreenConnectPlatform.Data.Migrations
 {
     [DbContext(typeof(GreenConnectDbContext))]
-    [Migration("20251128182748_Initial_Database")]
+    [Migration("20251130153058_Initial_Database")]
     partial class Initial_Database
     {
         /// <inheritdoc />
@@ -901,6 +901,35 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("GreenConnectPlatform.Data.Entities.UserDevice", b =>
+                {
+                    b.Property<Guid>("DeviceId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("FcmToken")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("LastUpdated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Platform")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("DeviceId");
+
+                    b.HasIndex("FcmToken")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserDevices");
+                });
+
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.UserPackage", b =>
                 {
                     b.Property<Guid>("UserPackageId")
@@ -1421,6 +1450,17 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.Navigation("ScrapCategory");
 
                     b.Navigation("Transaction");
+                });
+
+            modelBuilder.Entity("GreenConnectPlatform.Data.Entities.UserDevice", b =>
+                {
+                    b.HasOne("GreenConnectPlatform.Data.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.UserPackage", b =>

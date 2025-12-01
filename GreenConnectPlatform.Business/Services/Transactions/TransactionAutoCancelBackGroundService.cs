@@ -9,16 +9,16 @@ namespace GreenConnectPlatform.Business.Services.Transactions;
 
 public class TransactionAutoCancelBackGroundService : BackgroundService
 {
-    private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly ILogger<TransactionAutoCancelBackGroundService> _logger;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
 
-    public TransactionAutoCancelBackGroundService(IServiceScopeFactory serviceScopeFactory, 
+    public TransactionAutoCancelBackGroundService(IServiceScopeFactory serviceScopeFactory,
         ILogger<TransactionAutoCancelBackGroundService> logger)
     {
         _serviceScopeFactory = serviceScopeFactory;
         _logger = logger;
     }
-    
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _logger.LogInformation("--- Robot tự động hủy đơn đã khởi động ---");
@@ -32,6 +32,7 @@ public class TransactionAutoCancelBackGroundService : BackgroundService
             {
                 _logger.LogError(e, "Lỗi khi quét đơn quá hạn.");
             }
+
             await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
         }
     }
@@ -49,13 +50,12 @@ public class TransactionAutoCancelBackGroundService : BackgroundService
                 .ToListAsync();
 
             if (overdueTransactions.Any())
-            {
                 foreach (var transaction in overdueTransactions)
                 {
                     transaction.Status = TransactionStatus.CanceledBySystem;
                     transaction.UpdatedAt = now;
                 }
-            }
+
             await context.SaveChangesAsync();
             _logger.LogInformation($"Đã tự động hủy {overdueTransactions.Count} đơn hàng quá hạn.");
         }

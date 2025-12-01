@@ -3,6 +3,7 @@ using GreenConnectPlatform.Business.Models.Chat;
 using GreenConnectPlatform.Business.Models.Exceptions;
 using GreenConnectPlatform.Business.Models.Paging;
 using GreenConnectPlatform.Business.Services.FileStorage;
+using GreenConnectPlatform.Business.Services.Notifications;
 using GreenConnectPlatform.Data.Entities;
 using GreenConnectPlatform.Data.Repositories.Chatrooms;
 using GreenConnectPlatform.Data.Repositories.Messages;
@@ -10,6 +11,7 @@ using GreenConnectPlatform.Data.Repositories.Transactions;
 using GreenConnectPlatform.Data.Repositories.Users;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
+// [NEW]
 
 namespace GreenConnectPlatform.Business.Services.Chat;
 
@@ -18,16 +20,19 @@ public class ChatService : IChatService
     private readonly IFileStorageService _fileStorageService;
     private readonly IHubContext<ChatHub> _hubContext;
     private readonly IMessageRepository _messageRepository;
+    private readonly INotificationService _notificationService;
     private readonly IChatRoomRepository _roomRepository;
     private readonly ITransactionRepository _transactionRepository;
     private readonly IUserRepository _userRepository;
 
-    public ChatService(IChatRoomRepository roomRepository,
+    public ChatService(
+        IChatRoomRepository roomRepository,
         IMessageRepository messageRepository,
         ITransactionRepository transactionRepository,
         IUserRepository userRepository,
         IHubContext<ChatHub> hubContext,
-        IFileStorageService fileStorageService)
+        IFileStorageService fileStorageService,
+        INotificationService notificationService)
     {
         _roomRepository = roomRepository;
         _messageRepository = messageRepository;
@@ -35,6 +40,7 @@ public class ChatService : IChatService
         _userRepository = userRepository;
         _hubContext = hubContext;
         _fileStorageService = fileStorageService;
+        _notificationService = notificationService;
     }
 
     public async Task<MessageModel> SendMessageAsync(Guid senderId, SendMessageModel model)
@@ -55,6 +61,11 @@ public class ChatService : IChatService
         };
         await _messageRepository.AddAsync(message);
         var user = await _userRepository.GetUserByIdAsync(senderId);
+
+        var senderAvatarUrl = user.Profile.AvatarUrl != null
+            ? await _fileStorageService.GetReadSignedUrlAsync(user.Profile.AvatarUrl)
+            : null;
+
         var messageModel = new MessageModel
         {
             MessageId = message.MessageId,
@@ -63,16 +74,13 @@ public class ChatService : IChatService
             Timestamp = message.Timestamp,
             IsRead = message.IsRead,
             SenderName = user.FullName,
-            SenderAvatar = user.Profile.AvatarUrl != null
-                ? await _fileStorageService.GetReadSignedUrlAsync(user.Profile.AvatarUrl)
-                : null
+            SenderAvatar = senderAvatarUrl
         };
 
         await _hubContext.Clients.Group(model.TransactionId.ToString())
             .SendAsync("ReceiveMessage", messageModel);
 
         var participants = room.ChatParticipants;
-
         if (participants == null || !participants.Any())
         {
             var trans = await _transactionRepository.GetByIdWithDetailsAsync(model.TransactionId);
@@ -85,6 +93,7 @@ public class ChatService : IChatService
         }
 
         if (participants != null)
+        {
             foreach (var participant in participants)
             {
                 var partnerId = participants.FirstOrDefault(p => p.UserId != participant.UserId)?.UserId;
@@ -113,6 +122,24 @@ public class ChatService : IChatService
                 await _hubContext.Clients.Group(groupName)
                     .SendAsync("UpdateChatList", chatListItem);
             }
+
+            var receiver = participants.FirstOrDefault(p => p.UserId != senderId);
+            if (receiver != null)
+            {
+                var notiTitle = user.FullName ?? "Tin nhắn mới";
+                var notiBody = model.Content; // Hoặc cắt ngắn nếu quá dài
+
+                var notiData = new Dictionary<string, string>
+                {
+                    { "type", "Chat" },
+                    { "chatRoomId", room.ChatRoomId.ToString() },
+                    { "transactionId", room.TransactionId.ToString() },
+                    { "senderId", senderId.ToString() }
+                };
+
+                _ = _notificationService.SendNotificationAsync(receiver.UserId, notiTitle, notiBody, notiData);
+            }
+        }
 
         return messageModel;
     }
@@ -149,7 +176,7 @@ public class ChatService : IChatService
             var partner = room.ChatParticipants.FirstOrDefault(p => p.UserId != userId)?.User;
             var lastMessage = room.Messages.OrderByDescending(m => m.Timestamp).FirstOrDefault();
             var unreadCount = room.Messages.Count(m => !m.IsRead && m.SenderId != userId);
-            string? avatarUrl = null;
+
             return new ChatRoomModel
             {
                 ChatRoomId = room.ChatRoomId,

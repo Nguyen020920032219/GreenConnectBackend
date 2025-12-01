@@ -203,6 +203,17 @@ CREATE TABLE "ScrapPosts"
     CONSTRAINT "FK_ScrapPosts_AspNetUsers_HouseholdId" FOREIGN KEY ("HouseholdId") REFERENCES "AspNetUsers" ("Id") ON DELETE CASCADE
 );
 
+CREATE TABLE "UserDevices"
+(
+    "DeviceId"    uuid                     NOT NULL,
+    "UserId"      uuid                     NOT NULL,
+    "FcmToken"    text                     NOT NULL,
+    "Platform"    text,
+    "LastUpdated" timestamp with time zone NOT NULL,
+    CONSTRAINT "PK_UserDevices" PRIMARY KEY ("DeviceId"),
+    CONSTRAINT "FK_UserDevices_AspNetUsers_UserId" FOREIGN KEY ("UserId") REFERENCES "AspNetUsers" ("Id") ON DELETE CASCADE
+);
+
 CREATE TABLE "PaymentTransactions"
 (
     "PaymentId"        uuid                     NOT NULL,
@@ -510,6 +521,10 @@ CREATE INDEX "IX_Transactions_OfferId" ON "Transactions" ("OfferId");
 
 CREATE INDEX "IX_Transactions_ScrapCollectorId" ON "Transactions" ("ScrapCollectorId");
 
+CREATE UNIQUE INDEX "IX_UserDevices_FcmToken" ON "UserDevices" ("FcmToken");
+
+CREATE INDEX "IX_UserDevices_UserId" ON "UserDevices" ("UserId");
+
 CREATE INDEX "IX_UserPackages_PackageId" ON "UserPackages" ("PackageId");
 
 CREATE INDEX "IX_UserPackages_UserId" ON "UserPackages" ("UserId");
@@ -517,7 +532,7 @@ CREATE INDEX "IX_UserPackages_UserId" ON "UserPackages" ("UserId");
 CREATE INDEX "IX_UserRewardRedemptions_RewardItemId" ON "UserRewardRedemptions" ("RewardItemId");
 
 INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-VALUES ('20251128182748_Initial_Database', '9.0.9');
+VALUES ('20251130153058_Initial_Database', '9.0.9');
 
 COMMIT;
 

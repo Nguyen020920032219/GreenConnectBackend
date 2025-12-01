@@ -55,9 +55,10 @@ public class UserController(IUserService userService, IPointHistoryService point
         await userService.BanOrUnbanUserAsync(userId, currentUserId);
         return Ok("Người dùng đã bị cấm hoặc mở lại thành công");
     }
-    
+
     /// <summary>
-    ///     Người dùng có thể xem danh sách lịch sử thay đổi điểm của mình hoặc (Admin) có thể xem của người dùng trong hệ thống 
+    ///     Người dùng có thể xem danh sách lịch sử thay đổi điểm của mình hoặc (Admin) có thể xem của người dùng trong hệ
+    ///     thống
     /// </summary>
     /// <param name="userId">Admin có thể xem danh sách lịch sử thay đổi điểm của người dùng</param>
     /// <param name="pageIndex"></param>
@@ -75,10 +76,11 @@ public class UserController(IUserService userService, IPointHistoryService point
         [FromQuery] bool sortByCreatAt = true)
     {
         var currentUserId = GetCurrentUserId();
-        var result = await pointHistoryService.GetPointHistoriesAsync(userId,currentUserId, pageIndex, pageSize, sortByCreatAt);
+        var result =
+            await pointHistoryService.GetPointHistoriesAsync(userId, currentUserId, pageIndex, pageSize, sortByCreatAt);
         return Ok(result);
     }
-    
+
     private Guid GetCurrentUserId()
     {
         var idStr = User.FindFirstValue(ClaimTypes.NameIdentifier);

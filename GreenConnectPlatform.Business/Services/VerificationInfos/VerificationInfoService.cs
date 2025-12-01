@@ -2,6 +2,7 @@
 using GreenConnectPlatform.Business.Models.Exceptions;
 using GreenConnectPlatform.Business.Models.Paging;
 using GreenConnectPlatform.Business.Models.VerificationInfos;
+using GreenConnectPlatform.Business.Services.Notifications;
 using GreenConnectPlatform.Data.Configurations;
 using GreenConnectPlatform.Data.Entities;
 using GreenConnectPlatform.Data.Enums;
@@ -15,17 +16,21 @@ public class VerificationInfoService : IVerificationInfoService
 {
     private readonly GreenConnectDbContext _context;
     private readonly IMapper _mapper;
+    private readonly INotificationService _notificationService;
     private readonly UserManager<User> _userManager;
     private readonly IVerificationInfoRepository _verificationInfoRepository;
 
-    public VerificationInfoService(IVerificationInfoRepository verificationInfoRepository,
+    public VerificationInfoService(
+        IVerificationInfoRepository verificationInfoRepository,
         GreenConnectDbContext context,
         UserManager<User> userManager,
+        INotificationService notificationService,
         IMapper mapper)
     {
         _verificationInfoRepository = verificationInfoRepository;
         _context = context;
         _userManager = userManager;
+        _notificationService = notificationService;
         _mapper = mapper;
     }
 
@@ -85,12 +90,23 @@ public class VerificationInfoService : IVerificationInfoService
                 await _userManager.RemoveFromRolesAsync(user, roleToMoves);
             if (!await _userManager.IsInRoleAsync(user, newRole))
                 await _userManager.AddToRoleAsync(user, newRole);
+
+            var title = "Hồ sơ đã được duyệt!";
+            var body = "Chúc mừng! Tài khoản của bạn đã được nâng cấp thành công. Hãy bắt đầu thu gom ngay.";
+            var data = new Dictionary<string, string> { { "type", "Verification" }, { "status", "Approved" } };
+            _ = _notificationService.SendNotificationAsync(userId, title, body, data);
         }
         else
         {
             verificationInfo.Status = VerificationStatus.Rejected;
             user.BuyerType = null;
             await _userManager.UpdateAsync(user);
+
+            var title = "Hồ sơ bị từ chối";
+            var body =
+                $"Hồ sơ xác minh của bạn chưa đạt yêu cầu. Lý do: {reviewerNotes ?? "Thông tin không hợp lệ"}. Vui lòng kiểm tra lại.";
+            var data = new Dictionary<string, string> { { "type", "Verification" }, { "status", "Rejected" } };
+            _ = _notificationService.SendNotificationAsync(userId, title, body, data);
         }
 
         verificationInfo.ReviewerId = reviewerId;

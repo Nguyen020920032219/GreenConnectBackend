@@ -112,10 +112,10 @@ public class FilesController : ControllerBase
     ///     (All) Xin link upload ảnh bằng chứng khiếu nại.
     /// </summary>
     /// <remarks>
-    ///     **Mục đích:** Upload ảnh bằng chứng trước khi tạo khiếu nại. <br/>
-    ///     **Quy trình:** <br/>
-    ///     1. Gọi API này để lấy `UploadUrl` và `FilePath`. <br/>
-    ///     2. Upload ảnh lên Cloud. <br/>
+    ///     **Mục đích:** Upload ảnh bằng chứng trước khi tạo khiếu nại. <br />
+    ///     **Quy trình:** <br />
+    ///     1. Gọi API này để lấy `UploadUrl` và `FilePath`. <br />
+    ///     2. Upload ảnh lên Cloud. <br />
     ///     3. Dùng `FilePath` gửi vào API `POST /api/v1/complaints` (trường `EvidenceUrl`).
     /// </remarks>
     /// <param name="request">Thông tin file.</param>

@@ -71,6 +71,7 @@ public static class ServiceConfiguration
         services.AddScoped<IChatService, ChatService>();
         services.AddHttpClient<IScrapRecognitionService, GeminiScrapRecognitionService>();
         services.AddScoped<IPointHistoryService, PointHistoryService>();
+        services.AddHostedService<TransactionAutoCancelBackGroundService>();
     }
 
     public static void ConfigureRepositories(this IServiceCollection services)

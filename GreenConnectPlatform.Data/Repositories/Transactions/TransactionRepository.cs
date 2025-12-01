@@ -19,7 +19,8 @@ public class TransactionRepository : BaseRepository<GreenConnectDbContext, Trans
             .Include(t => t.Household).ThenInclude(u => u.Profile)
             .Include(t => t.ScrapCollector).ThenInclude(u => u.Profile)
             .Include(t => t.Offer).ThenInclude(o => o.OfferDetails)
-            .Include(t => t.Offer).ThenInclude(o => o.ScrapPost)
+            .Include(t => t.Offer).ThenInclude(o => o.ScrapPost).ThenInclude(s => s.ScrapPostDetails)
+            .Include(t => t.Offer).ThenInclude(o => o.ScheduleProposals)
             .AsSplitQuery()
             .FirstOrDefaultAsync(t => t.TransactionId == id);
     }
@@ -49,9 +50,12 @@ public class TransactionRepository : BaseRepository<GreenConnectDbContext, Trans
             query = query.OrderBy(t => t.CreatedAt);
 
         var items = await query
-            .Include(t => t.Household)
-            .Include(t => t.ScrapCollector)
-            .Include(t => t.Offer).ThenInclude(o => o.ScrapPost)
+            .Include(t => t.TransactionDetails).ThenInclude(d => d.ScrapCategory)
+            .Include(t => t.Household).ThenInclude(u => u.Profile)
+            .Include(t => t.ScrapCollector).ThenInclude(u => u.Profile)
+            .Include(t => t.Offer).ThenInclude(o => o.OfferDetails)
+            .Include(t => t.Offer).ThenInclude(o => o.ScrapPost).ThenInclude(s => s.ScrapPostDetails)
+            .Include(t => t.Offer).ThenInclude(o => o.ScheduleProposals)
             .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
@@ -76,9 +80,12 @@ public class TransactionRepository : BaseRepository<GreenConnectDbContext, Trans
             query = query.OrderBy(t => t.CreatedAt);
 
         var items = await query
-            .Include(t => t.Household)
-            .Include(t => t.ScrapCollector)
-            .Include(t => t.Offer).ThenInclude(o => o.ScrapPost)
+            .Include(t => t.TransactionDetails).ThenInclude(d => d.ScrapCategory)
+            .Include(t => t.Household).ThenInclude(u => u.Profile)
+            .Include(t => t.ScrapCollector).ThenInclude(u => u.Profile)
+            .Include(t => t.Offer).ThenInclude(o => o.OfferDetails)
+            .Include(t => t.Offer).ThenInclude(o => o.ScrapPost).ThenInclude(s => s.ScrapPostDetails)
+            .Include(t => t.Offer).ThenInclude(o => o.ScheduleProposals)
             .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();

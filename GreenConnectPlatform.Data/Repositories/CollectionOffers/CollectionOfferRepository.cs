@@ -45,6 +45,12 @@ public class CollectionOfferRepository : BaseRepository<GreenConnectDbContext, C
 
         var items = await query
             .Include(o => o.ScrapPost).ThenInclude(p => p.Household)
+            .Include(o => o.ScrapCollector).ThenInclude(u => u.Profile).ThenInclude(p => p!.Rank)
+            .Include(o => o.OfferDetails).ThenInclude(od => od.ScrapCategory)
+            .Include(o => o.ScheduleProposals)
+            .Include(o => o.ScrapPost).ThenInclude(p => p.ScrapPostDetails)
+            .Include(o => o.ScrapPost).ThenInclude(p => p.Household)
+            .Include(o => o.Transactions)
             .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
@@ -69,6 +75,11 @@ public class CollectionOfferRepository : BaseRepository<GreenConnectDbContext, C
             .Include(o => o.ScrapCollector).ThenInclude(u => u.Profile).ThenInclude(p => p!.Rank)
             .Include(o => o.ScrapPost)
             .Include(o => o.OfferDetails)
+            .Include(o => o.OfferDetails).ThenInclude(od => od.ScrapCategory)
+            .Include(o => o.ScheduleProposals)
+            .Include(o => o.ScrapPost).ThenInclude(p => p.ScrapPostDetails)
+            .Include(o => o.ScrapPost).ThenInclude(p => p.Household)
+            .Include(o => o.Transactions)
             .OrderByDescending(o => o.CreatedAt)
             .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)

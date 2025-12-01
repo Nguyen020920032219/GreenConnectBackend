@@ -4,6 +4,7 @@ using GreenConnectPlatform.Business.Models.Paging;
 using GreenConnectPlatform.Business.Models.ScrapPosts;
 using GreenConnectPlatform.Business.Models.Transactions;
 using GreenConnectPlatform.Business.Models.Transactions.TransactionDetails;
+using GreenConnectPlatform.Business.Services.FileStorage;
 using GreenConnectPlatform.Business.Services.PointHistories;
 using GreenConnectPlatform.Data.Entities;
 using GreenConnectPlatform.Data.Enums;
@@ -23,14 +24,17 @@ public class TransactionService : ITransactionService
 
     private readonly ITransactionRepository _transactionRepository;
     private readonly IPointHistoryRepository _pointHistoryRepository;
+    private readonly IFileStorageService _fileStorageService;
     
     public TransactionService(
         ITransactionRepository transactionRepository,
         IPointHistoryRepository pointHistoryRepository,
+        IFileStorageService fileStorageService,
         IMapper mapper)
     {
         _transactionRepository = transactionRepository;
         _pointHistoryRepository = pointHistoryRepository;
+        _fileStorageService = fileStorageService;
         _mapper = mapper;
         _geometryFactory = NtsGeometryServices.Instance.CreateGeometryFactory(4326);
     }
@@ -81,6 +85,13 @@ public class TransactionService : ITransactionService
         if (transaction == null)
             throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Giao dịch không tìm thấy.");
         var transactionModel = _mapper.Map<TransactionModel>(transaction);
+        foreach (var d in transactionModel.Offer.ScrapPost.ScrapPostDetails)
+        {
+            if (!string.IsNullOrEmpty(d.ImageUrl))
+            {
+                d.ImageUrl = await _fileStorageService.GetReadSignedUrlAsync(d.ImageUrl);
+            }
+        }
         transactionModel.TotalPrice = transaction.TransactionDetails.Sum(d => d.FinalPrice);
         return transactionModel;
     }
@@ -95,6 +106,16 @@ public class TransactionService : ITransactionService
         var (items, totalCount) = await _transactionRepository.GetByOfferIdAsync(offerId, status,
             sortByCreateAtDesc, sortByUpdateAtDesc, pageIndex, pageSize);
         var data = _mapper.Map<List<TransactionOveralModel>>(items);
+        foreach (var d in data)
+        {
+            foreach (var p in d.Offer.ScrapPost.ScrapPostDetails)
+            {
+                if (!string.IsNullOrEmpty(p.ImageUrl))
+                {
+                    p.ImageUrl = await _fileStorageService.GetReadSignedUrlAsync(p.ImageUrl);
+                }
+            }
+        }
         return new PaginatedResult<TransactionOveralModel>
         {
             Data = data,
@@ -109,6 +130,16 @@ public class TransactionService : ITransactionService
             userId, role, sortByCreateAt, sortByUpdateAt, pageNumber, pageSize);
 
         var data = _mapper.Map<List<TransactionOveralModel>>(items);
+        foreach (var d in data)
+        {
+            foreach (var p in d.Offer.ScrapPost.ScrapPostDetails)
+            {
+                if (!string.IsNullOrEmpty(p.ImageUrl))
+                {
+                    p.ImageUrl = await _fileStorageService.GetReadSignedUrlAsync(p.ImageUrl);
+                }
+            }
+        }
         return new PaginatedResult<TransactionOveralModel>
             { Data = data, Pagination = new PaginationModel(total, pageNumber, pageSize) };
     }

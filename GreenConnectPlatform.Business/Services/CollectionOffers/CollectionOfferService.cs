@@ -3,6 +3,8 @@ using GreenConnectPlatform.Business.Models.CollectionOffers;
 using GreenConnectPlatform.Business.Models.CollectionOffers.OfferDetails;
 using GreenConnectPlatform.Business.Models.Exceptions;
 using GreenConnectPlatform.Business.Models.Paging;
+using GreenConnectPlatform.Business.Services.FileStorage;
+using GreenConnectPlatform.Business.Services.Storage;
 using GreenConnectPlatform.Data.Entities;
 using GreenConnectPlatform.Data.Enums;
 using GreenConnectPlatform.Data.Repositories.Chatrooms;
@@ -20,18 +22,21 @@ public class CollectionOfferService : ICollectionOfferService
     private readonly IScrapPostRepository _postRepository;
     private readonly IChatRoomRepository _roomRepository;
     private readonly ITransactionRepository _transactionRepository;
+    private readonly IFileStorageService _fileStorageService;
 
     public CollectionOfferService(
         ICollectionOfferRepository offerRepository,
         IScrapPostRepository postRepository,
         ITransactionRepository transactionRepository,
         IChatRoomRepository roomRepository,
+        IFileStorageService fileStorageService,
         IMapper mapper)
     {
         _offerRepository = offerRepository;
         _postRepository = postRepository;
         _transactionRepository = transactionRepository;
         _roomRepository = roomRepository;
+        _fileStorageService = fileStorageService;
         _mapper = mapper;
     }
 
@@ -41,6 +46,16 @@ public class CollectionOfferService : ICollectionOfferService
         var (items, totalCount) =
             await _offerRepository.GetByCollectorAsync(collectorId, status, sortByCreateAtDesc, pageNumber, pageSize);
         var data = _mapper.Map<List<CollectionOfferOveralForCollectorModel>>(items);
+        foreach (var d in data)
+        {
+            foreach (var detail in d.ScrapPost.ScrapPostDetails)
+            {
+                if (!string.IsNullOrEmpty(detail.ImageUrl))
+                {
+                    detail.ImageUrl = await _fileStorageService.GetReadSignedUrlAsync(detail.ImageUrl);
+                }
+            }
+        }
         return new PaginatedResult<CollectionOfferOveralForCollectorModel>
         {
             Data = data,
@@ -53,6 +68,16 @@ public class CollectionOfferService : ICollectionOfferService
     {
         var (items, totalCount) = await _offerRepository.GetByPostIdAsync(postId, status, pageNumber, pageSize);
         var data = _mapper.Map<List<CollectionOfferOveralForHouseModel>>(items);
+        foreach (var d in data)
+        {
+            foreach (var detail in d.ScrapPost.ScrapPostDetails)
+            {
+                if (!string.IsNullOrEmpty(detail.ImageUrl))
+                {
+                    detail.ImageUrl = await _fileStorageService.GetReadSignedUrlAsync(detail.ImageUrl);
+                }
+            }
+        }
         return new PaginatedResult<CollectionOfferOveralForHouseModel>
         {
             Data = data,
@@ -65,7 +90,15 @@ public class CollectionOfferService : ICollectionOfferService
         var offer = await _offerRepository.GetByIdWithDetailsAsync(id);
         if (offer == null)
             throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Đề nghị thu gom không tìm thấy");
-        return _mapper.Map<CollectionOfferModel>(offer);
+        var offerModel = _mapper.Map<CollectionOfferModel>(offer);
+        foreach (var detail in offerModel.ScrapPost.ScrapPostDetails)
+        {
+            if (!string.IsNullOrEmpty(detail.ImageUrl))
+            {
+                detail.ImageUrl = await _fileStorageService.GetReadSignedUrlAsync(detail.ImageUrl);
+            }
+        }
+        return offerModel;
     }
 
     public async Task<CollectionOfferModel> CreateAsync(Guid collectorId, Guid postId,

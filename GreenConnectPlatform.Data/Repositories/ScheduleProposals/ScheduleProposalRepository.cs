@@ -18,6 +18,7 @@ public class ScheduleProposalRepository : BaseRepository<GreenConnectDbContext, 
         return await _dbSet
             .Include(s => s.Offer).ThenInclude(o => o.ScrapPost).ThenInclude(p => p.Household)
             .Include(s => s.Offer).ThenInclude(o => o.ScrapCollector)
+            .Include(s => s.Offer).ThenInclude(o => o.ScrapPost).ThenInclude(s => s.ScrapPostDetails)
             .FirstOrDefaultAsync(s => s.ScheduleProposalId == id);
     }
 
@@ -38,7 +39,9 @@ public class ScheduleProposalRepository : BaseRepository<GreenConnectDbContext, 
         else query = query.OrderBy(s => s.CreatedAt);
 
         var items = await query
-            .Include(s => s.Offer)
+            .Include(s => s.Offer).ThenInclude(o => o.ScrapPost).ThenInclude(p => p.Household)
+            .Include(s => s.Offer).ThenInclude(o => o.ScrapCollector)
+            .Include(s => s.Offer).ThenInclude(o => o.ScrapPost).ThenInclude(s => s.ScrapPostDetails)
             .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
@@ -63,7 +66,9 @@ public class ScheduleProposalRepository : BaseRepository<GreenConnectDbContext, 
         else query = query.OrderBy(s => s.CreatedAt);
 
         var items = await query
-            .Include(s => s.Offer).ThenInclude(o => o.ScrapPost)
+            .Include(s => s.Offer).ThenInclude(o => o.ScrapPost).ThenInclude(p => p.Household)
+            .Include(s => s.Offer).ThenInclude(o => o.ScrapCollector)
+            .Include(s => s.Offer).ThenInclude(o => o.ScrapPost).ThenInclude(s => s.ScrapPostDetails)
             .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
@@ -73,6 +78,10 @@ public class ScheduleProposalRepository : BaseRepository<GreenConnectDbContext, 
 
     public async Task<List<ScheduleProposal>> GetByOffer(Guid offerId)
     {
-        return await _dbSet.Where(p => p.CollectionOfferId == offerId).ToListAsync();
+        return await _dbSet            
+            .Include(s => s.Offer).ThenInclude(o => o.ScrapPost).ThenInclude(p => p.Household)
+            .Include(s => s.Offer).ThenInclude(o => o.ScrapCollector)
+            .Include(s => s.Offer).ThenInclude(o => o.ScrapPost).ThenInclude(s => s.ScrapPostDetails)
+            .Where(p => p.CollectionOfferId == offerId).ToListAsync();
     }
 }

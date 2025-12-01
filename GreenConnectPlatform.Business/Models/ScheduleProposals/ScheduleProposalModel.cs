@@ -8,7 +8,6 @@ public class ScheduleProposalModel
     public Guid ScheduleProposalId { get; set; }
 
     public Guid CollectionOfferId { get; set; }
-    public CollectionOfferModel CollectionOffer { get; set; }
 
     public DateTime ProposedTime { get; set; }
 

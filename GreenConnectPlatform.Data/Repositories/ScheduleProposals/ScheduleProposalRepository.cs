@@ -78,7 +78,7 @@ public class ScheduleProposalRepository : BaseRepository<GreenConnectDbContext, 
 
     public async Task<List<ScheduleProposal>> GetByOffer(Guid offerId)
     {
-        return await _dbSet            
+        return await _dbSet
             .Include(s => s.Offer).ThenInclude(o => o.ScrapPost).ThenInclude(p => p.Household)
             .Include(s => s.Offer).ThenInclude(o => o.ScrapCollector)
             .Include(s => s.Offer).ThenInclude(o => o.ScrapPost).ThenInclude(s => s.ScrapPostDetails)

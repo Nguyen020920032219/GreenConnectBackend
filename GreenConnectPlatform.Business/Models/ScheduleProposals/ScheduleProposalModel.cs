@@ -1,5 +1,4 @@
-﻿using GreenConnectPlatform.Business.Models.CollectionOffers;
-using GreenConnectPlatform.Data.Enums;
+﻿using GreenConnectPlatform.Data.Enums;
 
 namespace GreenConnectPlatform.Business.Models.ScheduleProposals;
 

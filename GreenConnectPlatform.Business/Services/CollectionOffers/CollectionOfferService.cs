@@ -244,7 +244,7 @@ public class CollectionOfferService : ICollectionOfferService
                 { "type", "Transaction" },
                 { "id", transaction.TransactionId.ToString() }
             };
-            _ = _notificationService.SendNotificationAsync(offer.ScrapCollectorId, notiTitle, notiBody, notiData);
+            await _notificationService.SendNotificationAsync(offer.ScrapCollectorId, notiTitle, notiBody, notiData);
         }
         else
         {
@@ -268,7 +268,7 @@ public class CollectionOfferService : ICollectionOfferService
                 { "type", "Offer" },
                 { "id", offer.CollectionOfferId.ToString() }
             };
-            _ = _notificationService.SendNotificationAsync(offer.ScrapCollectorId, notiTitle, notiBody, notiData);
+            await _notificationService.SendNotificationAsync(offer.ScrapCollectorId, notiTitle, notiBody, notiData);
         }
 
         await _offerRepository.UpdateAsync(offer);
@@ -304,7 +304,7 @@ public class CollectionOfferService : ICollectionOfferService
 
             var notiTitle = "Đề nghị bị hủy";
             var notiBody = $"Người thu gom đã hủy báo giá cho bài đăng '{offer.ScrapPost.Title}'.";
-            _ = _notificationService.SendNotificationAsync(offer.ScrapPost.HouseholdId, notiTitle, notiBody);
+            await _notificationService.SendNotificationAsync(offer.ScrapPost.HouseholdId, notiTitle, notiBody);
         }
         else if (offer.Status == OfferStatus.Canceled || offer.Status == OfferStatus.Rejected)
         {
@@ -320,6 +320,9 @@ public class CollectionOfferService : ICollectionOfferService
             var isFullBooked = offerCategoryIds.Count == offer.ScrapPost.ScrapPostDetails.Count;
             offer.ScrapPost.Status = isFullBooked ? PostStatus.FullyBooked : PostStatus.PartiallyBooked;
             await _postRepository.UpdateAsync(offer.ScrapPost);
+            var notiTitle = "Đề nghị đã được mở lại";
+            var notiBody = $"Người thu gom đã mở lại báo giá cho bài đăng '{offer.ScrapPost.Title}'.";
+            await _notificationService.SendNotificationAsync(offer.ScrapPost.HouseholdId, notiTitle, notiBody);
         }
 
         await _offerRepository.UpdateAsync(offer);

@@ -239,7 +239,7 @@ public class TransactionService : ITransactionService
             var title = "Giao dịch thành công!";
             var body = "Chúc mừng! Đơn hàng đã hoàn tất. Bạn nhận được +10 điểm thưởng.";
             var data = new Dictionary<string, string> { { "type", "Transaction" }, { "id", transactionId.ToString() } };
-            _ = _notificationService.SendNotificationAsync(transaction.ScrapCollectorId, title, body, data);
+            await _notificationService.SendNotificationAsync(transaction.ScrapCollectorId, title, body, data);
         }
         else
         {
@@ -248,7 +248,7 @@ public class TransactionService : ITransactionService
             var title = "Giao dịch bị hủy";
             var body = "Hộ gia đình đã từ chối kết quả cân đo và hủy giao dịch.";
             var data = new Dictionary<string, string> { { "type", "Transaction" }, { "id", transactionId.ToString() } };
-            _ = _notificationService.SendNotificationAsync(transaction.ScrapCollectorId, title, body, data);
+            await _notificationService.SendNotificationAsync(transaction.ScrapCollectorId, title, body, data);
         }
 
         transaction.UpdatedAt = DateTime.UtcNow;
@@ -274,6 +274,10 @@ public class TransactionService : ITransactionService
         if (transaction.Status == TransactionStatus.CanceledByUser)
         {
             transaction.Status = TransactionStatus.InProgress;
+            var title = "Giao dịch được mở lại";
+            var body = "Người thu gom đã mở lại giao dịch.";
+            var data = new Dictionary<string, string> { { "type", "Transaction" }, { "id", transactionId.ToString() } };
+            await _notificationService.SendNotificationAsync(transaction.HouseholdId, title, body, data);
         }
         else
         {
@@ -282,7 +286,7 @@ public class TransactionService : ITransactionService
             var title = "Giao dịch bị hủy";
             var body = "Người thu gom đã hủy giao dịch vì sự cố.";
             var data = new Dictionary<string, string> { { "type", "Transaction" }, { "id", transactionId.ToString() } };
-            _ = _notificationService.SendNotificationAsync(transaction.HouseholdId, title, body, data);
+            await _notificationService.SendNotificationAsync(transaction.HouseholdId, title, body, data);
         }
 
         transaction.UpdatedAt = DateTime.UtcNow;

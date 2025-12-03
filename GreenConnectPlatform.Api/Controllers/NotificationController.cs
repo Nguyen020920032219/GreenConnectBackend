@@ -3,7 +3,6 @@ using GreenConnectPlatform.Business.Models.Exceptions;
 using GreenConnectPlatform.Business.Models.Notifications;
 using GreenConnectPlatform.Business.Models.Paging;
 using GreenConnectPlatform.Business.Services.Notifications;
-using GreenConnectPlatform.Data.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -60,7 +59,7 @@ public class NotificationController : ControllerBase
     /// <param name="pageSize">Số lượng thông báo mỗi lần tải (Mặc định: 20).</param>
     /// <response code="200">Thành công. Trả về danh sách có phân trang.</response>
     [HttpGet]
-    [ProducesResponseType(typeof(PaginatedResult<Notification>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PaginatedResult<NotificationModel>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetList([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 20)
     {
         var userId = GetCurrentUserId();

@@ -1,3 +1,4 @@
+using AutoMapper;
 using FirebaseAdmin.Messaging;
 using GreenConnectPlatform.Business.Models.Exceptions;
 using GreenConnectPlatform.Business.Models.Notifications;
@@ -6,23 +7,24 @@ using GreenConnectPlatform.Data.Entities;
 using GreenConnectPlatform.Data.Repositories.Notifications;
 using GreenConnectPlatform.Data.Repositories.UserDevices;
 using Microsoft.AspNetCore.Http;
-using Notification = GreenConnectPlatform.Data.Entities.Notification; // Tránh nhầm với Firebase Notification
+using Notification = GreenConnectPlatform.Data.Entities.Notification;
 
 namespace GreenConnectPlatform.Business.Services.Notifications;
 
 public class NotificationService : INotificationService
 {
+    private readonly IMapper _mapper;
     private readonly INotificationRepository _notificationRepo;
-
     private readonly IUserDeviceRepository _userDeviceRepo;
-    // Inject FirebaseMessaging (Cần đăng ký Singleton trong Program.cs)
 
     public NotificationService(
         INotificationRepository notificationRepo,
-        IUserDeviceRepository userDeviceRepo)
+        IUserDeviceRepository userDeviceRepo,
+        IMapper mapper)
     {
         _notificationRepo = notificationRepo;
         _userDeviceRepo = userDeviceRepo;
+        _mapper = mapper;
     }
 
     public async Task RegisterDeviceAsync(Guid userId, RegisterDeviceRequest request)
@@ -97,13 +99,13 @@ public class NotificationService : INotificationService
         }
     }
 
-    public async Task<PaginatedResult<Notification>> GetMyNotificationsAsync(Guid userId, int page, int size)
+    public async Task<PaginatedResult<NotificationModel>> GetMyNotificationsAsync(Guid userId, int page, int size)
     {
         var (items, total) = await _notificationRepo.GetByUserIdAsync(userId, page, size);
 
-        return new PaginatedResult<Notification>
+        return new PaginatedResult<NotificationModel>
         {
-            Data = items,
+            Data = _mapper.Map<List<NotificationModel>>(items),
             Pagination = new PaginationModel(total, page, size)
         };
     }

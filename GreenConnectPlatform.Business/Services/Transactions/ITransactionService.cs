@@ -27,4 +27,6 @@ public interface ITransactionService
 
     Task ProcessTransactionAsync(Guid transactionId, Guid householdId, bool isAccepted);
     Task ToggleCancelAsync(Guid transactionId, Guid collectorId);
+
+    Task<string> GetTransactionQrCodeAsync(Guid transactionId, Guid userId);
 }

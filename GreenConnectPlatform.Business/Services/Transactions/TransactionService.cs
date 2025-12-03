@@ -6,9 +6,11 @@ using GreenConnectPlatform.Business.Models.Transactions;
 using GreenConnectPlatform.Business.Models.Transactions.TransactionDetails;
 using GreenConnectPlatform.Business.Services.FileStorage;
 using GreenConnectPlatform.Business.Services.Notifications;
+using GreenConnectPlatform.Business.Services.Payment;
 using GreenConnectPlatform.Data.Entities;
 using GreenConnectPlatform.Data.Enums;
 using GreenConnectPlatform.Data.Repositories.PointHistories;
+using GreenConnectPlatform.Data.Repositories.Profiles;
 using GreenConnectPlatform.Data.Repositories.Transactions;
 using Microsoft.AspNetCore.Http;
 using NetTopologySuite;
@@ -24,15 +26,18 @@ public class TransactionService : ITransactionService
     private readonly IMapper _mapper;
     private readonly INotificationService _notificationService;
     private readonly IPointHistoryRepository _pointHistoryRepository;
-
+    private readonly IProfileRepository _profileRepository;
     private readonly ITransactionRepository _transactionRepository;
+    private readonly IVietQrService _vietQrService;
 
     public TransactionService(
         ITransactionRepository transactionRepository,
         IPointHistoryRepository pointHistoryRepository,
         IFileStorageService fileStorageService,
         INotificationService notificationService,
-        IMapper mapper)
+        IMapper mapper,
+        IVietQrService vietQrService,
+        IProfileRepository profileRepository)
     {
         _transactionRepository = transactionRepository;
         _pointHistoryRepository = pointHistoryRepository;
@@ -40,6 +45,8 @@ public class TransactionService : ITransactionService
         _notificationService = notificationService;
         _mapper = mapper;
         _geometryFactory = NtsGeometryServices.Instance.CreateGeometryFactory(4326);
+        _vietQrService = vietQrService;
+        _profileRepository = profileRepository;
     }
 
     public async Task CheckInAsync(Guid transactionId, Guid collectorId, LocationModel currentLocation)
@@ -291,5 +298,46 @@ public class TransactionService : ITransactionService
 
         transaction.UpdatedAt = DateTime.UtcNow;
         await _transactionRepository.UpdateAsync(transaction);
+    }
+
+    public async Task<string> GetTransactionQrCodeAsync(Guid transactionId, Guid userId)
+    {
+        var transaction = await _transactionRepository.GetByIdWithDetailsAsync(transactionId);
+        if (transaction == null)
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Giao dịch không tồn tại.");
+
+        // Chỉ Collector hoặc Household của đơn này mới được lấy QR
+        if (transaction.HouseholdId != userId && transaction.ScrapCollectorId != userId)
+            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Bạn không có quyền xem mã QR này.");
+
+        // Tính tổng tiền
+        var totalAmount = transaction.TransactionDetails.Sum(d => d.FinalPrice);
+        if (totalAmount <= 0)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Đơn hàng chưa có giá trị thanh toán.");
+
+        // Lấy thông tin ngân hàng của Household (Người nhận tiền)
+        // Lưu ý: Dùng hàm GetByUserIdWithRankAsync hoặc hàm nào đó có load thông tin Bank
+        var householdProfile = await _profileRepository.GetByUserIdWithRankAsync(transaction.HouseholdId);
+
+        if (householdProfile == null ||
+            string.IsNullOrEmpty(householdProfile.BankCode) ||
+            string.IsNullOrEmpty(householdProfile.BankAccountNumber))
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "Người bán (Household) chưa cập nhật thông tin tài khoản ngân hàng.");
+
+        // Tạo nội dung chuyển khoản: "Thanh toan don hang {Mã đơn}"
+        // Lấy 8 ký tự đầu của ID cho ngắn gọn
+        var content = $"GC {transaction.TransactionId.ToString().Substring(0, 8)}";
+
+        // Gọi Service tạo link
+        var qrUrl = _vietQrService.GenerateQrUrl(
+            householdProfile.BankCode,
+            householdProfile.BankAccountNumber,
+            householdProfile.BankAccountName ?? "",
+            totalAmount,
+            content
+        );
+
+        return qrUrl;
     }
 }

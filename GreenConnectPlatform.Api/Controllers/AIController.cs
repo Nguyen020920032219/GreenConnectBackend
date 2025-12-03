@@ -10,7 +10,7 @@ namespace GreenConnectPlatform.Api.Controllers;
 
 [Route("api/v1/ai")]
 [ApiController]
-[Tags("8. AI Features (Nhận Diện Thông Minh)")]
+[Tags("08. AI Features (Nhận Diện Thông Minh)")]
 [Authorize]
 public class AIController : ControllerBase
 {

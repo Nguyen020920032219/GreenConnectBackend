@@ -12,7 +12,7 @@ namespace GreenConnectPlatform.Api.Controllers;
 [Route("api/v1/notifications")]
 [ApiController]
 [Authorize]
-[Tags("99. Notifications (Thông Báo)")]
+[Tags("21. Notifications (Thông Báo)")]
 public class NotificationController : ControllerBase
 {
     private readonly INotificationService _notificationService;

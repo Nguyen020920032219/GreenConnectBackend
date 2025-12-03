@@ -7,7 +7,7 @@ namespace GreenConnectPlatform.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/auth")]
-[Tags("1. Authentication (Xác thực & Phân quyền)")]
+[Tags("01. Authentication (Xác thực & Phân quyền)")]
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;

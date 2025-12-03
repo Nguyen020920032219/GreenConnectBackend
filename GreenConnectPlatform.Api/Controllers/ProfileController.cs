@@ -11,7 +11,7 @@ namespace GreenConnectPlatform.Api.Controllers;
 [ApiController]
 [Route("api/v1/profile")]
 [Authorize]
-[Tags("2. Profile & Verification (Hồ sơ & Xác minh)")]
+[Tags("02. Profile & Verification (Hồ sơ & Xác minh)")]
 public class ProfileController : ControllerBase
 {
     private readonly IProfileService _profileService;

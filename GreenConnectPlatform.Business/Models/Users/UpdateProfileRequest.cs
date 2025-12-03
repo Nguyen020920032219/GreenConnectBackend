@@ -8,4 +8,7 @@ public class UpdateProfileRequest
     public string? Address { get; set; }
     public Gender? Gender { get; set; }
     public DateOnly? DateOfBirth { get; set; }
+    public string? BankCode { get; set; }
+    public string? BankAccountNumber { get; set; }
+    public string? BankAccountName { get; set; }
 }

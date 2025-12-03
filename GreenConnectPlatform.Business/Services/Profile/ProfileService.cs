@@ -39,21 +39,27 @@ public class ProfileService : IProfileService
 
         var roles = await _userManager.GetRolesAsync(profile.User);
 
+        var avatarSignedUrl = !string.IsNullOrEmpty(profile.AvatarUrl)
+            ? await _fileStorageService.GetReadSignedUrlAsync(profile.AvatarUrl)
+            : null;
+
         return new ProfileModel
         {
             UserId = profile.User.Id,
             ProfileId = profile.ProfileId,
             FullName = profile.User.FullName ?? "",
             PhoneNumber = profile.User.PhoneNumber ?? "",
-            AvatarUrl = profile.AvatarUrl != null
-                ? _fileStorageService.GetReadSignedUrlAsync(profile.AvatarUrl).Result
-                : "",
+            AvatarUrl = avatarSignedUrl,
             PointBalance = profile.PointBalance,
+            CreditBalance = profile.CreditBalance,
             Rank = profile.Rank?.Name ?? "Bronze",
             Roles = roles,
             Address = profile.Address,
             Gender = profile.Gender,
-            DateOfBirth = profile.DateOfBirth
+            DateOfBirth = profile.DateOfBirth,
+            BankCode = profile.BankCode,
+            BankAccountNumber = profile.BankAccountNumber,
+            BankAccountName = profile.BankAccountName
         };
     }
 
@@ -80,6 +86,10 @@ public class ProfileService : IProfileService
         if (!string.IsNullOrEmpty(request.Address)) profile.Address = request.Address;
         if (request.Gender.HasValue) profile.Gender = request.Gender;
         if (request.DateOfBirth.HasValue) profile.DateOfBirth = request.DateOfBirth;
+
+        if (request.BankCode != null) profile.BankCode = request.BankCode;
+        if (request.BankAccountNumber != null) profile.BankAccountNumber = request.BankAccountNumber;
+        if (request.BankAccountName != null) profile.BankAccountName = request.BankAccountName.ToUpper();
 
         await _profileRepository.UpdateAsync(profile);
 

@@ -14,7 +14,7 @@ namespace GreenConnectPlatform.Api.Controllers;
 
 [Route("api/v1/offers")]
 [ApiController]
-[Tags("5. Collection Offers (Đề Nghị Thu Gom)")]
+[Tags("05. Collection Offers (Đề Nghị Thu Gom)")]
 public class CollectionOfferController : ControllerBase
 {
     private readonly ICollectionOfferService _service;

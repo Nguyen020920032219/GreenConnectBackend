@@ -14,7 +14,7 @@ namespace GreenConnectPlatform.Api.Controllers;
 
 [Route("api/v1/transactions")]
 [ApiController]
-[Tags("7. Transactions (Giao Dịch & Thanh Toán)")]
+[Tags("07. Transactions (Giao Dịch & Thanh Toán)")]
 public class TransactionController : ControllerBase
 {
     private readonly IFeedbackService _feedbackService;
@@ -172,6 +172,28 @@ public class TransactionController : ControllerBase
         [FromQuery] bool sortByCreateAt = true)
     {
         return Ok(await _feedbackService.GetFeedbacksAsync(pageNumber, pageSize, id, sortByCreateAt));
+    }
+
+    /// <summary>
+    ///     (All) Lấy mã VietQR để thanh toán cho đơn hàng.
+    /// </summary>
+    /// <remarks>
+    ///     Tạo mã QR chuyển khoản tự động dựa trên tổng tiền đơn hàng và số tài khoản của Household. <br />
+    ///     Collector quét mã này để chuyển tiền nhanh chóng. <br />
+    ///     **Lưu ý:** Household phải cập nhật thông tin ngân hàng trong Profile trước thì mới tạo được mã.
+    /// </remarks>
+    /// <param name="id">ID Giao dịch.</param>
+    /// <response code="200">Thành công. Trả về URL ảnh QR.</response>
+    /// <response code="400">Household chưa có số tài khoản hoặc đơn hàng 0 đồng.</response>
+    [HttpGet("{id:guid}/qr-code")]
+    [Authorize]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetQrCode(Guid id)
+    {
+        var userId = GetCurrentUserId();
+        var qrUrl = await _service.GetTransactionQrCodeAsync(id, userId);
+        return Ok(new { QrUrl = qrUrl });
     }
 
     private Guid GetCurrentUserId()

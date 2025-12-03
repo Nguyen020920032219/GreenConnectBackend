@@ -1,6 +1,7 @@
 using GreenConnectPlatform.Business.Mappers;
 using GreenConnectPlatform.Business.Services.AI;
 using GreenConnectPlatform.Business.Services.Auth;
+using GreenConnectPlatform.Business.Services.Banks;
 using GreenConnectPlatform.Business.Services.Chat;
 using GreenConnectPlatform.Business.Services.CollectionOffers;
 using GreenConnectPlatform.Business.Services.Complaints;
@@ -8,6 +9,7 @@ using GreenConnectPlatform.Business.Services.Feedbacks;
 using GreenConnectPlatform.Business.Services.FileStorage;
 using GreenConnectPlatform.Business.Services.Jwt;
 using GreenConnectPlatform.Business.Services.Notifications;
+using GreenConnectPlatform.Business.Services.Payment;
 using GreenConnectPlatform.Business.Services.PaymentPackages;
 using GreenConnectPlatform.Business.Services.PointHistories;
 using GreenConnectPlatform.Business.Services.Profile;
@@ -25,10 +27,12 @@ using GreenConnectPlatform.Data.Repositories.Chatrooms;
 using GreenConnectPlatform.Data.Repositories.CollectionOffers;
 using GreenConnectPlatform.Data.Repositories.CollectorVerificationInfos;
 using GreenConnectPlatform.Data.Repositories.Complaints;
+using GreenConnectPlatform.Data.Repositories.CreditTransactionHistories;
 using GreenConnectPlatform.Data.Repositories.Feedbacks;
 using GreenConnectPlatform.Data.Repositories.Messages;
 using GreenConnectPlatform.Data.Repositories.Notifications;
 using GreenConnectPlatform.Data.Repositories.PaymentPackages;
+using GreenConnectPlatform.Data.Repositories.PaymentTransactions;
 using GreenConnectPlatform.Data.Repositories.PointHistories;
 using GreenConnectPlatform.Data.Repositories.Profiles;
 using GreenConnectPlatform.Data.Repositories.ReferencePrices;
@@ -72,6 +76,10 @@ public static class ServiceConfiguration
         services.AddScoped<IPointHistoryService, PointHistoryService>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddHostedService<TransactionAutoCancelBackGroundService>();
+        services.AddScoped<IVnPayService, VnPayService>();
+        services.AddScoped<IPaymentService, PaymentService>();
+        services.AddScoped<IVietQrService, VietQrService>();
+        services.AddHttpClient<IBankService, BankService>();
     }
 
     public static void ConfigureRepositories(this IServiceCollection services)
@@ -97,5 +105,7 @@ public static class ServiceConfiguration
         services.AddScoped<IPointHistoryRepository, PointHistoryRepository>();
         services.AddScoped<IUserDeviceRepository, UserDeviceRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
+        services.AddScoped<ICreditTransactionHistoryRepository, CreditTransactionHistoryRepository>();
+        services.AddScoped<IPaymentTransactionRepository, PaymentTransactionRepository>();
     }
 }

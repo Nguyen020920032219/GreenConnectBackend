@@ -11,7 +11,7 @@ namespace GreenConnectPlatform.Api.Controllers;
 
 [Route("api/v1/schedules")]
 [ApiController]
-[Tags("6. Schedule Proposals (Thương Lượng Lịch Hẹn)")]
+[Tags("06. Schedule Proposals (Thương Lượng Lịch Hẹn)")]
 public class ScheduleProposalController : ControllerBase
 {
     private readonly IScheduleProposalService _service;

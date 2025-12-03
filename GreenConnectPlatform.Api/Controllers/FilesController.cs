@@ -10,7 +10,7 @@ namespace GreenConnectPlatform.Api.Controllers;
 [ApiController]
 [Route("api/v1/files")]
 [Authorize]
-[Tags("9. Files & Storage")]
+[Tags("09. Files & Storage")]
 public class FilesController : ControllerBase
 {
     private readonly IStorageService _storageService;

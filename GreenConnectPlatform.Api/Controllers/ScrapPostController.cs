@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace GreenConnectPlatform.Api.Controllers;
 
 [Route("api/v1/posts")]
-[Tags("4. Scrap Posts (Bài Đăng Thu Gom)")]
+[Tags("04. Scrap Posts (Bài Đăng Thu Gom)")]
 [ApiController]
 public class ScrapPostController : ControllerBase
 {

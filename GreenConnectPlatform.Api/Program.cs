@@ -54,6 +54,8 @@ public class Program
         builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
         builder.Services.AddProblemDetails();
 
+        builder.Services.AddMemoryCache();
+
         builder.Services.AddControllers()
             .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
         builder.Services.AddOpenApi();

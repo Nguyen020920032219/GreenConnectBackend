@@ -1,6 +1,5 @@
 using GreenConnectPlatform.Business.Models.Notifications;
 using GreenConnectPlatform.Business.Models.Paging;
-using GreenConnectPlatform.Data.Entities;
 
 namespace GreenConnectPlatform.Business.Services.Notifications;
 
@@ -13,7 +12,7 @@ public interface INotificationService
     Task SendNotificationAsync(Guid userId, string title, string body, Dictionary<string, string>? data = null);
 
     // Lấy lịch sử thông báo
-    Task<PaginatedResult<Notification>> GetMyNotificationsAsync(Guid userId, int page, int size);
+    Task<PaginatedResult<NotificationModel>> GetMyNotificationsAsync(Guid userId, int page, int size);
 
     // Đánh dấu đã đọc
     Task MarkAsReadAsync(Guid userId, Guid notificationId);

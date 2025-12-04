@@ -9,4 +9,10 @@ public class RewardItemModel
     public string? Description { get; set; }
 
     public int PointsCost { get; set; }
+    
+    public string? ImageUrl { get; set; }
+    
+    // [NEW] Thêm 2 trường này
+    public string Type { get; set; } = "Credit"; // Credit / Package
+    public string Value { get; set; } = "0";
 }

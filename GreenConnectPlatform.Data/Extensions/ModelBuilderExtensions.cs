@@ -141,17 +141,6 @@ public static class ModelBuilderExtensions
             }
         );
 
-        modelBuilder.Entity<RewardItem>().HasData(
-            new RewardItem
-            {
-                RewardItemId = 1, ItemName = "Voucher GotIt 50k", Description = "Đổi voucher mua sắm", PointsCost = 500
-            },
-            new RewardItem
-            {
-                RewardItemId = 2, ItemName = "Khung Avatar Xanh", Description = "Trang trí profile", PointsCost = 100
-            }
-        );
-
         // [FIXED] Sửa ID bắt đầu bằng 'a' (hợp lệ) thay vì 'p'
         var freePackId = new Guid("a1111111-0000-0000-0000-000000000001");
         var proPackId = new Guid("a2222222-0000-0000-0000-000000000001");
@@ -166,6 +155,57 @@ public static class ModelBuilderExtensions
             {
                 PackageId = proPackId, Name = "Gói Pro", Description = "500 lượt/tháng", Price = 200000,
                 ConnectionAmount = 500, PackageType = PackageType.Paid, IsActive = true
+            }
+        );
+        
+                modelBuilder.Entity<RewardItem>().HasData(
+            // 1. Gói Credit lẻ
+            new RewardItem 
+            { 
+                RewardItemId = 1, 
+                ItemName = "1 Lượt Kết Nối", 
+                Description = "Đổi ngay 1 lượt xem SĐT để liên hệ chủ bài đăng.", 
+                PointsCost = 100, 
+                Type = "Credit", 
+                Value = "1", 
+                ImageUrl = "https://firebasestorage.googleapis.com/.../icon_credit_1.png" 
+            },
+            
+            // 2. Combo Credit (Tiết kiệm 10%)
+            new RewardItem 
+            { 
+                RewardItemId = 2, 
+                ItemName = "Combo 5 Lượt", 
+                Description = "Gói tiết kiệm. Phù hợp cho người thu gom thường xuyên.", 
+                PointsCost = 450, 
+                Type = "Credit", 
+                Value = "5", 
+                ImageUrl = "https://firebasestorage.googleapis.com/.../icon_credit_5.png" 
+            },
+            
+            // 3. Combo Credit lớn (Tiết kiệm 20%)
+            new RewardItem 
+            { 
+                RewardItemId = 3, 
+                ItemName = "Combo 10 Lượt", 
+                Description = "Gói sỉ siêu hời. Thoải mái kết nối.", 
+                PointsCost = 800, 
+                Type = "Credit", 
+                Value = "10", 
+                ImageUrl = "https://firebasestorage.googleapis.com/.../icon_credit_10.png" 
+            },
+
+            // 4. Gói dùng thử VIP (Trải nghiệm tính năng Pro)
+            // Value format: "PackageId|Days" -> ID gói Pro và số ngày sử dụng (1 ngày)
+            new RewardItem 
+            { 
+                RewardItemId = 4, 
+                ItemName = "Dùng thử VIP 1 Ngày", 
+                Description = "Mở khóa không giới hạn lượt xem và tính năng Pro trong 24h.", 
+                PointsCost = 2000, 
+                Type = "Package", 
+                Value = $"{proPackId}|1", // Link tới gói Pro đã seed ở trên
+                ImageUrl = "https://firebasestorage.googleapis.com/.../icon_vip_day.png" 
             }
         );
 

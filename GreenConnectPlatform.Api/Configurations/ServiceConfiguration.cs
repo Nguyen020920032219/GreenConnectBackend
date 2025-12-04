@@ -107,5 +107,6 @@ public static class ServiceConfiguration
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<ICreditTransactionHistoryRepository, CreditTransactionHistoryRepository>();
         services.AddScoped<IPaymentTransactionRepository, PaymentTransactionRepository>();
+        services.AddScoped<IUserRewardRedemptionRepository, UserRewardRedemptionRepository>();
     }
 }

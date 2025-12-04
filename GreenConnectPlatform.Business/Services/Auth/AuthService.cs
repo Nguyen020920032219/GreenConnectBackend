@@ -169,6 +169,7 @@ public class AuthService : IAuthService
                 ? await _fileStorageService.GetReadSignedUrlAsync(profile.AvatarUrl)
                 : null,
             PointBalance = profile?.PointBalance ?? 0,
+            CreditBalance = profile?.CreditBalance ?? 0,
             Rank = rankName,
             Roles = roles
         };

@@ -117,6 +117,7 @@ public class MappingProfile : Profile
         CreateMap<RewardItemCreateModel, RewardItem>();
         CreateMap<RewardItemUpdateModel, RewardItem>()
             .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
+        CreateMap<RewardItemCreateModel, RewardItem>();
 
         #endregion
 

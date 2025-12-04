@@ -43,7 +43,6 @@ public class PaymentController : ControllerBase
             var responseCode = Request.Query["vnp_ResponseCode"];
             var status = responseCode == "00" ? "success" : "failed";
             var redirectUrl = $"greenconnect://payment-result?status={status}";
-
             return Redirect(redirectUrl);
         }
         catch (Exception ex)

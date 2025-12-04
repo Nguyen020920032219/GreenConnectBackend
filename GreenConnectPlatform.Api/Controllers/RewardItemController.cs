@@ -1,4 +1,5 @@
-﻿using GreenConnectPlatform.Business.Models.Exceptions;
+﻿using System.Security.Claims;
+using GreenConnectPlatform.Business.Models.Exceptions;
 using GreenConnectPlatform.Business.Models.RewardItems;
 using GreenConnectPlatform.Business.Services.RewardItems;
 using Microsoft.AspNetCore.Authorization;
@@ -6,131 +7,118 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace GreenConnectPlatform.Api.Controllers;
 
+[Route("api/v1/rewards")]
 [ApiController]
-[Route("api/v1/reward-items")]
-[Tags("15. Reward Items (Phần thưởng)")]
-public class RewardItemController(IRewardItemService rewardItemService) : ControllerBase
+[Authorize]
+[Tags("15. Gamification (Đổi Thưởng)")]
+public class RewardItemController : ControllerBase
 {
+    private readonly IRewardItemService _service;
+
+    public RewardItemController(IRewardItemService service)
+    {
+        _service = service;
+    }
+
     /// <summary>
-    ///     (All) Xem danh sách vật phẩm đổi thưởng.
+    ///     (All) Lấy danh sách quà tặng có thể đổi.
     /// </summary>
     /// <remarks>
-    ///     Lấy danh sách các quà tặng/vật phẩm có sẵn trong hệ thống để người dùng đổi điểm.
-    ///     Hỗ trợ phân trang, tìm kiếm theo tên và sắp xếp theo số điểm yêu cầu.
+    ///     Trả về danh sách các item (Credit, Package...) kèm số điểm yêu cầu.
     /// </remarks>
-    /// <param name="pageIndex">Số trang hiện tại (Mặc định: 1).</param>
-    /// <param name="pageSize">Số lượng vật phẩm trên một trang (Mặc định: 10).</param>
-    /// <param name="name">Từ khóa tìm kiếm theo tên vật phẩm (Tùy chọn).</param>
-    /// <param name="sortByPoint">`true`: Sắp xếp điểm tăng dần, `false`: Giảm dần (Mặc định: true).</param>
-    /// <response code="200">Thành công. Trả về danh sách vật phẩm.</response>
-    /// <response code="401">Chưa đăng nhập.</response>
-    /// <response code="403">Không có quyền truy cập.</response>
     [HttpGet]
-    [Authorize]
-    [ProducesResponseType(typeof(RewardItemModel), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> GetRewardItems([FromQuery] int pageIndex = 1,
-        [FromQuery] int pageSize = 10,
-        [FromQuery] string? name = null,
-        [FromQuery] bool sortByPoint = true)
+    [AllowAnonymous] // Cho khách xem để kích thích
+    [ProducesResponseType(typeof(List<RewardItemModel>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetRewards()
     {
-        var result = await rewardItemService.GetRewardItems(pageIndex, pageSize, name, sortByPoint);
-        return Ok(result);
+        return Ok(await _service.GetAvailableRewardsAsync());
     }
 
     /// <summary>
-    ///     (All) Xem chi tiết vật phẩm đổi thưởng.
+    ///     (All) Xem lịch sử đổi quà của tôi.
+    /// </summary>
+    [HttpGet("my-history")]
+    [ProducesResponseType(typeof(List<RedemptionHistoryModel>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetMyHistory()
+    {
+        var userId = GetCurrentUserId();
+        return Ok(await _service.GetMyRedemptionHistoryAsync(userId));
+    }
+
+    /// <summary>
+    ///     (All) Đổi điểm lấy quà.
     /// </summary>
     /// <remarks>
-    ///     Lấy thông tin cụ thể của một vật phẩm dựa trên ID.
-    ///     Bao gồm: Tên, Mô tả, Số điểm cần đổi, Số lượng còn lại trong kho, Hình ảnh...
+    ///     **Quy trình:** <br />
+    ///     1. Kiểm tra số dư điểm (`PointBalance`). <br />
+    ///     2. Trừ điểm tương ứng. <br />
+    ///     3. Cộng quà vào tài khoản (Tăng Credit hoặc Kích hoạt Gói). <br />
+    ///     4. Ghi lịch sử giao dịch.
     /// </remarks>
-    /// <param name="id">ID của vật phẩm (số nguyên).</param>
-    /// <response code="200">Thành công. Trả về chi tiết `RewardItemModel`.</response>
-    /// <response code="404">Không tìm thấy vật phẩm.</response>
-    /// <response code="401">Chưa đăng nhập.</response>
-    /// <response code="403">Không có quyền truy cập.</response>
-    [HttpGet("{id:int}")]
-    [Authorize]
-    [ProducesResponseType(typeof(RewardItemModel), StatusCodes.Status200OK)]
+    /// <param name="id">ID của món quà (`RewardItemId`).</param>
+    /// <response code="200">Đổi quà thành công.</response>
+    /// <response code="400">Không đủ điểm hoặc quà không hợp lệ.</response>
+    [HttpPost("{id:int}/redeem")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> GetRewardItemById([FromRoute] int id)
+    public async Task<IActionResult> Redeem(int id)
     {
-        var result = await rewardItemService.GetByRewardItemIdAsync(id);
-        return Ok(result);
+        var userId = GetCurrentUserId();
+        await _service.RedeemRewardAsync(userId, id);
+        return Ok(new { Message = "Đổi quà thành công! Vui lòng kiểm tra tài khoản." });
     }
 
     /// <summary>
-    ///     (Admin) Tạo mới vật phẩm đổi thưởng.
+    ///     (Admin) Tạo món quà mới.
     /// </summary>
     /// <remarks>
-    ///     Dành cho Admin thêm các món quà mới vào kho đổi thưởng.
-    ///     Cần nhập: Tên, Điểm quy đổi, Số lượng tồn kho, Hình ảnh minh họa...
+    ///     Admin tạo các gói Credit hoặc gói Package để User đổi điểm.
     /// </remarks>
-    /// <param name="rewardItem">Dữ liệu tạo vật phẩm (`RewardItemCreateModel`).</param>
-    /// <response code="201">Tạo thành công. Trả về vật phẩm vừa tạo.</response>
-    /// <response code="401">Chưa đăng nhập.</response>
-    /// <response code="403">Không có quyền Admin.</response>
     [HttpPost]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(RewardItemModel), StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
-    public async Task<ActionResult> CreateRewardItem([FromBody] RewardItemCreateModel rewardItem)
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Create([FromBody] RewardItemCreateModel request)
     {
-        var result = await rewardItemService.CreateRewardItemAsync(rewardItem);
-        return CreatedAtAction(nameof(GetRewardItemById), new { id = result.RewardItemId }, result);
+        var result = await _service.CreateRewardItemAsync(request);
+        // Trả về 201 Created
+        // Lưu ý: Nếu có API GetById cho RewardItem thì dùng CreatedAtAction, ở đây ta chưa làm GetById cho RewardItem (chỉ có GetAll), nên trả Ok hoặc Created kèm data.
+        return Created("", result);
     }
 
     /// <summary>
-    ///     (Admin) Cập nhật vật phẩm đổi thưởng.
+    ///     (Admin) Cập nhật thông tin món quà.
     /// </summary>
     /// <remarks>
-    ///     Cho phép Admin chỉnh sửa thông tin vật phẩm (Ví dụ: Thay đổi số điểm yêu cầu, cập nhật số lượng kho, sửa tên/mô
-    ///     tả).
+    ///     Sửa tên, mô tả, giá điểm, hoặc loại quà.
     /// </remarks>
-    /// <param name="id">ID của vật phẩm cần sửa.</param>
-    /// <param name="rewardItem">Dữ liệu cần cập nhật (`RewardItemUpdateModel`).</param>
-    /// <response code="200">Cập nhật thành công.</response>
-    /// <response code="404">Không tìm thấy vật phẩm.</response>
-    /// <response code="401">Chưa đăng nhập.</response>
-    /// <response code="403">Không có quyền Admin.</response>
-    [HttpPatch("{id:int}")]
+    [HttpPut("{id:int}")]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(RewardItemModel), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> UpdateRewardItem([FromRoute] int id, [FromBody] RewardItemUpdateModel rewardItem)
+    public async Task<IActionResult> Update(int id, [FromBody] RewardItemUpdateModel request)
     {
-        var result = await rewardItemService.UpdateRewardItemAsync(id, rewardItem);
+        var result = await _service.UpdateRewardItemAsync(id, request);
         return Ok(result);
     }
 
     /// <summary>
-    ///     (Admin) Xóa vật phẩm đổi thưởng.
+    ///     (Admin) Xóa món quà.
     /// </summary>
-    /// <remarks>
-    ///     Xóa vật phẩm khỏi danh sách đổi thưởng.
-    ///     Lưu ý: Nếu vật phẩm đã từng được đổi, hệ thống có thể chỉ xóa mềm (ẩn đi) thay vì xóa vĩnh viễn khỏi Database.
-    /// </remarks>
-    /// <param name="id">ID của vật phẩm cần xóa.</param>
-    /// <response code="200">Xóa thành công.</response>
-    /// <response code="404">Không tìm thấy vật phẩm.</response>
-    /// <response code="401">Chưa đăng nhập.</response>
-    /// <response code="403">Không có quyền Admin.</response>
     [HttpDelete("{id:int}")]
     [Authorize(Roles = "Admin")]
-    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> DeleteRewardItem([FromRoute] int id)
+    public async Task<IActionResult> Delete(int id)
     {
-        await rewardItemService.DeleteRewardItemAsync(id);
-        return Ok("Xóa phần thưởng thành công");
+        await _service.DeleteRewardItemAsync(id);
+        return NoContent();
+    }
+
+    private Guid GetCurrentUserId()
+    {
+        var idStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return Guid.TryParse(idStr, out var id) ? id : Guid.Empty;
     }
 }

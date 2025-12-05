@@ -188,7 +188,7 @@ public class TransactionService : ITransactionService
         var title = "Xác nhận số lượng!";
         var body = "Người thu gom đã cập nhật số lượng và giá. Vui lòng kiểm tra và chốt đơn.";
         var data = new Dictionary<string, string> { { "type", "Transaction" }, { "id", transactionId.ToString() } };
-        _ = _notificationService.SendNotificationAsync(householdId, title, body, data);
+        await _notificationService.SendNotificationAsync(householdId, title, body, data);
 
         return _mapper.Map<List<TransactionDetailModel>>(transaction.TransactionDetails);
     }

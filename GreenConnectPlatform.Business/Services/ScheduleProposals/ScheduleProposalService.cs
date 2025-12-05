@@ -145,7 +145,13 @@ public class ScheduleProposalService : IScheduleProposalService
         if (proposal.Status == ProposalStatus.Canceled || proposal.Status == ProposalStatus.Rejected)
         {
             if (proposal.Offer.Status == OfferStatus.Pending)
+            {
                 proposal.Status = ProposalStatus.Pending;
+                var householdId = proposal.Offer.ScrapPost.HouseholdId;
+                var title = "Lịch hẹn đã mở lại";
+                var body = $"Người thu gom đã mở lại đề xuất lịch hẹn cho đơn hàng '{proposal.Offer.ScrapPost.Title}'.";
+                await _notificationService.SendNotificationAsync(householdId, title, body);
+            }
             else
                 throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                     "Bạn chỉ có thể mở lại đề xuất lịch trình nếu đề nghị thu thập liên quan vẫn đang chờ xử lý");

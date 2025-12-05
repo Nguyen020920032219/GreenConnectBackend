@@ -154,7 +154,10 @@ public class ProfileService : IProfileService
         // Cập nhật thông tin từ thẻ vào DB
         verificationInfo.IdentityNumber = ocrResult.IdNumber;
         verificationInfo.FullnameOnId = ocrResult.FullName; // Lưu tên thật
-        verificationInfo.DateOfBirth = ocrResult.Dob; // Lưu ngày sinh
+        verificationInfo.DateOfBirth =
+            ocrResult.Dob.HasValue
+                ? DateTime.SpecifyKind(ocrResult.Dob.Value, DateTimeKind.Utc)
+                : null; // Lưu ngày sinh
         verificationInfo.PlaceOfOrigin = ocrResult.Address;
         verificationInfo.IssuedBy = "FPT.AI Verified";
 
@@ -170,12 +173,17 @@ public class ProfileService : IProfileService
         user.BuyerType = request.BuyerType;
         await _userManager.UpdateAsync(user);
 
-        if (await _userManager.IsInRoleAsync(user, "Household"))
-            await _userManager.RemoveFromRoleAsync(user, "Household");
+        var currentRoles = await _userManager.GetRolesAsync(user);
 
+        // Xóa TẤT CẢ các role cũ (Household, IndividualCollector, BusinessCollector...)
+        // Trừ role Admin nếu có (đề phòng trường hợp Admin tự test)
+        var rolesToRemove = currentRoles.Where(r => r != "Admin").ToList();
+
+        if (rolesToRemove.Any()) await _userManager.RemoveFromRolesAsync(user, rolesToRemove);
+
+        // Thêm role mới duy nhất
         var newRole = request.BuyerType == BuyerType.Individual ? "IndividualCollector" : "BusinessCollector";
-        if (!await _userManager.IsInRoleAsync(user, newRole))
-            await _userManager.AddToRoleAsync(user, newRole);
+        await _userManager.AddToRoleAsync(user, newRole);
 
         // 5. Gửi Noti
         _ = _notificationService.SendNotificationAsync(userId, "Xác minh thành công", "Tài khoản đã được nâng cấp!");

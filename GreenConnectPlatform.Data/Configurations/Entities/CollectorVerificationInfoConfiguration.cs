@@ -10,7 +10,16 @@ public class CollectorVerificationInfoConfiguration : IEntityTypeConfiguration<C
     {
         builder.HasKey(e => e.UserId);
         builder.Property(e => e.UserId).ValueGeneratedNever();
-        builder.Property(e => e.Status).HasConversion<string>();
+
+        builder.Property(e => e.Status)
+            .HasConversion<string>()
+            .IsRequired();
+
+        builder.Property(e => e.IdentityNumber).HasMaxLength(50);
+        builder.Property(e => e.FullnameOnId).HasMaxLength(100);
+        builder.Property(e => e.PlaceOfOrigin).HasMaxLength(255);
+        builder.Property(e => e.IssuedBy).HasMaxLength(200);
+        builder.Property(e => e.ReviewerNotes).HasMaxLength(500);
 
         builder.HasOne(d => d.User)
             .WithOne(p => p.CollectorVerificationInfo)
@@ -21,5 +30,10 @@ public class CollectorVerificationInfoConfiguration : IEntityTypeConfiguration<C
             .WithMany()
             .HasForeignKey(d => d.ReviewerId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasIndex(e => e.Status);
+
+        builder.HasIndex(e => e.IdentityNumber)
+            .IsUnique();
     }
 }

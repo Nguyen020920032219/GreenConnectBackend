@@ -114,6 +114,7 @@ public class ScrapPostRepository : BaseRepository<GreenConnectDbContext, ScrapPo
 
     public async Task<List<ScrapPost>> GetMyScrapPostsForReport(Guid userId, DateTime startDate, DateTime endDate)
     {
-        return await _dbSet.Where(s => s.CreatedAt >= startDate && s.CreatedAt <= endDate && s.HouseholdId == userId).ToListAsync();
+        return await _dbSet.Where(s => s.CreatedAt >= startDate && s.CreatedAt <= endDate && s.HouseholdId == userId)
+            .ToListAsync();
     }
 }

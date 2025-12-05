@@ -80,6 +80,7 @@ public static class ServiceConfiguration
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IVietQrService, VietQrService>();
         services.AddHttpClient<IBankService, BankService>();
+        services.AddHttpClient<IEkycService, FptAiService>();
     }
 
     public static void ConfigureRepositories(this IServiceCollection services)

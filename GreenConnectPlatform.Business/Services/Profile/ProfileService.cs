@@ -1,7 +1,9 @@
 using GreenConnectPlatform.Business.Models.Exceptions;
 using GreenConnectPlatform.Business.Models.Files;
 using GreenConnectPlatform.Business.Models.Users;
+using GreenConnectPlatform.Business.Services.AI;
 using GreenConnectPlatform.Business.Services.FileStorage;
+using GreenConnectPlatform.Business.Services.Notifications;
 using GreenConnectPlatform.Data.Entities;
 using GreenConnectPlatform.Data.Enums;
 using GreenConnectPlatform.Data.Repositories.CollectorVerificationInfos;
@@ -13,7 +15,9 @@ namespace GreenConnectPlatform.Business.Services.Profile;
 
 public class ProfileService : IProfileService
 {
+    private readonly IEkycService _ekycService;
     private readonly IFileStorageService _fileStorageService;
+    private readonly INotificationService _notificationService;
     private readonly IProfileRepository _profileRepository;
     private readonly UserManager<User> _userManager;
     private readonly IVerificationInfoRepository _verificationInfoRepository;
@@ -22,12 +26,16 @@ public class ProfileService : IProfileService
         UserManager<User> userManager,
         IProfileRepository profileRepository,
         IVerificationInfoRepository verificationInfoRepository,
-        IFileStorageService fileStorageService)
+        IFileStorageService fileStorageService,
+        IEkycService ekycService,
+        INotificationService notificationService)
     {
         _userManager = userManager;
         _profileRepository = profileRepository;
         _verificationInfoRepository = verificationInfoRepository;
         _fileStorageService = fileStorageService;
+        _ekycService = ekycService;
+        _notificationService = notificationService;
     }
 
     public async Task<ProfileModel> GetMyProfileAsync(Guid userId)
@@ -115,13 +123,50 @@ public class ProfileService : IProfileService
             await _fileStorageService.DeleteFileAsync(oldAvatarUrl);
     }
 
-    public async Task SubmitVerificationAsync(Guid userId, SubmitVerificationRequest request)
+    public async Task SubmitVerificationAsync(Guid userId, SubmitEkycRequest request)
     {
         var user = await _userManager.FindByIdAsync(userId.ToString());
         if (user == null)
-            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Không tìm thấy người dùng.");
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "User not found.");
 
-        user.Status = UserStatus.PendingVerification;
+        // 1. Gọi FPT AI để xác minh
+        var ocrResult = await _ekycService.ExtractIdCardInfoAsync(request.FrontImage);
+
+        if (!ocrResult.IsValid)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "EKYC_FAILED", ocrResult.ErrorMessage);
+
+        // 2. Logic tuổi (Tùy chọn: > 18 tuổi)
+        if (ocrResult.Dob.HasValue)
+        {
+            var age = DateTime.UtcNow.Year - ocrResult.Dob.Value.Year;
+            if (age < 18)
+                throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "AGE_INVALID", "Bạn chưa đủ 18 tuổi.");
+        }
+
+        // 3. Tự động duyệt (Auto Approve)
+        var verificationInfo = await _verificationInfoRepository.GetByUserIdAsync(userId);
+        if (verificationInfo == null)
+        {
+            verificationInfo = new CollectorVerificationInfo { UserId = userId };
+            await _verificationInfoRepository.AddAsync(verificationInfo);
+        }
+
+        // Cập nhật thông tin từ thẻ vào DB
+        verificationInfo.IdentityNumber = ocrResult.IdNumber;
+        verificationInfo.FullnameOnId = ocrResult.FullName; // Lưu tên thật
+        verificationInfo.DateOfBirth = ocrResult.Dob; // Lưu ngày sinh
+        verificationInfo.PlaceOfOrigin = ocrResult.Address;
+        verificationInfo.IssuedBy = "FPT.AI Verified";
+
+        verificationInfo.Status = VerificationStatus.Approved; // DUYỆT LUÔN
+        verificationInfo.SubmittedAt = DateTime.UtcNow;
+        verificationInfo.ReviewedAt = DateTime.UtcNow;
+        verificationInfo.ReviewerNotes = $"Auto-verified via eKYC. Name: {ocrResult.FullName}";
+
+        await _verificationInfoRepository.UpdateAsync(verificationInfo);
+
+        // 4. Nâng cấp Role
+        user.Status = UserStatus.Active;
         user.BuyerType = request.BuyerType;
         await _userManager.UpdateAsync(user);
 
@@ -129,43 +174,10 @@ public class ProfileService : IProfileService
             await _userManager.RemoveFromRoleAsync(user, "Household");
 
         var newRole = request.BuyerType == BuyerType.Individual ? "IndividualCollector" : "BusinessCollector";
-        if (!await _userManager.IsInRoleAsync(user, newRole)) await _userManager.AddToRoleAsync(user, newRole);
+        if (!await _userManager.IsInRoleAsync(user, newRole))
+            await _userManager.AddToRoleAsync(user, newRole);
 
-        var verificationInfo = await _verificationInfoRepository.GetByUserIdAsync(userId);
-
-        string? oldFront = null;
-        string? oldBack = null;
-
-        if (verificationInfo == null)
-        {
-            verificationInfo = new CollectorVerificationInfo
-            {
-                UserId = userId,
-                Status = VerificationStatus.PendingReview,
-                DocumentFrontUrl = request.DocumentFrontUrl,
-                DocumentBackUrl = request.DocumentBackUrl,
-                SubmittedAt = DateTime.UtcNow
-            };
-            await _verificationInfoRepository.AddAsync(verificationInfo);
-        }
-        else
-        {
-            oldFront = verificationInfo.DocumentFrontUrl;
-            oldBack = verificationInfo.DocumentBackUrl;
-
-            verificationInfo.Status = VerificationStatus.PendingReview;
-            verificationInfo.DocumentFrontUrl = request.DocumentFrontUrl;
-            verificationInfo.DocumentBackUrl = request.DocumentBackUrl;
-            verificationInfo.SubmittedAt = DateTime.UtcNow;
-            verificationInfo.ReviewerId = null;
-            verificationInfo.ReviewerNotes = null;
-
-            await _verificationInfoRepository.UpdateAsync(verificationInfo);
-        }
-
-        if (!string.IsNullOrEmpty(oldFront) && oldFront != request.DocumentFrontUrl)
-            await _fileStorageService.DeleteFileAsync(oldFront);
-        if (!string.IsNullOrEmpty(oldBack) && oldBack != request.DocumentBackUrl)
-            await _fileStorageService.DeleteFileAsync(oldBack);
+        // 5. Gửi Noti
+        _ = _notificationService.SendNotificationAsync(userId, "Xác minh thành công", "Tài khoản đã được nâng cấp!");
     }
 }

@@ -3,7 +3,6 @@ using GreenConnectPlatform.Business.Models.Exceptions;
 using GreenConnectPlatform.Business.Models.Paging;
 using GreenConnectPlatform.Business.Models.VerificationInfos;
 using GreenConnectPlatform.Business.Services.Notifications;
-using GreenConnectPlatform.Data.Configurations;
 using GreenConnectPlatform.Data.Entities;
 using GreenConnectPlatform.Data.Enums;
 using GreenConnectPlatform.Data.Repositories.CollectorVerificationInfos;
@@ -14,7 +13,6 @@ namespace GreenConnectPlatform.Business.Services.VerificationInfos;
 
 public class VerificationInfoService : IVerificationInfoService
 {
-    private readonly GreenConnectDbContext _context;
     private readonly IMapper _mapper;
     private readonly INotificationService _notificationService;
     private readonly UserManager<User> _userManager;
@@ -22,13 +20,11 @@ public class VerificationInfoService : IVerificationInfoService
 
     public VerificationInfoService(
         IVerificationInfoRepository verificationInfoRepository,
-        GreenConnectDbContext context,
         UserManager<User> userManager,
         INotificationService notificationService,
         IMapper mapper)
     {
         _verificationInfoRepository = verificationInfoRepository;
-        _context = context;
         _userManager = userManager;
         _notificationService = notificationService;
         _mapper = mapper;
@@ -52,17 +48,12 @@ public class VerificationInfoService : IVerificationInfoService
 
     public async Task<VerificationInfoModel> GetVerificationInfo(Guid userId)
     {
-        var verificationInfo = await _verificationInfoRepository.GetByIdAsync(userId);
+        // [FIX] Dùng GetByUserIdAsync để đảm bảo có Include User info
+        var verificationInfo = await _verificationInfoRepository.GetByUserIdAsync(userId);
+
         if (verificationInfo == null)
             throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Không tìm thấy thông tin xác thực");
-        return _mapper.Map<VerificationInfoModel>(verificationInfo);
-    }
 
-    public async Task<VerificationInfoModel> GetMyVerificationInfo(Guid userId)
-    {
-        var verificationInfo = await _verificationInfoRepository.GetByUserIdAsync(userId);
-        if (verificationInfo == null)
-            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Bạn không có thông tin xác thực nào");
         return _mapper.Map<VerificationInfoModel>(verificationInfo);
     }
 
@@ -71,7 +62,12 @@ public class VerificationInfoService : IVerificationInfoService
         var verificationInfo = await _verificationInfoRepository.GetByUserIdAsync(userId);
         if (verificationInfo == null)
             throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Không tìm thấy thông tin xác thực");
+
         var user = verificationInfo.User;
+        if (user == null)
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "User liên kết không tồn tại");
+
+        // Update SecurityStamp để invalidate các token cũ (bảo mật)
         if (string.IsNullOrEmpty(user.SecurityStamp))
         {
             user.SecurityStamp = Guid.NewGuid().ToString();
@@ -81,16 +77,19 @@ public class VerificationInfoService : IVerificationInfoService
         if (isAccepted)
         {
             verificationInfo.Status = VerificationStatus.Approved;
-            verificationInfo.User.Status = UserStatus.Active;
+            user.Status = UserStatus.Active;
+
+            // Xác định Role mới dựa trên BuyerType đã đăng ký
             var newRole = user.BuyerType == BuyerType.Business ? "BusinessCollector" : "IndividualCollector";
 
-            var roles = await _userManager.GetRolesAsync(user);
-            var roleToMoves = roles.Where(r => r == "Household").ToList();
-            if (roleToMoves.Any())
-                await _userManager.RemoveFromRolesAsync(user, roleToMoves);
-            if (!await _userManager.IsInRoleAsync(user, newRole))
-                await _userManager.AddToRoleAsync(user, newRole);
+            // Xóa Role Household cũ
+            if (await _userManager.IsInRoleAsync(user, "Household"))
+                await _userManager.RemoveFromRoleAsync(user, "Household");
 
+            // Thêm Role mới
+            if (!await _userManager.IsInRoleAsync(user, newRole)) await _userManager.AddToRoleAsync(user, newRole);
+
+            // Noti
             var title = "Hồ sơ đã được duyệt!";
             var body = "Chúc mừng! Tài khoản của bạn đã được nâng cấp thành công. Hãy bắt đầu thu gom ngay.";
             var data = new Dictionary<string, string> { { "type", "Verification" }, { "status", "Approved" } };
@@ -99,12 +98,14 @@ public class VerificationInfoService : IVerificationInfoService
         else
         {
             verificationInfo.Status = VerificationStatus.Rejected;
-            user.BuyerType = null;
+            // Reset BuyerType để user có thể chọn lại loại hình khác nếu muốn
+            // user.BuyerType = null; // (Tùy chọn: Có thể giữ lại để họ biết họ từng đăng ký gì)
+
             await _userManager.UpdateAsync(user);
 
+            // Noti
             var title = "Hồ sơ bị từ chối";
-            var body =
-                $"Hồ sơ xác minh của bạn chưa đạt yêu cầu. Lý do: {reviewerNotes ?? "Thông tin không hợp lệ"}. Vui lòng kiểm tra lại.";
+            var body = $"Lý do: {reviewerNotes ?? "Thông tin không hợp lệ"}. Vui lòng cập nhật lại hồ sơ.";
             var data = new Dictionary<string, string> { { "type", "Verification" }, { "status", "Rejected" } };
             _ = _notificationService.SendNotificationAsync(userId, title, body, data);
         }
@@ -112,29 +113,7 @@ public class VerificationInfoService : IVerificationInfoService
         verificationInfo.ReviewerId = reviewerId;
         verificationInfo.ReviewedAt = DateTime.UtcNow;
         verificationInfo.ReviewerNotes = reviewerNotes;
-        await _verificationInfoRepository.UpdateAsync(verificationInfo);
-    }
 
-    public async Task<VerificationInfoModel> UpdateVerificationInfo(Guid userId, BuyerType? buyerType,
-        string? documentFrontUrl, string? documentBackUrl)
-    {
-        var verificationInfo = await _verificationInfoRepository.GetByUserIdAsync(userId);
-        if (verificationInfo == null)
-            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Không tìm thấy thông tin xác thực");
-        if (verificationInfo.Status == VerificationStatus.Approved)
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
-                "Bạn không thể cập nhật thông tin xác thực đã được phê duyệt");
-        if (verificationInfo.UserId != userId)
-            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403",
-                "Bạn không có quyền cập nhật thông tin xác thực này");
-        if (!string.IsNullOrEmpty(documentFrontUrl))
-            verificationInfo.DocumentFrontUrl = documentFrontUrl;
-        if (!string.IsNullOrEmpty(documentBackUrl))
-            verificationInfo.DocumentBackUrl = documentBackUrl;
-        if (buyerType.HasValue)
-            verificationInfo.User.BuyerType = buyerType;
-        verificationInfo.SubmittedAt = DateTime.UtcNow;
         await _verificationInfoRepository.UpdateAsync(verificationInfo);
-        return _mapper.Map<VerificationInfoModel>(verificationInfo);
     }
 }

@@ -345,15 +345,40 @@ public static class ModelBuilderExtensions
 
         // --- E. ADVANCED ---
         modelBuilder.Entity<CollectorVerificationInfo>().HasData(
+            // 1. Anh Ba (Cá nhân) - Đang chờ duyệt
             new CollectorVerificationInfo
             {
-                UserId = individualId, Status = VerificationStatus.PendingReview, DocumentFrontUrl = "front.jpg",
-                DocumentBackUrl = "back.jpg", SubmittedAt = seedDate
+                UserId = individualId,
+                Status = VerificationStatus.PendingReview,
+
+                // Thay thế URL ảnh bằng thông tin định danh giả lập
+                IdentityNumber = "079090000001",
+                FullnameOnId = "NGUYEN VAN BA",
+                DateOfBirth = new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                PlaceOfOrigin = "TP.HCM",
+                IssuedBy = "Cục Cảnh sát QLHC về TTXH",
+                IssuedDate = new DateTime(2020, 5, 10, 0, 0, 0, DateTimeKind.Utc),
+
+                SubmittedAt = seedDate
             },
+
+            // 2. Vựa ABC (Doanh nghiệp) - Đã duyệt
             new CollectorVerificationInfo
             {
-                UserId = businessId, Status = VerificationStatus.Approved, DocumentFrontUrl = "license.jpg",
-                SubmittedAt = seedDate.AddDays(-10), ReviewerId = adminId, ReviewedAt = seedDate.AddDays(-9)
+                UserId = businessId,
+                Status = VerificationStatus.Approved,
+
+                // Thông tin doanh nghiệp (Mã số thuế)
+                IdentityNumber = "0312345678",
+                FullnameOnId = "CONG TY TNHH VUA VE CHAI ABC",
+                PlaceOfOrigin = "TP.HCM",
+                IssuedBy = "Sở Kế hoạch và Đầu tư TP.HCM",
+                IssuedDate = new DateTime(2018, 10, 20, 0, 0, 0, DateTimeKind.Utc),
+
+                SubmittedAt = seedDate.AddDays(-10),
+                ReviewerId = adminId,
+                ReviewedAt = seedDate.AddDays(-9),
+                ReviewerNotes = "Giấy phép kinh doanh hợp lệ."
             }
         );
 

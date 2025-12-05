@@ -89,7 +89,7 @@ public class ReportController(IReportService reportService) : ControllerBase
         var userId = GetCurrentUserId();
         return Ok(await reportService.GetReportForHousehold(userId, start, end));
     }
-    
+
     private Guid GetCurrentUserId()
     {
         var idStr = User.FindFirstValue(ClaimTypes.NameIdentifier);

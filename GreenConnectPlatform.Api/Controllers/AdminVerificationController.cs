@@ -12,7 +12,7 @@ namespace GreenConnectPlatform.Api.Controllers;
 [ApiController]
 [Route("api/v1/admin/verifications")]
 [Authorize(Roles = "Admin")]
-[Tags("99. Admin - Verification Management")]
+[Tags("10. Verification Management (Xác minh người dùng)")]
 public class AdminVerificationController : ControllerBase
 {
     private readonly IVerificationInfoService _service;

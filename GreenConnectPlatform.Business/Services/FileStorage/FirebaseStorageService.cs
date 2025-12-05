@@ -18,7 +18,9 @@ public class FirebaseStorageService : IFileStorageService
         if (!File.Exists(serviceAccountPath))
             throw new FileNotFoundException($"Không tìm thấy tệp cấu hình Firebase tại: {serviceAccountPath}");
 
-        var credential = GoogleCredential.FromFile(serviceAccountPath);
+        using var stream = new FileStream(serviceAccountPath, FileMode.Open, FileAccess.Read);
+        var credential = GoogleCredential.FromStream(stream)
+            .CreateScoped("https://www.googleapis.com/auth/cloud-platform");
 
         _urlSigner = UrlSigner.FromCredential(credential);
         _storageClient = StorageClient.Create(credential);

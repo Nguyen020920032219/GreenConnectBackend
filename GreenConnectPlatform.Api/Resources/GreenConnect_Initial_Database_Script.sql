@@ -138,14 +138,18 @@ CREATE TABLE "AspNetUserTokens"
 
 CREATE TABLE "CollectorVerificationInfos"
 (
-    "UserId"           uuid NOT NULL,
-    "Status"           text NOT NULL,
-    "DocumentFrontUrl" text,
-    "DocumentBackUrl"  text,
-    "SubmittedAt"      timestamp with time zone,
-    "ReviewerId"       uuid,
-    "ReviewedAt"       timestamp with time zone,
-    "ReviewerNotes"    text,
+    "UserId"         uuid NOT NULL,
+    "Status"         text NOT NULL,
+    "IdentityNumber" character varying(50),
+    "FullnameOnId"   character varying(100),
+    "DateOfBirth"    timestamp with time zone,
+    "PlaceOfOrigin"  character varying(255),
+    "IssuedBy"       character varying(200),
+    "IssuedDate"     timestamp with time zone,
+    "SubmittedAt"    timestamp with time zone,
+    "ReviewerId"     uuid,
+    "ReviewedAt"     timestamp with time zone,
+    "ReviewerNotes"  character varying(500),
     CONSTRAINT "PK_CollectorVerificationInfos" PRIMARY KEY ("UserId"),
     CONSTRAINT "FK_CollectorVerificationInfos_AspNetUsers_ReviewerId" FOREIGN KEY ("ReviewerId") REFERENCES "AspNetUsers" ("Id") ON DELETE SET NULL,
     CONSTRAINT "FK_CollectorVerificationInfos_AspNetUsers_UserId" FOREIGN KEY ("UserId") REFERENCES "AspNetUsers" ("Id") ON DELETE CASCADE
@@ -460,7 +464,11 @@ CREATE INDEX "IX_CollectionOffers_ScrapCollectorId" ON "CollectionOffers" ("Scra
 
 CREATE INDEX "IX_CollectionOffers_ScrapPostId" ON "CollectionOffers" ("ScrapPostId");
 
+CREATE UNIQUE INDEX "IX_CollectorVerificationInfos_IdentityNumber" ON "CollectorVerificationInfos" ("IdentityNumber");
+
 CREATE INDEX "IX_CollectorVerificationInfos_ReviewerId" ON "CollectorVerificationInfos" ("ReviewerId");
+
+CREATE INDEX "IX_CollectorVerificationInfos_Status" ON "CollectorVerificationInfos" ("Status");
 
 CREATE INDEX "IX_Complaints_AccusedId" ON "Complaints" ("AccusedId");
 
@@ -535,7 +543,7 @@ CREATE INDEX "IX_UserPackages_UserId" ON "UserPackages" ("UserId");
 CREATE INDEX "IX_UserRewardRedemptions_RewardItemId" ON "UserRewardRedemptions" ("RewardItemId");
 
 INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-VALUES ('20251203182449_Initial_Database', '9.0.9');
+VALUES ('20251205182117_Initial_Database', '9.0.9');
 
 COMMIT;
 

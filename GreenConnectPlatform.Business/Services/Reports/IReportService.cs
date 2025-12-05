@@ -7,6 +7,6 @@ public interface IReportService
     Task<ReportModel> GetReport(DateTime startDate, DateTime endDate);
 
     Task<ReportForCollectorModel> GetReportForCollector(Guid userId, DateTime startDate, DateTime endDate);
-    
+
     Task<ReportForHouseholdModel> GetReportForHousehold(Guid userId, DateTime startDate, DateTime endDate);
 }

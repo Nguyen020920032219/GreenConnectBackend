@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GreenConnectPlatform.Data.Migrations
 {
     [DbContext(typeof(GreenConnectDbContext))]
-    [Migration("20251203182449_Initial_Database")]
+    [Migration("20251205182117_Initial_Database")]
     partial class Initial_Database
     {
         /// <inheritdoc />
@@ -99,11 +99,27 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("DocumentBackUrl")
-                        .HasColumnType("text");
+                    b.Property<DateTime?>("DateOfBirth")
+                        .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("DocumentFrontUrl")
-                        .HasColumnType("text");
+                    b.Property<string>("FullnameOnId")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("IdentityNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("IssuedBy")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime?>("IssuedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("PlaceOfOrigin")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
 
                     b.Property<DateTime?>("ReviewedAt")
                         .HasColumnType("timestamp with time zone");
@@ -112,7 +128,8 @@ namespace GreenConnectPlatform.Data.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("ReviewerNotes")
-                        .HasColumnType("text");
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -123,7 +140,12 @@ namespace GreenConnectPlatform.Data.Migrations
 
                     b.HasKey("UserId");
 
+                    b.HasIndex("IdentityNumber")
+                        .IsUnique();
+
                     b.HasIndex("ReviewerId");
+
+                    b.HasIndex("Status");
 
                     b.ToTable("CollectorVerificationInfos");
                 });

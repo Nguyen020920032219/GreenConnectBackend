@@ -82,27 +82,19 @@ public class ProfileController : ControllerBase
     }
 
     /// <summary>
-    ///     (Household) Nộp hồ sơ nâng cấp lên Người thu gom (Collector).
+    ///     (Household) Nâng cấp tài khoản bằng eKYC (AI).
     /// </summary>
     /// <remarks>
-    ///     Dùng cho Household muốn đăng ký trở thành Collector (Cá nhân/Vựa). <br />
-    ///     Gửi ảnh CCCD (mặt trước/sau) hoặc Giấy phép kinh doanh. <br />
-    ///     **Hệ quả:** <br />
-    ///     - Tài khoản chuyển sang trạng thái `PendingVerification`. <br />
-    ///     - Role chuyển sang `IndividualCollector` hoặc `BusinessCollector`. <br />
-    ///     - Chờ Admin duyệt.
+    ///     Sử dụng AI để quét CCCD. Nếu hợp lệ, tài khoản sẽ được **Duyệt ngay lập tức**. <br />
+    ///     Không lưu ảnh CCCD vào server.
     /// </remarks>
-    /// <param name="request">Loại tài khoản muốn nâng và link ảnh giấy tờ.</param>
-    /// <response code="200">Nộp hồ sơ thành công.</response>
     [HttpPost("verification")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> SubmitVerification([FromBody] SubmitVerificationRequest request)
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> SubmitVerification([FromForm] SubmitEkycRequest request)
     {
         var userId = GetCurrentUserId();
         await _profileService.SubmitVerificationAsync(userId, request);
-        return Ok(new { Message = "Gửi thông tin xác minh thành công. Vui lòng chờ Admin duyệt." });
+        return Ok(new { Message = "Xác minh thành công! Tài khoản đã được nâng cấp." });
     }
 
     private Guid GetCurrentUserId()

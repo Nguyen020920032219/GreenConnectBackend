@@ -239,12 +239,16 @@ namespace GreenConnectPlatform.Data.Migrations
                 {
                     UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     Status = table.Column<string>(type: "text", nullable: false),
-                    DocumentFrontUrl = table.Column<string>(type: "text", nullable: true),
-                    DocumentBackUrl = table.Column<string>(type: "text", nullable: true),
+                    IdentityNumber = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    FullnameOnId = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    DateOfBirth = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    PlaceOfOrigin = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
+                    IssuedBy = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
+                    IssuedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     SubmittedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     ReviewerId = table.Column<Guid>(type: "uuid", nullable: true),
                     ReviewedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    ReviewerNotes = table.Column<string>(type: "text", nullable: true)
+                    ReviewerNotes = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -908,9 +912,20 @@ namespace GreenConnectPlatform.Data.Migrations
                 column: "ScrapPostId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_CollectorVerificationInfos_IdentityNumber",
+                table: "CollectorVerificationInfos",
+                column: "IdentityNumber",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_CollectorVerificationInfos_ReviewerId",
                 table: "CollectorVerificationInfos",
                 column: "ReviewerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CollectorVerificationInfos_Status",
+                table: "CollectorVerificationInfos",
+                column: "Status");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Complaints_AccusedId",

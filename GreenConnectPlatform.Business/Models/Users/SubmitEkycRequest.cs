@@ -1,11 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 using GreenConnectPlatform.Data.Enums;
+using Microsoft.AspNetCore.Http;
 
 namespace GreenConnectPlatform.Business.Models.Users;
 
-public class SubmitVerificationRequest
+public class SubmitEkycRequest
 {
     [Required] public BuyerType BuyerType { get; set; }
-    [Required] public string DocumentFrontUrl { get; set; } = null!;
-    public string? DocumentBackUrl { get; set; }
+
+    [Required] public IFormFile FrontImage { get; set; } = null!;
 }

@@ -64,6 +64,32 @@ public class ReportController(IReportService reportService) : ControllerBase
         return Ok(await reportService.GetReportForCollector(userId, start, end));
     }
 
+    /// <summary>
+    ///     Household có thể xem báo cáo tổng hợp trong khoảng thời gian
+    /// </summary>
+    /// <param name="start">Thời gian bắt đầu</param>
+    /// <param name="end">Thời gian kết thúc</param>
+    [HttpGet("household")]
+    [Authorize(Roles = "Household")]
+    [ProducesResponseType(typeof(ReportForHouseholdModel), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> GetReportForHousehold([FromQuery] DateTime start, [FromQuery] DateTime end)
+    {
+        if (start.Kind == DateTimeKind.Unspecified)
+            start = DateTime.SpecifyKind(start, DateTimeKind.Utc);
+        else if (start.Kind == DateTimeKind.Local)
+            start = start.ToUniversalTime();
+
+        if (end.Kind == DateTimeKind.Unspecified)
+            end = DateTime.SpecifyKind(end, DateTimeKind.Utc);
+        else if (end.Kind == DateTimeKind.Local)
+            end = end.ToUniversalTime();
+
+        var userId = GetCurrentUserId();
+        return Ok(await reportService.GetReportForHousehold(userId, start, end));
+    }
+    
     private Guid GetCurrentUserId()
     {
         var idStr = User.FindFirstValue(ClaimTypes.NameIdentifier);

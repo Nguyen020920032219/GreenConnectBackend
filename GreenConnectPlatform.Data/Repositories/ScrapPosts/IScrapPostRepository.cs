@@ -30,4 +30,5 @@ public interface IScrapPostRepository : IBaseRepository<ScrapPost, Guid>
     Task<bool> IsCategoryInUseAsync(int categoryId);
 
     Task<List<ScrapPost>> GetScrapPostForReport(DateTime startDate, DateTime endDate);
+    Task<List<ScrapPost>> GetMyScrapPostsForReport(Guid userId, DateTime startDate, DateTime endDate);
 }

@@ -92,7 +92,7 @@ public class ScheduleProposalService : IScheduleProposalService
             { "id", proposal.ScheduleProposalId.ToString() },
             { "offerId", offer.CollectionOfferId.ToString() }
         };
-        _ = _notificationService.SendNotificationAsync(householdId, title, body, data);
+        await _notificationService.SendNotificationAsync(householdId, title, body, data);
 
         return _mapper.Map<ScheduleProposalModel>(proposal);
     }
@@ -124,7 +124,7 @@ public class ScheduleProposalService : IScheduleProposalService
             { "type", "Schedule" },
             { "id", proposal.ScheduleProposalId.ToString() }
         };
-        _ = _notificationService.SendNotificationAsync(householdId, title, body, data);
+        await _notificationService.SendNotificationAsync(householdId, title, body, data);
 
         return _mapper.Map<ScheduleProposalModel>(proposal);
     }
@@ -157,7 +157,7 @@ public class ScheduleProposalService : IScheduleProposalService
             var householdId = proposal.Offer.ScrapPost.HouseholdId;
             var title = "Lịch hẹn bị hủy";
             var body = $"Người thu gom đã hủy đề xuất lịch hẹn cho đơn hàng '{proposal.Offer.ScrapPost.Title}'.";
-            _ = _notificationService.SendNotificationAsync(householdId, title, body);
+            await _notificationService.SendNotificationAsync(householdId, title, body);
         }
 
         await _proposalRepository.UpdateAsync(proposal);
@@ -202,7 +202,7 @@ public class ScheduleProposalService : IScheduleProposalService
                 { "id", proposal.ScheduleProposalId.ToString() },
                 { "offerId", proposal.CollectionOfferId.ToString() }
             };
-            _ = _notificationService.SendNotificationAsync(collectorId, title, body, data);
+            await _notificationService.SendNotificationAsync(collectorId, title, body, data);
         }
         else
         {
@@ -216,7 +216,7 @@ public class ScheduleProposalService : IScheduleProposalService
                 { "type", "Schedule" },
                 { "id", proposal.ScheduleProposalId.ToString() }
             };
-            _ = _notificationService.SendNotificationAsync(collectorId, title, body, data);
+            await _notificationService.SendNotificationAsync(collectorId, title, body, data);
         }
 
         await _proposalRepository.UpdateAsync(proposal);

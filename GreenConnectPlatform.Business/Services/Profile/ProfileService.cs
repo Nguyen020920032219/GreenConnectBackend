@@ -2,6 +2,7 @@ using GreenConnectPlatform.Business.Models.Exceptions;
 using GreenConnectPlatform.Business.Models.Files;
 using GreenConnectPlatform.Business.Models.Users;
 using GreenConnectPlatform.Business.Services.AI;
+using GreenConnectPlatform.Business.Services.Banks;
 using GreenConnectPlatform.Business.Services.FileStorage;
 using GreenConnectPlatform.Business.Services.Notifications;
 using GreenConnectPlatform.Data.Entities;
@@ -10,11 +11,13 @@ using GreenConnectPlatform.Data.Repositories.CollectorVerificationInfos;
 using GreenConnectPlatform.Data.Repositories.Profiles;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace GreenConnectPlatform.Business.Services.Profile;
 
 public class ProfileService : IProfileService
 {
+    private readonly IBankService _bankService;
     private readonly IEkycService _ekycService;
     private readonly IFileStorageService _fileStorageService;
     private readonly INotificationService _notificationService;
@@ -28,7 +31,8 @@ public class ProfileService : IProfileService
         IVerificationInfoRepository verificationInfoRepository,
         IFileStorageService fileStorageService,
         IEkycService ekycService,
-        INotificationService notificationService)
+        INotificationService notificationService,
+        IBankService bankService)
     {
         _userManager = userManager;
         _profileRepository = profileRepository;
@@ -36,6 +40,7 @@ public class ProfileService : IProfileService
         _fileStorageService = fileStorageService;
         _ekycService = ekycService;
         _notificationService = notificationService;
+        _bankService = bankService;
     }
 
     public async Task<ProfileModel> GetMyProfileAsync(Guid userId)
@@ -50,6 +55,14 @@ public class ProfileService : IProfileService
         var avatarSignedUrl = !string.IsNullOrEmpty(profile.AvatarUrl)
             ? await _fileStorageService.GetReadSignedUrlAsync(profile.AvatarUrl)
             : null;
+
+        string? bankName = null;
+        if (!string.IsNullOrEmpty(profile.BankCode))
+        {
+            var banks = await _bankService.GetSupportedBanksAsync();
+            var bank = banks.FirstOrDefault(b => b.Bin == profile.BankCode);
+            if (bank != null) bankName = !string.IsNullOrEmpty(bank.ShortName) ? bank.ShortName : bank.Name;
+        }
 
         return new ProfileModel
         {
@@ -66,6 +79,7 @@ public class ProfileService : IProfileService
             Gender = profile.Gender,
             DateOfBirth = profile.DateOfBirth,
             BankCode = profile.BankCode,
+            BankName = bankName,
             BankAccountNumber = profile.BankAccountNumber,
             BankAccountName = profile.BankAccountName
         };
@@ -87,13 +101,15 @@ public class ProfileService : IProfileService
 
         if (profile == null)
         {
-            profile = new Data.Entities.Profile { UserId = userId, ProfileId = Guid.NewGuid() };
+            profile = new Data.Entities.Profile
+                { UserId = userId, ProfileId = Guid.NewGuid(), RankId = 1, PointBalance = 0 };
             await _profileRepository.AddAsync(profile);
         }
 
         if (!string.IsNullOrEmpty(request.Address)) profile.Address = request.Address;
         if (request.Gender.HasValue) profile.Gender = request.Gender;
-        if (request.DateOfBirth.HasValue) profile.DateOfBirth = request.DateOfBirth;
+
+        if (request.DateOfBirth.HasValue) profile.DateOfBirth = request.DateOfBirth.Value;
 
         if (request.BankCode != null) profile.BankCode = request.BankCode;
         if (request.BankAccountNumber != null) profile.BankAccountNumber = request.BankAccountNumber;
@@ -110,7 +126,8 @@ public class ProfileService : IProfileService
 
         if (profile == null)
         {
-            profile = new Data.Entities.Profile { UserId = userId, ProfileId = Guid.NewGuid() };
+            profile = new Data.Entities.Profile
+                { UserId = userId, ProfileId = Guid.NewGuid(), RankId = 1, PointBalance = 0 };
             await _profileRepository.AddAsync(profile);
         }
 
@@ -127,23 +144,21 @@ public class ProfileService : IProfileService
     {
         var user = await _userManager.FindByIdAsync(userId.ToString());
         if (user == null)
-            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "User not found.");
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Không tìm thấy người dùng.");
 
-        // 1. Gọi FPT AI để xác minh
         var ocrResult = await _ekycService.ExtractIdCardInfoAsync(request.FrontImage);
 
         if (!ocrResult.IsValid)
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "EKYC_FAILED", ocrResult.ErrorMessage);
 
-        // 2. Logic tuổi (Tùy chọn: > 18 tuổi)
         if (ocrResult.Dob.HasValue)
         {
             var age = DateTime.UtcNow.Year - ocrResult.Dob.Value.Year;
             if (age < 18)
-                throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "AGE_INVALID", "Bạn chưa đủ 18 tuổi.");
+                throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "AGE_INVALID",
+                    "Bạn phải từ 18 tuổi trở lên.");
         }
 
-        // 3. Tự động duyệt (Auto Approve)
         var verificationInfo = await _verificationInfoRepository.GetByUserIdAsync(userId);
         if (verificationInfo == null)
         {
@@ -151,41 +166,56 @@ public class ProfileService : IProfileService
             await _verificationInfoRepository.AddAsync(verificationInfo);
         }
 
-        // Cập nhật thông tin từ thẻ vào DB
         verificationInfo.IdentityNumber = ocrResult.IdNumber;
-        verificationInfo.FullnameOnId = ocrResult.FullName; // Lưu tên thật
-        verificationInfo.DateOfBirth =
-            ocrResult.Dob.HasValue
-                ? DateTime.SpecifyKind(ocrResult.Dob.Value, DateTimeKind.Utc)
-                : null; // Lưu ngày sinh
+        verificationInfo.FullnameOnId = ocrResult.FullName;
+
+        if (ocrResult.Dob.HasValue)
+        {
+            var dob = ocrResult.Dob.Value;
+            verificationInfo.DateOfBirth = dob.Kind == DateTimeKind.Unspecified
+                ? DateTime.SpecifyKind(dob, DateTimeKind.Utc)
+                : dob.ToUniversalTime();
+        }
+        else
+        {
+            verificationInfo.DateOfBirth = null;
+        }
+
         verificationInfo.PlaceOfOrigin = ocrResult.Address;
         verificationInfo.IssuedBy = "FPT.AI Verified";
 
-        verificationInfo.Status = VerificationStatus.Approved; // DUYỆT LUÔN
+        verificationInfo.Status = VerificationStatus.Approved;
         verificationInfo.SubmittedAt = DateTime.UtcNow;
         verificationInfo.ReviewedAt = DateTime.UtcNow;
-        verificationInfo.ReviewerNotes = $"Auto-verified via eKYC. Name: {ocrResult.FullName}";
+        verificationInfo.ReviewerNotes = $"Tự động xác minh qua eKYC. Tên: {ocrResult.FullName}";
 
-        await _verificationInfoRepository.UpdateAsync(verificationInfo);
+        try
+        {
+            await _verificationInfoRepository.UpdateAsync(verificationInfo);
+        }
+        catch (DbUpdateException ex)
+        {
+            if (ex.InnerException != null &&
+                ex.InnerException.Message.Contains("IX_CollectorVerificationInfos_IdentityNumber"))
+                throw new ApiExceptionModel(StatusCodes.Status409Conflict, "DUPLICATE_ID",
+                    "Số CCCD/CMND này đã được sử dụng bởi một tài khoản khác.");
 
-        // 4. Nâng cấp Role
+            throw;
+        }
+
         user.Status = UserStatus.Active;
         user.BuyerType = request.BuyerType;
         await _userManager.UpdateAsync(user);
 
         var currentRoles = await _userManager.GetRolesAsync(user);
-
-        // Xóa TẤT CẢ các role cũ (Household, IndividualCollector, BusinessCollector...)
-        // Trừ role Admin nếu có (đề phòng trường hợp Admin tự test)
         var rolesToRemove = currentRoles.Where(r => r != "Admin").ToList();
 
         if (rolesToRemove.Any()) await _userManager.RemoveFromRolesAsync(user, rolesToRemove);
 
-        // Thêm role mới duy nhất
         var newRole = request.BuyerType == BuyerType.Individual ? "IndividualCollector" : "BusinessCollector";
         await _userManager.AddToRoleAsync(user, newRole);
 
-        // 5. Gửi Noti
-        _ = _notificationService.SendNotificationAsync(userId, "Xác minh thành công", "Tài khoản đã được nâng cấp!");
+        _ = _notificationService.SendNotificationAsync(userId, "Xác minh thành công",
+            "Tài khoản của bạn đã được nâng cấp thành công!");
     }
 }

@@ -1,4 +1,5 @@
 ﻿using GreenConnectPlatform.Business.Models.Reports;
+using GreenConnectPlatform.Data.Enums;
 using GreenConnectPlatform.Data.Repositories.CollectionOffers;
 using GreenConnectPlatform.Data.Repositories.Complaints;
 using GreenConnectPlatform.Data.Repositories.Feedbacks;
@@ -113,6 +114,29 @@ public class ReportService : IReportService
             Offers = offerModel,
             TotalTransactions = transactions.Count,
             Transactions = transactionModel
+        };
+    }
+
+    public async Task<ReportForHouseholdModel> GetReportForHousehold(Guid userId, DateTime startDate, DateTime endDate)
+    {
+        var pointBalance = await _userRepository.GetUserByIdAsync(userId);
+        var posts = await _scrapPostRepository.GetMyScrapPostsForReport(userId, startDate, endDate);
+        var postModel = posts
+            .GroupBy(p => p.Status)
+            .Select(g => new PostModel
+            {
+                PostStatus = g.Key,
+                TotalPosts = g.Count()
+            })
+            .ToList();
+        var postFinished = posts.Where(p => p.Status == PostStatus.Completed).ToList();
+        var earnPointFromPosts = 10 * postFinished.Count;
+        return new ReportForHouseholdModel
+        {
+            PointBalance = pointBalance!.Profile.PointBalance,
+            EarnPointFromPosts = earnPointFromPosts,
+            TotalMyPosts = posts.Count,
+            PostModels = postModel
         };
     }
 }

@@ -17,6 +17,7 @@ public class ProfileModel
     public IList<string> Roles { get; set; } = new List<string>();
     public string? AvatarUrl { get; set; }
     public string? BankCode { get; set; }
+    public string? BankName { get; set; }
     public string? BankAccountNumber { get; set; }
     public string? BankAccountName { get; set; }
 }

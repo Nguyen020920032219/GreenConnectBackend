@@ -153,8 +153,10 @@ public class ScheduleProposalService : IScheduleProposalService
                 await _notificationService.SendNotificationAsync(householdId, title, body);
             }
             else
+            {
                 throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                     "Bạn chỉ có thể mở lại đề xuất lịch trình nếu đề nghị thu thập liên quan vẫn đang chờ xử lý");
+            }
         }
         else if (proposal.Status == ProposalStatus.Pending)
         {

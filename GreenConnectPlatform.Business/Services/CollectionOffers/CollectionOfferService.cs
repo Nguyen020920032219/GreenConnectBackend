@@ -9,6 +9,8 @@ using GreenConnectPlatform.Data.Entities;
 using GreenConnectPlatform.Data.Enums;
 using GreenConnectPlatform.Data.Repositories.Chatrooms;
 using GreenConnectPlatform.Data.Repositories.CollectionOffers;
+using GreenConnectPlatform.Data.Repositories.CreditTransactionHistories;
+using GreenConnectPlatform.Data.Repositories.Profiles;
 using GreenConnectPlatform.Data.Repositories.ScrapCategories;
 using GreenConnectPlatform.Data.Repositories.ScrapPosts;
 using GreenConnectPlatform.Data.Repositories.Transactions;
@@ -26,6 +28,8 @@ public class CollectionOfferService : ICollectionOfferService
     private readonly IChatRoomRepository _roomRepository;
     private readonly IScrapCategoryRepository _scrapCategoryRepository;
     private readonly ITransactionRepository _transactionRepository;
+    private readonly IProfileRepository _profileRepository;
+    private readonly ICreditTransactionHistoryRepository _creditTransactionHistoryRepository;
 
     public CollectionOfferService(
         ICollectionOfferRepository offerRepository,
@@ -35,7 +39,9 @@ public class CollectionOfferService : ICollectionOfferService
         IFileStorageService fileStorageService,
         IScrapCategoryRepository scrapCategoryRepository,
         IMapper mapper,
-        INotificationService notificationService)
+        INotificationService notificationService,
+        IProfileRepository profileRepository,
+        ICreditTransactionHistoryRepository creditTransactionHistoryRepository)
     {
         _offerRepository = offerRepository;
         _postRepository = postRepository;
@@ -45,6 +51,8 @@ public class CollectionOfferService : ICollectionOfferService
         _scrapCategoryRepository = scrapCategoryRepository;
         _mapper = mapper;
         _notificationService = notificationService;
+        _profileRepository = profileRepository;
+        _creditTransactionHistoryRepository = creditTransactionHistoryRepository;
     }
 
     public async Task<PaginatedResult<CollectionOfferOveralForCollectorModel>> GetByCollectorAsync(
@@ -123,7 +131,13 @@ public class CollectionOfferService : ICollectionOfferService
         if (unavailableItems.Any())
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Có mục trong đề nghị không còn sẵn sàng để thu gom.");
-
+        
+        var profile = await _profileRepository.GetByUserIdWithRankAsync(collectorId);
+        if (profile == null)
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Hồ sơ người thu gom không tìm thấy.");
+        if(profile.CreditBalance < 10)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Bạn cần có ít nhất 10 điểm tín dụng để tạo đề nghị thu gom.");
+        
         var offer = _mapper.Map<CollectionOffer>(request);
         offer.CollectionOfferId = Guid.NewGuid();
         offer.ScrapPostId = postId;
@@ -159,7 +173,21 @@ public class CollectionOfferService : ICollectionOfferService
         }
 
         await _offerRepository.AddAsync(offer);
-
+        profile.CreditBalance -= 10;
+        await _profileRepository.UpdateAsync(profile);
+        var creditHistory = new CreditTransactionHistory
+        {
+            Id = Guid.NewGuid(),
+            UserId = collectorId,
+            Amount = -10,
+            BalanceAfter = profile.CreditBalance,
+            Type = "Usage",
+            ReferenceId = offer.CollectionOfferId,
+            CreatedAt = DateTime.UtcNow,
+            Description = $"Tạo đề nghị thu gom cho bài đăng '{post.Title}'."
+        };
+        await _creditTransactionHistoryRepository.AddAsync(creditHistory);
+        
         var notiTitle = "Đề nghị thu gom mới!";
         var notiBody = $"Có người vừa báo giá cho bài đăng '{post.Title}' của bạn.";
         var notiData = new Dictionary<string, string>
@@ -234,8 +262,9 @@ public class CollectionOfferService : ICollectionOfferService
                 JoinedAt = DateTime.UtcNow
             });
             await _roomRepository.AddAsync(chatRoom);
-
-            offer.ScrapPost.Status = PostStatus.FullyBooked;
+            var detailsBooked = offer.ScrapPost.ScrapPostDetails
+                .Any(d => d.Status == PostDetailStatus.Available);
+            offer.ScrapPost.Status = detailsBooked ? PostStatus.PartiallyBooked : PostStatus.FullyBooked;
 
             var notiTitle = "Đề nghị được chấp nhận!";
             var notiBody = "Chúc mừng! Hộ gia đình đã đồng ý bán cho bạn. Giao dịch đã được tạo.";
@@ -257,7 +286,7 @@ public class CollectionOfferService : ICollectionOfferService
                 detail.Status = PostDetailStatus.Available;
 
             var detailsBooked = offer.ScrapPost.ScrapPostDetails
-                .Any(d => d.Status == PostDetailStatus.Booked);
+                .Any(d => d.Status == PostDetailStatus.Booked || d.Status == PostDetailStatus.Collected);
             offer.ScrapPost.Status = detailsBooked ? PostStatus.PartiallyBooked : PostStatus.Open;
             await _postRepository.UpdateAsync(offer.ScrapPost);
 
@@ -309,6 +338,25 @@ public class CollectionOfferService : ICollectionOfferService
         else if (offer.Status == OfferStatus.Canceled || offer.Status == OfferStatus.Rejected)
         {
             offer.Status = OfferStatus.Pending;
+            var profile = await _profileRepository.GetByUserIdWithRankAsync(collectorId);
+            if (profile == null)
+                throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Hồ sơ người thu gom không tìm thấy.");
+            if(profile.CreditBalance < 10)
+                throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Bạn cần có ít nhất 10 điểm tín dụng để mở lại đề nghị thu gom.");
+            profile.CreditBalance -= 10;
+            await _profileRepository.UpdateAsync(profile);
+            var creditHistory = new CreditTransactionHistory
+            {
+                Id = Guid.NewGuid(),
+                UserId = collectorId,
+                Amount = -10,
+                BalanceAfter = profile.CreditBalance,
+                Type = "Usage",
+                ReferenceId = offer.CollectionOfferId,
+                CreatedAt = DateTime.UtcNow,
+                Description = $"Mở lại đề nghị thu gom cho bài đăng '{offer.ScrapPost.Title}'."
+            };
+            await _creditTransactionHistoryRepository.AddAsync(creditHistory);
             foreach (var detail in post)
             {
                 if (detail.Status == PostDetailStatus.Booked || detail.Status == PostDetailStatus.Collected)

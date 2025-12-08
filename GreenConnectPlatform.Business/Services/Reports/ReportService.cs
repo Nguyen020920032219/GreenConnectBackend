@@ -121,14 +121,33 @@ public class ReportService : IReportService
     {
         var pointBalance = await _userRepository.GetUserByIdAsync(userId);
         var posts = await _scrapPostRepository.GetMyScrapPostsForReport(userId, startDate, endDate);
-        var postModel = posts
-            .GroupBy(p => p.Status)
-            .Select(g => new PostModel
+        var postOpen = posts.Where(p => p.Status == PostStatus.Open).ToList();
+        var postPartiallyBooked = posts.Where(p => p.Status == PostStatus.PartiallyBooked).ToList();
+        var postFullyBooked = posts.Where(p => p.Status == PostStatus.FullyBooked).ToList();
+        var postCompleted = posts.Where(p => p.Status == PostStatus.Completed).ToList();
+        var postModel = new List<PostModel>
+        {
+            new PostModel
             {
-                PostStatus = g.Key,
-                TotalPosts = g.Count()
-            })
-            .ToList();
+                PostStatus = PostStatus.Open,
+                TotalPosts = postOpen.Count
+            },
+            new PostModel
+            {
+                PostStatus = PostStatus.PartiallyBooked,
+                TotalPosts = postPartiallyBooked.Count
+            },
+            new PostModel
+            {
+                PostStatus = PostStatus.FullyBooked,
+                TotalPosts = postFullyBooked.Count
+            },
+            new PostModel
+            {
+                PostStatus = PostStatus.Completed,
+                TotalPosts = postCompleted.Count
+            }
+        };
         var postFinished = posts.Where(p => p.Status == PostStatus.Completed).ToList();
         var earnPointFromPosts = 10 * postFinished.Count;
         return new ReportForHouseholdModel

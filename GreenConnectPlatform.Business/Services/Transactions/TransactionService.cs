@@ -223,8 +223,16 @@ public class TransactionService : ITransactionService
                 CreatedAt = DateTime.UtcNow
             };
             await _pointHistoryRepository.AddAsync(pointCollectorHistory);
+            var transactedCategoryIds = transaction.TransactionDetails
+                .Select(td => td.ScrapCategoryId)
+                .ToList();
             foreach (var detail in transaction.Offer.ScrapPost.ScrapPostDetails)
-                detail.Status = PostDetailStatus.Collected;
+            {
+                if (transactedCategoryIds.Contains(detail.ScrapCategoryId)) 
+                {
+                    detail.Status = PostDetailStatus.Collected;
+                }
+            }
             var scrapPosts = transaction.Offer.ScrapPost.ScrapPostDetails
                 .Where(s => s.Status == PostDetailStatus.Available || s.Status == PostDetailStatus.Booked)
                 .ToList();

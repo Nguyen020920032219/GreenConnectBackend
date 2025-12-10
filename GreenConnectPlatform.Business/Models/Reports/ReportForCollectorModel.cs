@@ -4,7 +4,7 @@ namespace GreenConnectPlatform.Business.Models.Reports;
 
 public class ReportForCollectorModel
 {
-    public float TotalEarning { get; set; }
+    public decimal TotalEarning { get; set; }
     public int TotalFeedbacks { get; set; }
     public float TotalRating { get; set; }
     public int TotalComplaints { get; set; }

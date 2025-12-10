@@ -85,7 +85,7 @@ public class ScheduleProposalController : ControllerBase
     /// <response code="400">Offer không ở trạng thái Pending (Không thể thương lượng nữa).</response>
     /// <response code="403">Bạn không phải chủ nhân của Offer này.</response>
     [HttpPost("{offerId:guid}")]
-    [Authorize(Roles = "IndividualCollector, BusinessCollector")]
+    [Authorize(Roles = "IndividualCollector, BusinessCollector, Household")]
     [ProducesResponseType(typeof(ScheduleProposalModel), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
@@ -156,6 +156,7 @@ public class ScheduleProposalController : ControllerBase
     /// </remarks>
     /// <param name="id">ID của Proposal.</param>
     /// <param name="isAccepted">`true` = Đồng ý, `false` = Từ chối.</param>
+    /// <param name="responseMessage">Household gửi lí do từ chối và gợi ý thời gian để thu gom</param>
     /// <response code="200">Thao tác thành công.</response>
     /// <response code="400">Đề xuất không ở trạng thái Pending (Đã xử lý rồi).</response>
     /// <response code="403">Bạn không phải chủ bài đăng của Offer này.</response>
@@ -164,10 +165,10 @@ public class ScheduleProposalController : ControllerBase
     [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> ProcessProposal(Guid id, [FromQuery] bool isAccepted)
+    public async Task<IActionResult> ProcessProposal(Guid id, [FromQuery] bool isAccepted, [FromQuery] string? responseMessage)
     {
         var userId = GetCurrentUserId();
-        await _service.ProcessProposalAsync(userId, id, isAccepted);
+        await _service.ProcessProposalAsync(userId, id, isAccepted, responseMessage);
         return Ok(new { Message = isAccepted ? "Đã đồng ý lịch hẹn." : "Đã từ chối lịch hẹn." });
     }
 

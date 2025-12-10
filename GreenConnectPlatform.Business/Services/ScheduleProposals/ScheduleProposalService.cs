@@ -188,7 +188,7 @@ public class ScheduleProposalService : IScheduleProposalService
         await _proposalRepository.UpdateAsync(proposal);
     }
 
-    public async Task ProcessProposalAsync(Guid householdId, Guid proposalId, bool isAccepted)
+    public async Task ProcessProposalAsync(Guid householdId, Guid proposalId, bool isAccepted, string? responseMessage)
     {
         var proposal = await _proposalRepository.GetByIdWithDetailsAsync(proposalId);
         if (proposal == null)
@@ -232,7 +232,8 @@ public class ScheduleProposalService : IScheduleProposalService
         else
         {
             proposal.Status = ProposalStatus.Rejected;
-
+            if(!string.IsNullOrEmpty(responseMessage))
+                proposal.ResponseMessage = responseMessage;
             var collectorId = proposal.ProposerId;
             var title = "Lịch hẹn bị từ chối";
             var body = "Hộ gia đình không đồng ý với lịch hẹn này. Vui lòng đề xuất thời gian khác.";

@@ -103,9 +103,9 @@ public class ReportService : IReportService
 
         return new ReportForCollectorModel
         {
-            TotalEarning = earning.Sum(t => t.TransactionDetails.Sum(d => (float)d.FinalPrice * d.Quantity)),
+            TotalEarning = earning?.Sum(t => t.TotalAmount) ?? 0,
             TotalFeedbacks = feedbacks.Count,
-            TotalRating = feedbacks.Count > 0 ? feedbacks.Sum(f => f.Rate) / feedbacks.Count : 0,
+            TotalRating = feedbacks.Any() ? (float)feedbacks.Average(f => f.Rate): 0,
             TotalComplaints = complaints.Count,
             Complaints = complaintModel,
             TotalAccused = accused.Count,

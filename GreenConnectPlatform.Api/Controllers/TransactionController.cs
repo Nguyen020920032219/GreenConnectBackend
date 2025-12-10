@@ -7,6 +7,7 @@ using GreenConnectPlatform.Business.Models.Transactions;
 using GreenConnectPlatform.Business.Models.Transactions.TransactionDetails;
 using GreenConnectPlatform.Business.Services.Feedbacks;
 using GreenConnectPlatform.Business.Services.Transactions;
+using GreenConnectPlatform.Data.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -84,16 +85,19 @@ public class TransactionController : ControllerBase
     /// </remarks>
     /// <param name="id">ID Giao dịch.</param>
     /// <param name="isAccepted">`true` = Chốt đơn, `false` = Hủy.</param>
+    /// <param name="paymentMethod">Thanh toán bằng hình thức gì</param>
+    /// <param name="amount">Tổng số tiền đã thanh toán</param>
     /// <response code="200">Thành công.</response>
     /// <response code="400">Collector chưa nhập số liệu (Không thể chốt đơn trống).</response>
     [HttpPatch("{id:guid}/process")]
     [Authorize(Roles = "Household")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Process([FromRoute] Guid id, [FromQuery] bool isAccepted)
+    public async Task<IActionResult> Process([FromRoute] Guid id, [FromQuery] bool isAccepted, 
+        [FromQuery] TransactionPaymentMethod paymentMethod)
     {
         var userId = GetCurrentUserId();
-        await _service.ProcessTransactionAsync(id, userId, isAccepted);
+        await _service.ProcessTransactionAsync(id, userId, isAccepted, paymentMethod);
         return Ok(new { Message = isAccepted ? "Giao dịch thành công!" : "Giao dịch đã hủy." });
     }
 

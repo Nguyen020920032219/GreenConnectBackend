@@ -103,6 +103,7 @@ public class TransactionRepository : BaseRepository<GreenConnectDbContext, Trans
     public async Task<List<Transaction>> GetEarningForCollectorReport(Guid userId, DateTime startDate, DateTime endDate)
     {
         return await _dbSet
+            .Include(t => t.TransactionDetails)
             .Where(t => t.CreatedAt >= startDate && t.CreatedAt <= endDate && t.Status == TransactionStatus.Completed &&
                         t.ScrapCollectorId == userId)
             .ToListAsync();
@@ -112,6 +113,7 @@ public class TransactionRepository : BaseRepository<GreenConnectDbContext, Trans
         DateTime endDate)
     {
         return await _dbSet
+            .Include(t => t.TransactionDetails)
             .Where(t => t.CreatedAt >= startDate && t.CreatedAt <= endDate && t.ScrapCollectorId == userId)
             .ToListAsync();
     }

@@ -16,5 +16,5 @@ public interface IScheduleProposalService
     Task<ScheduleProposalModel> CreateAsync(Guid collectorId, Guid offerId, ScheduleProposalCreateModel request);
     Task<ScheduleProposalModel> UpdateAsync(Guid collectorId, Guid proposalId, DateTime? proposedTime, string? message);
     Task ToggleCancelAsync(Guid collectorId, Guid proposalId);
-    Task ProcessProposalAsync(Guid householdId, Guid proposalId, bool isAccepted);
+    Task ProcessProposalAsync(Guid householdId, Guid proposalId, bool isAccepted, string? responseMessage);
 }

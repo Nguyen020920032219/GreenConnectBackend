@@ -146,6 +146,8 @@ public class TransactionService : ITransactionService
             if (!string.IsNullOrEmpty(p.ImageUrl))
                 p.ImageUrl = await _fileStorageService.GetReadSignedUrlAsync(p.ImageUrl);
 
+        
+        
         return new PaginatedResult<TransactionOveralModel>
             { Data = data, Pagination = new PaginationModel(total, pageNumber, pageSize) };
     }
@@ -193,7 +195,7 @@ public class TransactionService : ITransactionService
         return _mapper.Map<List<TransactionDetailModel>>(transaction.TransactionDetails);
     }
 
-    public async Task ProcessTransactionAsync(Guid transactionId, Guid householdId, bool isAccepted)
+    public async Task ProcessTransactionAsync(Guid transactionId, Guid householdId, bool isAccepted, TransactionPaymentMethod paymentMethod)
     {
         var transaction = await _transactionRepository.GetByIdWithDetailsAsync(transactionId);
         if (transaction == null)
@@ -213,6 +215,8 @@ public class TransactionService : ITransactionService
         if (isAccepted)
         {
             transaction.Status = TransactionStatus.Completed;
+            transaction.TotalAmount = transaction.TransactionDetails.Sum(d => d.FinalPrice);
+            transaction.PaymentMethod = paymentMethod;
             transaction.ScrapCollector.Profile.PointBalance += 10;
             var pointCollectorHistory = new PointHistory
             {

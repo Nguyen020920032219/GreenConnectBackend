@@ -25,7 +25,9 @@ public interface ITransactionService
     Task<List<TransactionDetailModel>> SubmitDetailsAsync(
         Guid transactionId, Guid collectorId, List<TransactionDetailCreateModel> details);
 
-    Task ProcessTransactionAsync(Guid transactionId, Guid householdId, bool isAccepted, TransactionPaymentMethod paymentMethod);
+    Task ProcessTransactionAsync(Guid transactionId, Guid householdId, bool isAccepted,
+        TransactionPaymentMethod paymentMethod);
+
     Task ToggleCancelAsync(Guid transactionId, Guid collectorId);
 
     Task<string> GetTransactionQrCodeAsync(Guid transactionId, Guid userId);

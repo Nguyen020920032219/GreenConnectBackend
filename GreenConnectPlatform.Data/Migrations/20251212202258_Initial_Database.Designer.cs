@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GreenConnectPlatform.Data.Migrations
 {
     [DbContext(typeof(GreenConnectDbContext))]
-    [Migration("20251205182117_Initial_Database")]
+    [Migration("20251212202258_Initial_Database")]
     partial class Initial_Database
     {
         /// <inheritdoc />
@@ -566,6 +566,41 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.ToTable("Ranks");
                 });
 
+            modelBuilder.Entity("GreenConnectPlatform.Data.Entities.RecurringSchedule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("DayOfWeek")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("HouseholdId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("ScrapCategoryIds")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<TimeOnly>("TimeSlotEnd")
+                        .HasColumnType("time");
+
+                    b.Property<TimeOnly>("TimeSlotStart")
+                        .HasColumnType("time");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HouseholdId");
+
+                    b.ToTable("RecurringSchedules", (string)null);
+                });
+
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.ReferencePrice", b =>
                 {
                     b.Property<Guid>("ReferencePriceId")
@@ -693,10 +728,6 @@ namespace GreenConnectPlatform.Data.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
-                    b.Property<string>("AvailableTimeRange")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -761,6 +792,31 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.HasIndex("ScrapCategoryId");
 
                     b.ToTable("ScrapPostDetails");
+                });
+
+            modelBuilder.Entity("GreenConnectPlatform.Data.Entities.ScrapPostTimeSlot", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<TimeOnly>("EndTime")
+                        .HasColumnType("time");
+
+                    b.Property<Guid>("ScrapPostId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly?>("SpecificDate")
+                        .HasColumnType("date");
+
+                    b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("time");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ScrapPostId");
+
+                    b.ToTable("ScrapPostTimeSlots", (string)null);
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.Transaction", b =>
@@ -1371,6 +1427,17 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("GreenConnectPlatform.Data.Entities.RecurringSchedule", b =>
+                {
+                    b.HasOne("GreenConnectPlatform.Data.Entities.User", "Household")
+                        .WithMany()
+                        .HasForeignKey("HouseholdId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Household");
+                });
+
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.ReferencePrice", b =>
                 {
                     b.HasOne("GreenConnectPlatform.Data.Entities.ScrapCategory", "ScrapCategory")
@@ -1435,6 +1502,17 @@ namespace GreenConnectPlatform.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("ScrapCategory");
+
+                    b.Navigation("ScrapPost");
+                });
+
+            modelBuilder.Entity("GreenConnectPlatform.Data.Entities.ScrapPostTimeSlot", b =>
+                {
+                    b.HasOne("GreenConnectPlatform.Data.Entities.ScrapPost", "ScrapPost")
+                        .WithMany("TimeSlots")
+                        .HasForeignKey("ScrapPostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("ScrapPost");
                 });
@@ -1623,6 +1701,8 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.Navigation("CollectionOffers");
 
                     b.Navigation("ScrapPostDetails");
+
+                    b.Navigation("TimeSlots");
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.Transaction", b =>

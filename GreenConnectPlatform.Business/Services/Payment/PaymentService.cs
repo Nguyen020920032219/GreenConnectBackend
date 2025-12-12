@@ -68,11 +68,10 @@ public class PaymentService : IPaymentService
     {
         var vnpResponse = _vnPayService.PaymentExecute(collections);
 
-        // Tìm Transaction theo Ref gửi đi
         var txn = await _txnRepo.GetByTransactionRefAsync(vnpResponse.OrderId);
 
         if (txn == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Giao dịch không tồn tại.");
-        if (txn.Status == PaymentStatus.Success) return; // Đã xử lý (Idempotency)
+        if (txn.Status == PaymentStatus.Success) return;
 
         txn.VnpTransactionNo = vnpResponse.PaymentId;
         txn.ResponseCode = vnpResponse.VnPayResponseCode;
@@ -86,7 +85,6 @@ public class PaymentService : IPaymentService
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Thanh toán thất bại hoặc bị hủy.");
         }
 
-        // --- THANH TOÁN THÀNH CÔNG ---
         txn.Status = PaymentStatus.Success;
         await _txnRepo.UpdateAsync(txn);
 
@@ -98,7 +96,6 @@ public class PaymentService : IPaymentService
         var package = await _packageRepo.GetByIdAsync(packageId);
         if (package == null) return;
 
-        // 1. Cập nhật User Package
         var userPackages = await _userPackageRepo.FindAsync(up => up.UserId == userId);
         var existingUserPackage = userPackages.FirstOrDefault();
 
@@ -126,7 +123,6 @@ public class PaymentService : IPaymentService
             await _userPackageRepo.UpdateAsync(existingUserPackage);
         }
 
-        // 2. Cộng Credit vào Profile & Ghi lịch sử
         var profile = await _profileRepo.GetByUserIdWithRankAsync(userId);
         if (profile != null && package.ConnectionAmount.HasValue)
         {

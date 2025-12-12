@@ -13,7 +13,6 @@ public class ScrapPostConfiguration : IEntityTypeConfiguration<ScrapPost>
 
         builder.Property(e => e.Title).HasMaxLength(200).IsRequired();
         builder.Property(e => e.Address).HasMaxLength(255).IsRequired();
-        builder.Property(e => e.AvailableTimeRange).HasMaxLength(100);
 
         builder.Property(e => e.Status).HasConversion<string>();
 
@@ -21,6 +20,10 @@ public class ScrapPostConfiguration : IEntityTypeConfiguration<ScrapPost>
         builder.HasIndex(e => e.Location).HasMethod("gist");
 
         builder.HasIndex(e => new { e.Status, e.HouseholdId });
+
+        builder.HasMany(p => p.TimeSlots)
+            .WithOne(ts => ts.ScrapPost)
+            .HasForeignKey(ts => ts.ScrapPostId);
 
         builder.HasOne(d => d.Household)
             .WithMany(p => p.ScrapPosts)

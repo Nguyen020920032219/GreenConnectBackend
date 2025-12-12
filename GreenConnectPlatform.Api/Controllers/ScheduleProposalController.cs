@@ -165,7 +165,8 @@ public class ScheduleProposalController : ControllerBase
     [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> ProcessProposal(Guid id, [FromQuery] bool isAccepted, [FromQuery] string? responseMessage)
+    public async Task<IActionResult> ProcessProposal(Guid id, [FromQuery] bool isAccepted,
+        [FromQuery] string? responseMessage)
     {
         var userId = GetCurrentUserId();
         await _service.ProcessProposalAsync(userId, id, isAccepted, responseMessage);

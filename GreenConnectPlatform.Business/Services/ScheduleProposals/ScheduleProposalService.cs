@@ -73,23 +73,24 @@ public class ScheduleProposalService : IScheduleProposalService
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Bạn không thể gửi lại lịch hẹn khi đề nghị không ở trạng thái pending.");
 
-        
-        
+
         var proposal = _mapper.Map<ScheduleProposal>(request);
         proposal.ScheduleProposalId = Guid.NewGuid();
         proposal.CollectionOfferId = offerId;
         proposal.ProposerId = collectorId;
         proposal.Status = ProposalStatus.Pending;
         proposal.CreatedAt = DateTime.UtcNow;
-        
+
         await _proposalRepository.AddAsync(proposal);
 
-        var scheduleExists =  offer.ScheduleProposals.Where(s => s.Status == ProposalStatus.Pending && s.ScheduleProposalId != proposal.ScheduleProposalId).ToList();
+        var scheduleExists = offer.ScheduleProposals.Where(s =>
+            s.Status == ProposalStatus.Pending && s.ScheduleProposalId != proposal.ScheduleProposalId).ToList();
         foreach (var scheduleProposal in scheduleExists)
         {
             scheduleProposal.Status = ProposalStatus.Canceled;
             await _proposalRepository.UpdateAsync(scheduleProposal);
         }
+
         var householdId = offer.ScrapPost.HouseholdId;
         var title = "Đề xuất lịch hẹn mới";
         var body =
@@ -158,12 +159,14 @@ public class ScheduleProposalService : IScheduleProposalService
                 var offer = await _offerRepository.GetByIdWithDetailsAsync(proposal.CollectionOfferId);
                 if (offer == null)
                     throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Đề nghị này không tìm thấy.");
-                var proposalExists =  offer.ScheduleProposals.Where(s => s.Status == ProposalStatus.Pending && s.ScheduleProposalId != proposalId).ToList();
+                var proposalExists = offer.ScheduleProposals
+                    .Where(s => s.Status == ProposalStatus.Pending && s.ScheduleProposalId != proposalId).ToList();
                 foreach (var scheduleProposal in proposalExists)
                 {
                     scheduleProposal.Status = ProposalStatus.Canceled;
                     await _proposalRepository.UpdateAsync(scheduleProposal);
                 }
+
                 var householdId = proposal.Offer.ScrapPost.HouseholdId;
                 var title = "Lịch hẹn đã mở lại";
                 var body = $"Người thu gom đã mở lại đề xuất lịch hẹn cho đơn hàng '{proposal.Offer.ScrapPost.Title}'.";
@@ -232,7 +235,7 @@ public class ScheduleProposalService : IScheduleProposalService
         else
         {
             proposal.Status = ProposalStatus.Rejected;
-            if(!string.IsNullOrEmpty(responseMessage))
+            if (!string.IsNullOrEmpty(responseMessage))
                 proposal.ResponseMessage = responseMessage;
             var collectorId = proposal.ProposerId;
             var title = "Lịch hẹn bị từ chối";

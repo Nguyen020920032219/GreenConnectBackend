@@ -37,7 +37,7 @@ public class ScrapPostController : ControllerBase
     ///     dùng đang gọi API tới từng bài đăng, sau đó sắp xếp từ **gần nhất đến xa nhất**. <br />
     ///     - **Lưu ý:** Để dùng tính năng sắp xếp vị trí, User bắt buộc phải cập nhật tọa độ trong Profile trước.
     /// </remarks>
-    /// <param name="categoryName">Tìm kiếm theo tên loại ve chai (VD: "Giấy", "Nhựa").</param>
+    /// <param name="categoryId">Tìm kiếm theo tên loại ve chai (VD: "Giấy", "Nhựa").</param>
     /// <param name="status">Lọc theo trạng thái bài đăng (Open, Completed...).</param>
     /// <param name="sortByLocation">`true`: Sắp xếp theo khoảng cách gần nhất. `false`: Sắp xếp mặc định.</param>
     /// <param name="sortByCreateAt">`true`: Cũ nhất trước. `false`: Mới nhất trước (Mặc định).</param>
@@ -52,7 +52,7 @@ public class ScrapPostController : ControllerBase
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> Search(
-        [FromQuery] string? categoryName,
+        [FromQuery] int? categoryId,
         [FromQuery] PostStatus? status,
         [FromQuery] bool sortByLocation = false,
         [FromQuery] bool sortByCreateAt = false,
@@ -61,7 +61,7 @@ public class ScrapPostController : ControllerBase
     {
         var userId = GetCurrentUserId();
         var roleName = User.FindFirstValue(ClaimTypes.Role) ?? "";
-        var result = await _service.SearchPostsAsync(roleName, pageNumber, pageSize, categoryName, status,
+        var result = await _service.SearchPostsAsync(roleName, pageNumber, pageSize, categoryId, status,
             sortByLocation,
             sortByCreateAt, userId);
         return Ok(result);

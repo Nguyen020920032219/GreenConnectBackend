@@ -47,7 +47,7 @@ public class ScrapPostService : IScrapPostService
 
     public async Task<PaginatedResult<ScrapPostOverralModel>> SearchPostsAsync(
         string roleName,
-        int pageNumber, int pageSize, string? categoryName, PostStatus? status,
+        int pageNumber, int pageSize, int? categoryId, PostStatus? status,
         bool sortByLocation, bool sortByCreateAt, Guid currentUserId)
     {
         Point? userLocation = null;
@@ -59,7 +59,7 @@ public class ScrapPostService : IScrapPostService
 
         var (items, totalCount) = await _postRepository.SearchAsync(
             roleName,
-            categoryName, status, userLocation,
+            categoryId, status, userLocation,
             sortByLocation, sortByCreateAt, false,
             pageNumber, pageSize);
 

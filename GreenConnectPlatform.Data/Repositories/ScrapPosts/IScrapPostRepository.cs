@@ -11,7 +11,7 @@ public interface IScrapPostRepository : IBaseRepository<ScrapPost, Guid>
 
     Task<(List<ScrapPost> Items, int TotalCount)> SearchAsync(
         string roleName,
-        string? categoryName,
+        int? categoryId,
         PostStatus? status,
         Point? userLocation,
         bool sortByLocation,

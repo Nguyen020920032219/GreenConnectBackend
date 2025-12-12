@@ -10,7 +10,7 @@ public interface IScrapPostService
     Task<PaginatedResult<ScrapPostOverralModel>> SearchPostsAsync(
         string roleName,
         int pageNumber, int pageSize,
-        string? categoryName, PostStatus? status,
+        int? categoryId, PostStatus? status,
         bool sortByLocation, bool sortByCreateAt,
         Guid currentUserId);
 

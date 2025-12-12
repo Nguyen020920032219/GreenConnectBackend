@@ -25,7 +25,7 @@ public class ScrapPostRepository : BaseRepository<GreenConnectDbContext, ScrapPo
 
     public async Task<(List<ScrapPost> Items, int TotalCount)> SearchAsync(
         string roleName,
-        string? categoryName,
+        int? categoryId,
         PostStatus? status,
         Point? userLocation,
         bool sortByLocation,
@@ -42,11 +42,10 @@ public class ScrapPostRepository : BaseRepository<GreenConnectDbContext, ScrapPo
         if (status.HasValue)
             query = query.Where(s => s.Status == status.Value);
 
-        if (!string.IsNullOrWhiteSpace(categoryName))
+        if (categoryId != null)
         {
-            var term = categoryName.Trim().ToLower();
             query = query.Where(p =>
-                p.ScrapPostDetails.Any(d => d.ScrapCategory.CategoryName.ToLower().Contains(term)));
+                p.ScrapPostDetails.Any(d => d.ScrapCategory.ScrapCategoryId == categoryId));
         }
 
         var totalCount = await query.CountAsync();

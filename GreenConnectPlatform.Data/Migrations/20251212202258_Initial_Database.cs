@@ -336,6 +336,29 @@ namespace GreenConnectPlatform.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "RecurringSchedules",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    DayOfWeek = table.Column<int>(type: "integer", nullable: false),
+                    TimeSlotStart = table.Column<TimeOnly>(type: "time", nullable: false),
+                    TimeSlotEnd = table.Column<TimeOnly>(type: "time", nullable: false),
+                    ScrapCategoryIds = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
+                    HouseholdId = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RecurringSchedules", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_RecurringSchedules_AspNetUsers_HouseholdId",
+                        column: x => x.HouseholdId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ScrapPosts",
                 columns: table => new
                 {
@@ -344,7 +367,6 @@ namespace GreenConnectPlatform.Data.Migrations
                     Title = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     Description = table.Column<string>(type: "text", nullable: true),
                     Address = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
-                    AvailableTimeRange = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     Status = table.Column<string>(type: "text", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -580,6 +602,27 @@ namespace GreenConnectPlatform.Data.Migrations
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_ScrapPostDetails_ScrapPosts_ScrapPostId",
+                        column: x => x.ScrapPostId,
+                        principalTable: "ScrapPosts",
+                        principalColumn: "ScrapPostId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ScrapPostTimeSlots",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    StartTime = table.Column<TimeOnly>(type: "time", nullable: false),
+                    EndTime = table.Column<TimeOnly>(type: "time", nullable: false),
+                    SpecificDate = table.Column<DateOnly>(type: "date", nullable: true),
+                    ScrapPostId = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ScrapPostTimeSlots", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ScrapPostTimeSlots_ScrapPosts_ScrapPostId",
                         column: x => x.ScrapPostId,
                         principalTable: "ScrapPosts",
                         principalColumn: "ScrapPostId",
@@ -1028,6 +1071,11 @@ namespace GreenConnectPlatform.Data.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_RecurringSchedules_HouseholdId",
+                table: "RecurringSchedules",
+                column: "HouseholdId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ReferencePrices_ScrapCategoryId",
                 table: "ReferencePrices",
                 column: "ScrapCategoryId");
@@ -1067,6 +1115,11 @@ namespace GreenConnectPlatform.Data.Migrations
                 name: "IX_ScrapPosts_Status_HouseholdId",
                 table: "ScrapPosts",
                 columns: new[] { "Status", "HouseholdId" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ScrapPostTimeSlots_ScrapPostId",
+                table: "ScrapPostTimeSlots",
+                column: "ScrapPostId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TransactionDetails_ScrapCategoryId",
@@ -1167,6 +1220,9 @@ namespace GreenConnectPlatform.Data.Migrations
                 name: "Profiles");
 
             migrationBuilder.DropTable(
+                name: "RecurringSchedules");
+
+            migrationBuilder.DropTable(
                 name: "ReferencePrices");
 
             migrationBuilder.DropTable(
@@ -1174,6 +1230,9 @@ namespace GreenConnectPlatform.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "ScrapPostDetails");
+
+            migrationBuilder.DropTable(
+                name: "ScrapPostTimeSlots");
 
             migrationBuilder.DropTable(
                 name: "TransactionDetails");

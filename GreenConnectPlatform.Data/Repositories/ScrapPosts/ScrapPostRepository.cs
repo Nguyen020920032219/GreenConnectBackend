@@ -43,10 +43,8 @@ public class ScrapPostRepository : BaseRepository<GreenConnectDbContext, ScrapPo
             query = query.Where(s => s.Status == status.Value);
 
         if (categoryId != null)
-        {
             query = query.Where(p =>
                 p.ScrapPostDetails.Any(d => d.ScrapCategory.ScrapCategoryId == categoryId));
-        }
 
         var totalCount = await query.CountAsync();
 

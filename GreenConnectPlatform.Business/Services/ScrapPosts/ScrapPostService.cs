@@ -124,7 +124,6 @@ public class ScrapPostService : IScrapPostService
             Title = post.Title,
             Description = post.Description,
             Address = post.Address,
-            AvailableTimeRange = post.AvailableTimeRange,
             Status = post.Status,
             CreatedAt = post.CreatedAt,
             UpdatedAt = post.UpdatedAt,

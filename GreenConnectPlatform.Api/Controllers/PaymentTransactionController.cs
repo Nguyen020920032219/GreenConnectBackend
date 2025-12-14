@@ -9,8 +9,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace GreenConnectPlatform.Api.Controllers;
 
-[Route("payment-transaction")]
-[Tags("Payment Transaction")]
+[Route("api/v1/payment-transaction")]
+[Tags("23. Payment Transaction")]
 [ApiController]
 public class PaymentTransactionController(IPaymentTransactionService paymentTransactionService) : ControllerBase
 {

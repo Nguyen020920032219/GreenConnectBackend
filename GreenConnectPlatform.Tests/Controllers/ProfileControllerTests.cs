@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using System.Security.Claims;
+using GreenConnectPlatform.Business.Models.ScrapPosts;
 using GreenConnectPlatform.Business.Models.VerificationInfos;
 
 namespace GreenConnectPlatform.Tests.Controllers
@@ -177,8 +178,13 @@ namespace GreenConnectPlatform.Tests.Controllers
         [Fact] // PF-08: Cập nhật một phần (Partial Update - Chỉ đổi địa chỉ)
         public async Task PF08_UpdateMyProfile_ReturnsOk_WhenPartialUpdate()
         {
+            var location = new LocationModel
+            {
+                Latitude = 10.762,
+                Longitude = 106.660
+            };
             // Arrange
-            var request = new UpdateProfileRequest { Address = "123 Street" }; // Các trường khác null
+            var request = new UpdateProfileRequest { Address = "123 Street", Location  = location}; // Các trường khác null
             var updatedProfile = new ProfileModel { UserId = _testUserId, Address = "123 Street" };
 
             _mockProfileService.Setup(s => s.UpdateMyProfileAsync(_testUserId, request))
@@ -191,6 +197,7 @@ namespace GreenConnectPlatform.Tests.Controllers
             var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
             ((ProfileModel)okResult.Value).Address.Should().Be("123 Street");
         }
+        
         
         
         

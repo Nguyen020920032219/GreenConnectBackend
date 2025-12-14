@@ -113,11 +113,11 @@ public class ProfileService : IProfileService
         if (!string.IsNullOrEmpty(request.Address))
         {
             profile.Address = request.Address;
-        }
-        if (request.Location != null && request.Location.Latitude.HasValue && request.Location.Longitude.HasValue)
-        {
-            profile.Location = _geometryFactory.CreatePoint(new Coordinate(
-                request.Location.Longitude.Value, request.Location.Latitude.Value));
+            if (request.Location != null && request.Location.Latitude.HasValue && request.Location.Longitude.HasValue)
+            {
+                profile.Location = _geometryFactory.CreatePoint(new Coordinate(
+                    request.Location.Longitude.Value, request.Location.Latitude.Value));
+            }
         }
         if (request.Gender.HasValue) profile.Gender = request.Gender;
 

@@ -1,0 +1,170 @@
+using FluentAssertions;
+using GreenConnectPlatform.Api.Controllers;
+using GreenConnectPlatform.Business.Models.Exceptions;
+using GreenConnectPlatform.Business.Models.Paging;
+using GreenConnectPlatform.Business.Models.ScrapCategories;
+using GreenConnectPlatform.Business.Services.ScrapCategories;
+using Microsoft.AspNetCore.Mvc;
+using Moq;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Xunit;
+
+namespace GreenConnectPlatform.Tests.Controllers
+{
+    public class ScrapCategoryControllerTests
+    {
+        private readonly Mock<IScrapCategoryService> _mockService;
+        private readonly ScrapCategoryController _controller;
+
+        public ScrapCategoryControllerTests()
+        {
+            _mockService = new Mock<IScrapCategoryService>();
+            _controller = new ScrapCategoryController(_mockService.Object);
+        }
+
+        // ==========================================
+        // 1. GET LIST (PST-15)
+        // ==========================================
+        [Fact]
+        public async Task PST15_GetList_ReturnsPaginatedList_WhenCalled()
+        {
+            // Arrange
+            var categories = new PaginatedResult<ScrapCategoryModel>
+            {
+                Data = new List<ScrapCategoryModel> 
+                { 
+                    new ScrapCategoryModel { ScrapCategoryId = 1, CategoryName = "Plastic" } 
+                },
+                Pagination = new PaginationModel(1, 1, 10)
+            };
+
+            // Khớp tham số: pageNumber, pageSize, searchName
+            _mockService.Setup(s => s.GetListAsync(1, 10, null))
+                .ReturnsAsync(categories);
+
+            // Act
+            // Controller: GetList(string? searchName, int pageNumber = 1, int pageSize = 10)
+            var result = await _controller.GetList(null, 1, 10);
+
+            // Assert
+            var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+            var data = okResult.Value.Should().BeOfType<PaginatedResult<ScrapCategoryModel>>().Subject;
+            data.Data.Should().HaveCount(1);
+            data.Data[0].CategoryName.Should().Be("Plastic");
+        }
+
+        // ==========================================
+        // 2. GET DETAIL (PST-16)
+        // ==========================================
+        [Fact]
+        public async Task PST16_GetById_ReturnsCategory_WhenIdExists()
+        {
+            // Arrange
+            var category = new ScrapCategoryModel { ScrapCategoryId = 1, CategoryName = "Paper" };
+
+            _mockService.Setup(s => s.GetByIdAsync(1))
+                .ReturnsAsync(category);
+
+            // Act
+            var result = await _controller.GetById(1);
+
+            // Assert
+            var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+            ((ScrapCategoryModel)okResult.Value).CategoryName.Should().Be("Paper");
+        }
+
+        // ==========================================
+        // 3. CREATE (ADM-01, ADM-02)
+        // ==========================================
+        [Fact] 
+        public async Task ADM01_Create_ReturnsCreated_WhenValid()
+        {
+            // Arrange
+            string name = "Electronics";
+            string description = "Electronic devices";
+            
+            var createdCategory = new ScrapCategoryModel 
+            { 
+                ScrapCategoryId = 1, 
+                CategoryName = name, 
+                Description = description 
+            };
+
+            // Setup service call với tham số string riêng lẻ
+            _mockService.Setup(s => s.CreateAsync(name, description))
+                .ReturnsAsync(createdCategory);
+
+            // Act
+            // Gọi hàm với tham số string theo định nghĩa Controller
+            var result = await _controller.Create(name, description);
+
+            // Assert
+            var createdResult = result.Should().BeOfType<CreatedAtActionResult>().Subject;
+            createdResult.StatusCode.Should().Be(201);
+            ((ScrapCategoryModel)createdResult.Value).CategoryName.Should().Be(name);
+        }
+
+        [Fact]
+        public async Task ADM02_Create_ThrowsBadRequest_WhenNameInvalid()
+        {
+            // Arrange
+            string name = ""; // Invalid case giả định
+            string description = "Desc";
+
+            _mockService.Setup(s => s.CreateAsync(name, description))
+                .ThrowsAsync(new ApiExceptionModel(400, "VALIDATION_ERROR", "Name is required"));
+
+            // Act & Assert
+            await _controller.Invoking(c => c.Create(name, description))
+                .Should().ThrowAsync<ApiExceptionModel>()
+                .Where(e => e.StatusCode == 400);
+        }
+
+        // ==========================================
+        // 4. UPDATE (ADM-03)
+        // ==========================================
+        [Fact]
+        public async Task ADM03_Update_ReturnsOk_WhenValid()
+        {
+            // Arrange
+            int categoryId = 1;
+            string newName = "Updated Name";
+            string newDesc = "Updated Desc";
+            
+            var updatedCategory = new ScrapCategoryModel 
+            { 
+                ScrapCategoryId = categoryId, 
+                CategoryName = newName 
+            };
+
+            // Setup service call với tham số string riêng lẻ
+            _mockService.Setup(s => s.UpdateAsync(categoryId, newName, newDesc))
+                .ReturnsAsync(updatedCategory);
+
+            // Act
+            var result = await _controller.Update(categoryId, newName, newDesc);
+
+            // Assert
+            var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+            ((ScrapCategoryModel)okResult.Value).CategoryName.Should().Be(newName);
+        }
+
+        // ==========================================
+        // 5. DELETE (ADM-04)
+        // ==========================================
+        [Fact]
+        public async Task ADM04_Delete_ReturnsNoContent_WhenSuccess()
+        {
+            // Arrange
+            int categoryId = 1;
+            _mockService.Setup(s => s.DeleteAsync(categoryId)).Returns(Task.CompletedTask);
+
+            // Act
+            var result = await _controller.Delete(categoryId);
+
+            // Assert
+            result.Should().BeOfType<NoContentResult>();
+        }
+    }
+}

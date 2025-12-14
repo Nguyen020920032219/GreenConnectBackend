@@ -1,9 +1,11 @@
 using GreenConnectPlatform.Business.Models.CollectionOffers;
 using GreenConnectPlatform.Business.Models.CollectionOffers.OfferDetails;
 using GreenConnectPlatform.Business.Models.Complaints;
+using GreenConnectPlatform.Business.Models.CreditTransactionHistories;
 using GreenConnectPlatform.Business.Models.Feedbacks;
 using GreenConnectPlatform.Business.Models.Notifications;
 using GreenConnectPlatform.Business.Models.PaymentPackages;
+using GreenConnectPlatform.Business.Models.PaymentTransactions;
 using GreenConnectPlatform.Business.Models.PointHistories;
 using GreenConnectPlatform.Business.Models.ReferencePrices;
 using GreenConnectPlatform.Business.Models.RewardItems;
@@ -137,6 +139,18 @@ public class MappingProfile : Profile
         #region Notification
 
         CreateMap<Notification, NotificationModel>();
+
+        #endregion
+
+        #region CreditTransactionHistoryService
+
+        CreateMap<CreditTransactionHistory, CreditTransactionHistoryModel>();
+
+        #endregion
+
+        #region PaymentTransaction
+
+        CreateMap<PaymentTransaction, PaymentTransactionModel>();
 
         #endregion
     }

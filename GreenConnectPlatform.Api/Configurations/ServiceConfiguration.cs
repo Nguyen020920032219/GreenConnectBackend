@@ -5,12 +5,14 @@ using GreenConnectPlatform.Business.Services.Banks;
 using GreenConnectPlatform.Business.Services.Chat;
 using GreenConnectPlatform.Business.Services.CollectionOffers;
 using GreenConnectPlatform.Business.Services.Complaints;
+using GreenConnectPlatform.Business.Services.CreditTransactionHistories;
 using GreenConnectPlatform.Business.Services.Feedbacks;
 using GreenConnectPlatform.Business.Services.FileStorage;
 using GreenConnectPlatform.Business.Services.Jwt;
 using GreenConnectPlatform.Business.Services.Notifications;
 using GreenConnectPlatform.Business.Services.Payment;
 using GreenConnectPlatform.Business.Services.PaymentPackages;
+using GreenConnectPlatform.Business.Services.PaymentTransactions;
 using GreenConnectPlatform.Business.Services.PointHistories;
 using GreenConnectPlatform.Business.Services.Profile;
 using GreenConnectPlatform.Business.Services.ReferencePrices;
@@ -81,6 +83,8 @@ public static class ServiceConfiguration
         services.AddScoped<IVietQrService, VietQrService>();
         services.AddHttpClient<IBankService, BankService>();
         services.AddHttpClient<IEkycService, FptAiService>();
+        services.AddScoped<ICreditTransactionHistoryService, CreditTransactionHistoryService>();
+        services.AddScoped<IPaymentTransactionService, PaymentTransactionService>();
     }
 
     public static void ConfigureRepositories(this IServiceCollection services)

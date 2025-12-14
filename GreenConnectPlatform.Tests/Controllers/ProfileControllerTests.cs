@@ -214,56 +214,34 @@ namespace GreenConnectPlatform.Tests.Controllers
             ((ProfileModel)okResult.Value).Address.Should().Be("123 Street");
         }
         
-        
+        [Fact] // PF-09: Cập nhật thất bại - Vĩ độ ngoài phạm vi
+        public async Task PF09_UpdateMyProfile_ThrowsBadRequest_WhenLatitudeOutOfRange()
+        {
+            var location = new LocationModel
+            {
+                Latitude = 200, // Invalid latitude
+                Longitude = 106.660
+            };
+            // Arrange
+            var request = new UpdateProfileRequest { Location = location };
+
+            _mockProfileService.Setup(s => s.UpdateMyProfileAsync(_testUserId, request))
+                .ThrowsAsync(new ApiExceptionModel(400, "INVALID_LOCATION", "Invalid coordinates"));
+
+            // Act & Assert
+            await _controller.Invoking(c => c.UpdateMyProfile(request))
+                .Should().ThrowAsync<ApiExceptionModel>()
+                .Where(e => e.StatusCode == 400);
+        }
         
         
         // ==========================================
         // GROUP 5: OCR_IDCard (KYC-01, KYC-02, KYC-03)
         // ==========================================
-
-        // [Fact] // KYC-01 Gửi yêu cầu nhận diện CCCD thành công
-        // public async Task KYC01_RecognizeIdCard_ReturnsOk_WithData_WhenImageValid()
-        // {
-        //     // Arrange
-        //     // 1. Giả lập file ảnh hợp lệ (Clear CCCD Image)
-        //     var mockFile = new Mock<IFormFile>();
-        //     mockFile.Setup(f => f.Length).Returns(1024);
-        //     mockFile.Setup(f => f.FileName).Returns("cccd_clear.jpg");
-        //
-        //     // 2. Giả lập kết quả trả về từ Service (Extracted Data)
-        //     var expectedResult = new IdCardOcrResult
-        //     {
-        //         IsValid = true,
-        //         IdNumber = "079090001234",
-        //         FullName = "NGUYEN VAN A",
-        //         Dob = new DateTime(1990, 1, 1),
-        //         Address = "123 Duong ABC, TP HCM",
-        //         ErrorMessage = null
-        //     };
-        //
-        //     // 3. Setup Service: Khi gọi RecognizeIdCardAsync với file bất kỳ -> Trả về kết quả trên
-        //     _mockEkycService.Setup(s => s.RecognizeIdCardAsync(It.IsAny<IFormFile>()))
-        //         .ReturnsAsync(expectedResult);
-        //
-        //     // Act
-        //     // Gọi endpoint /api/ai/id-card-recognition (Action name thường là RecognizeIdCard hoặc IdCardRecognition)
-        //     var result = await _controller.RecognizeIdCard(mockFile.Object);
-        //
-        //     // Assert
-        //     // 1. Kiểm tra Status Code 200 OK
-        //     var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        //     okResult.StatusCode.Should().Be(200);
-        //
-        //     // 2. Kiểm tra dữ liệu JSON trả về
-        //     var data = okResult.Value.Should().BeOfType<IdCardOcrResult>().Subject;
-        //     
-        //     data.IdNumber.Should().Be("079090001234");
-        //     data.Name.Should().Be("NGUYEN VAN A");
-        //     data.Address.Should().Be("123 Duong ABC, TP HCM");
-        // }
         
-        [Fact] // KYC-02: Gửi yêu cầu xác minh thất bại - Ảnh mờ
-        public async Task KYC02_SubmitVerification_ThrowsException_WhenImageInvalid()
+        
+        [Fact] // KYC-01: Gửi yêu cầu xác minh thất bại - Ảnh mờ
+        public async Task KYC01_SubmitVerification_ThrowsException_WhenImageInvalid()
         {
             var mockFile = new Mock<IFormFile>();
             mockFile.Setup(f => f.Length).Returns(100);
@@ -284,8 +262,8 @@ namespace GreenConnectPlatform.Tests.Controllers
                 .Where(e => e.StatusCode == 400 && e.Message.Contains("Cannot detect ID card"));
         }
         
-        [Fact] // KYC-03: Gửi yêu cầu thất bại - Đã xác minh rồi
-        public async Task KYC03_SubmitVerification_ThrowsException_WhenAlreadyVerified()
+        [Fact] // KYC-02: Gửi yêu cầu thất bại - Đã xác minh rồi
+        public async Task KYC02_SubmitVerification_ThrowsException_WhenAlreadyVerified()
         {
             // Arrange
             var request = new SubmitEkycRequest();
@@ -299,8 +277,8 @@ namespace GreenConnectPlatform.Tests.Controllers
                 .Where(e => e.StatusCode == 400);
         }
 
-        [Fact] // KYC-04: Gửi yêu cầu thất bại - Dưới 18 tuổi (Check từ Service)
-        public async Task KYC04_SubmitVerification_ThrowsException_WhenUnder18()
+        [Fact] // KYC-03: Gửi yêu cầu thất bại - Dưới 18 tuổi (Check từ Service)
+        public async Task KYC03_SubmitVerification_ThrowsException_WhenUnder18()
         {
             // Arrange
             var request = new SubmitEkycRequest();
@@ -315,11 +293,11 @@ namespace GreenConnectPlatform.Tests.Controllers
         }
         
         // ==========================================
-        // GROUP 6: SubmitKYC (KYC-05)
+        // GROUP 6: SubmitKYC (KYC-04)
         // ==========================================
         
-        [Fact] // KYC-05: Gửi yêu cầu xác minh thành công
-        public async Task KYC05_SubmitVerification_ReturnsOk_WhenSuccess()
+        [Fact] // KYC-04: Gửi yêu cầu xác minh thành công
+        public async Task KYC04_SubmitVerification_ReturnsOk_WhenSuccess()
         {
             // Arrange
             // Mock IFormFile vì request dùng FromForm

@@ -8,8 +8,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace GreenConnectPlatform.Api.Controllers;
 
-[Route("credit-transaction")]
-[Tags("Credit Transaction History")]
+[Route("api/v1/credit-transaction")]
+[Tags("22. Credit Transaction History")]
 [ApiController]
 public class CreditTransactionHistoryController(ICreditTransactionHistoryService creditTransactionHistoryService) : ControllerBase
 {

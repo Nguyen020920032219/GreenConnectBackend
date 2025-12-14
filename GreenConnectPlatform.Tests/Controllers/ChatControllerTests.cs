@@ -7,11 +7,8 @@ using GreenConnectPlatform.Business.Services.Chat;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-using System;
-using System.Collections.Generic;
 using System.Security.Claims;
-using System.Threading.Tasks;
-using Xunit;
+
 
 namespace GreenConnectPlatform.Tests.Controllers
 {
@@ -47,12 +44,11 @@ namespace GreenConnectPlatform.Tests.Controllers
         public async Task CHT03_SendMessage_ReturnsOk_WhenTextValid()
         {
             // Arrange
-            var receiverId = Guid.NewGuid();
+            var transactionId = Guid.NewGuid();
             var request = new SendMessageModel 
             { 
-                ToUserId = receiverId, // [FIX] Sử dụng ToUserId
-                Content = "Hello world",
-                Type = "Text" // [FIX] Sử dụng Type
+                TransactionId = transactionId,
+                Content = "Hello world"
             };
             
             var resultMessage = new MessageModel { MessageId = Guid.NewGuid(), Content = "Hello world" };
@@ -78,12 +74,11 @@ namespace GreenConnectPlatform.Tests.Controllers
             // Arrange
             var request = new SendMessageModel 
             { 
-                ToUserId = Guid.NewGuid(), 
+                TransactionId = Guid.NewGuid(), 
                 Content = "https://storage.com/img.jpg",
-                Type = "Image" 
             };
             
-            var resultMessage = new MessageModel { MessageId = Guid.NewGuid(), Content = request.Content, MessageType = "Image" };
+            var resultMessage = new MessageModel { MessageId = Guid.NewGuid(), Content = request.Content};
 
             _mockService.Setup(s => s.SendMessageAsync(_testUserId, request))
                 .ReturnsAsync(resultMessage);
@@ -93,8 +88,9 @@ namespace GreenConnectPlatform.Tests.Controllers
 
             // Assert
             var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+            var msg = okResult.Value.Should().BeOfType<MessageModel>().Subject;
             // Note: MessageModel có thể sử dụng MessageType thay vì Type. Dùng MessageType
-            ((MessageModel)okResult.Value).MessageType.Should().Be("Image"); 
+            msg.Content.Should().Be("https://storage.com/img.jpg");
         }
 
         // ==========================================
@@ -104,7 +100,7 @@ namespace GreenConnectPlatform.Tests.Controllers
         public async Task CHT04_SendMessage_ThrowsBadRequest_WhenContentEmpty()
         {
             // Arrange
-            var request = new SendMessageModel { ToUserId = Guid.NewGuid(), Content = "" };
+            var request = new SendMessageModel { TransactionId = Guid.NewGuid(), Content = "" };
 
             _mockService.Setup(s => s.SendMessageAsync(_testUserId, request))
                 .ThrowsAsync(new ApiExceptionModel(400, "VALIDATION_ERROR", "Content is required"));
@@ -122,7 +118,7 @@ namespace GreenConnectPlatform.Tests.Controllers
         public async Task CHT06_SendMessage_ThrowsBadRequest_WhenContentTooLong()
         {
             // Arrange
-            var request = new SendMessageModel { ToUserId = Guid.NewGuid(), Content = new string('a', 5001) };
+            var request = new SendMessageModel { TransactionId = Guid.NewGuid(), Content = new string('a', 5001) };
 
             _mockService.Setup(s => s.SendMessageAsync(_testUserId, request))
                 .ThrowsAsync(new ApiExceptionModel(400, "VALIDATION_ERROR", "Message too long"));
@@ -149,11 +145,11 @@ namespace GreenConnectPlatform.Tests.Controllers
                 Pagination = new PaginationModel(1, 1, 10)
             };
 
-            _mockService.Setup(s => s.GetConversationsAsync(_testUserId, 1, 10, null))
+            _mockService.Setup(s => s.GetMyChatRoomAsync(_testUserId, null, 1, 10))
                 .ReturnsAsync(pagedResult);
 
             // Act
-            var result = await _controller.GetConversations(null, 1, 10); 
+            var result = await _controller.GetMyRooms(null, 1, 10); 
 
             // Assert
             var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -175,7 +171,7 @@ namespace GreenConnectPlatform.Tests.Controllers
                 Pagination = new PaginationModel(1, 1, 10)
             };
 
-            _mockService.Setup(s => s.GetMessagesAsync(chatRoomId, 1, 20))
+            _mockService.Setup(s => s.GetChatHistoryAsync(1, 20, chatRoomId))
                 .ReturnsAsync(pagedResult);
 
             // Act

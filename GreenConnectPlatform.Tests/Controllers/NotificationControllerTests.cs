@@ -7,11 +7,8 @@ using GreenConnectPlatform.Business.Services.Notifications;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-using System;
-using System.Collections.Generic;
 using System.Security.Claims;
-using System.Threading.Tasks;
-using Xunit;
+
 
 namespace GreenConnectPlatform.Tests.Controllers
 {
@@ -50,12 +47,12 @@ namespace GreenConnectPlatform.Tests.Controllers
             {
                 Data = new List<NotificationModel> 
                 { 
-                    new NotificationModel { NotificationId = Guid.NewGuid(), Title = "Booking Accepted", IsRead = false } // [FIX] Property Name là NotificationId
+                    new NotificationModel { NotificationId = Guid.NewGuid(), Content = "Booking Accepted", IsRead = false } // [FIX] Property Name là NotificationId
                 },
                 Pagination = new PaginationModel(1, 1, 10)
             };
 
-            _mockService.Setup(s => s.GetListAsync(_testUserId, 1, 10))
+            _mockService.Setup(s => s.GetMyNotificationsAsync(_testUserId, 1, 10))
                 .ReturnsAsync(pagedResult);
 
             // Act
@@ -65,27 +62,27 @@ namespace GreenConnectPlatform.Tests.Controllers
             var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
             var data = okResult.Value.Should().BeOfType<PaginatedResult<NotificationModel>>().Subject;
             data.Data.Should().HaveCount(1);
-            data.Data[0].Title.Should().Be("Booking Accepted");
+            data.Data[0].Content.Should().Be("Booking Accepted");
         }
 
         // ==========================================
         // 2. MARK AS READ (NOT-02)
         // ==========================================
         [Fact] // NOT-02: Success
-        public async Task NOT02_ReadNotification_ReturnsOk_WhenExists()
+        public async Task NOT02_ReadNotification_ReturnsNoContent_WhenExists()
         {
             // Arrange
             var notificationId = Guid.NewGuid();
             
-            _mockService.Setup(s => s.ReadNotificationAsync(notificationId, _testUserId))
+            _mockService.Setup(s => s.MarkAsReadAsync(_testUserId, notificationId))
                 .Returns(Task.CompletedTask);
 
             // Act
-            var result = await _controller.ReadNotification(notificationId); 
+            var result = await _controller.MarkRead(notificationId); 
 
             // Assert
-            var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-            okResult.StatusCode.Should().Be(200);
+            var okResult = result.Should().BeOfType<NoContentResult>().Subject;
+            okResult.StatusCode.Should().Be(204);
         }
 
         [Fact] // NOT-02: Fail (Not Found)
@@ -94,31 +91,13 @@ namespace GreenConnectPlatform.Tests.Controllers
             // Arrange
             var notificationId = Guid.NewGuid();
 
-            _mockService.Setup(s => s.ReadNotificationAsync(notificationId, _testUserId))
+            _mockService.Setup(s => s.MarkAsReadAsync(_testUserId, notificationId))
                 .ThrowsAsync(new ApiExceptionModel(404, "NOT_FOUND", "Notification not found"));
 
             // Act & Assert
-            await _controller.Invoking(c => c.ReadNotification(notificationId))
+            await _controller.Invoking(c => c.MarkRead(notificationId))
                 .Should().ThrowAsync<ApiExceptionModel>()
                 .Where(e => e.StatusCode == 404);
-        }
-
-        // ==========================================
-        // 3. MARK ALL AS READ (NOT-03)
-        // ==========================================
-        [Fact] // NOT-03
-        public async Task NOT03_ReadAll_ReturnsOk_WhenSuccess()
-        {
-            // Arrange
-            _mockService.Setup(s => s.ReadAllAsync(_testUserId))
-                .Returns(Task.CompletedTask);
-
-            // Act
-            var result = await _controller.ReadAll(); 
-
-            // Assert
-            var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-            okResult.StatusCode.Should().Be(200);
         }
         
         // ==========================================

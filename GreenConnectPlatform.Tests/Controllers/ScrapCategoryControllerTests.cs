@@ -26,7 +26,7 @@ namespace GreenConnectPlatform.Tests.Controllers
         // ==========================================
         // 1. GET LIST (PST-15)
         // ==========================================
-        [Fact]
+        [Fact] //PST-15 Xem danh sách loại phế liệu với phân trang
         public async Task PST15_GetList_ReturnsPaginatedList_WhenCalled()
         {
             // Arrange
@@ -57,7 +57,7 @@ namespace GreenConnectPlatform.Tests.Controllers
         // ==========================================
         // 2. GET DETAIL (PST-16)
         // ==========================================
-        [Fact]
+        [Fact] //PST-16 Xem chi tiết loại phế liệu theo ID
         public async Task PST16_GetById_ReturnsCategory_WhenIdExists()
         {
             // Arrange
@@ -73,11 +73,24 @@ namespace GreenConnectPlatform.Tests.Controllers
             var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
             ((ScrapCategoryModel)okResult.Value).CategoryName.Should().Be("Paper");
         }
+        
+        [Fact] //PST-17 Xem chi tiết loại phế liệu theo ID không tồn tại
+        public async Task PST17_GetById_ThrowsNotFound_WhenIdNotExists()
+        {
+            // Arrange
+            _mockService.Setup(s => s.GetByIdAsync(99))
+                .ThrowsAsync(new ApiExceptionModel(404, "NOT_FOUND", "Category not found"));
 
+            // Act & Assert
+            await _controller.Invoking(c => c.GetById(99))
+                .Should().ThrowAsync<ApiExceptionModel>()
+                .Where(e => e.StatusCode == 404);
+        }
+        
         // ==========================================
         // 3. CREATE (ADM-01, ADM-02)
         // ==========================================
-        [Fact] 
+        [Fact] //ADM-01 Tạo loại phế liệu mới với dữ liệu hợp lệ
         public async Task ADM01_Create_ReturnsCreated_WhenValid()
         {
             // Arrange
@@ -105,7 +118,7 @@ namespace GreenConnectPlatform.Tests.Controllers
             ((ScrapCategoryModel)createdResult.Value).CategoryName.Should().Be(name);
         }
 
-        [Fact]
+        [Fact] //ADM-02 Tạo loại phế liệu mới với tên không hợp lệ
         public async Task ADM02_Create_ThrowsBadRequest_WhenNameInvalid()
         {
             // Arrange
@@ -124,7 +137,7 @@ namespace GreenConnectPlatform.Tests.Controllers
         // ==========================================
         // 4. UPDATE (ADM-03)
         // ==========================================
-        [Fact]
+        [Fact] //ADM-03 Cập nhật loại phế liệu với dữ liệu hợp lệ
         public async Task ADM03_Update_ReturnsOk_WhenValid()
         {
             // Arrange
@@ -153,7 +166,7 @@ namespace GreenConnectPlatform.Tests.Controllers
         // ==========================================
         // 5. DELETE (ADM-04)
         // ==========================================
-        [Fact]
+        [Fact] //ADM-04 Xóa loại phế liệu theo ID
         public async Task ADM04_Delete_ReturnsNoContent_WhenSuccess()
         {
             // Arrange
@@ -165,6 +178,20 @@ namespace GreenConnectPlatform.Tests.Controllers
 
             // Assert
             result.Should().BeOfType<NoContentResult>();
+        }
+        
+        [Fact] //ADM-05 Xóa loại phế liệu đang được sử dụng
+        public async Task ADM05_Delete_ThrowsBadRequest_WhenCategoryInUse()
+        {
+            // Arrange
+            int categoryId = 1;
+            _mockService.Setup(s => s.DeleteAsync(categoryId))
+                .ThrowsAsync(new ApiExceptionModel(400, "BAD_REQUEST", "Cannot delete category currently in use"));
+
+            // Act & Assert
+            await _controller.Invoking(c => c.Delete(categoryId))
+                .Should().ThrowAsync<ApiExceptionModel>()
+                .Where(e => e.StatusCode == 400 && e.Message.Contains("Cannot delete category"));
         }
     }
 }

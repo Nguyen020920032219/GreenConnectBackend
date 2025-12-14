@@ -242,7 +242,7 @@ namespace GreenConnectPlatform.Tests.Controllers
         }
 
         // =================================================================
-        // GROUP 5: GET LIST & DETAIL (TRX-10, TRX-11)
+        // GROUP 5: GET LIST & DETAIL (TRX-10, TRX-11, BOK-19)
         // =================================================================
 
         [Fact] // TRX-10: Get Transaction List (Filter by Status)
@@ -293,7 +293,7 @@ namespace GreenConnectPlatform.Tests.Controllers
             var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
             ((TransactionModel)okResult.Value).TransactionId.Should().Be(transactionId);
         }
-
+        
         // =================================================================
         // GROUP 6: QR CODE (TRX-12)
         // =================================================================

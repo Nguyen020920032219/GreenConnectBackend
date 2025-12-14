@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Mvc;
 using Moq;
 using System.Security.Claims;
 using GreenConnectPlatform.Business.Models.ScrapPosts;
-using GreenConnectPlatform.Business.Models.VerificationInfos;
 
 namespace GreenConnectPlatform.Tests.Controllers
 {

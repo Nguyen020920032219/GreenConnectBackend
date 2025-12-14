@@ -106,7 +106,11 @@ public class ProfileService : IProfileService
             await _profileRepository.AddAsync(profile);
         }
 
-        if (!string.IsNullOrEmpty(request.Address)) profile.Address = request.Address;
+        if (!string.IsNullOrEmpty(request.Address))
+        {
+            profile.Address = request.Address;
+            
+        }
         if (request.Gender.HasValue) profile.Gender = request.Gender;
 
         if (request.DateOfBirth.HasValue) profile.DateOfBirth = request.DateOfBirth.Value;

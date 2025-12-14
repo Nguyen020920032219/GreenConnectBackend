@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
 
 namespace GreenConnectPlatform.Business.Hubs;
-
+[Authorize]
 public class ChatHub : Hub
 {
     public async Task JoinChatRoom(string transactionId)

@@ -1,6 +1,5 @@
 using FluentAssertions;
 using GreenConnectPlatform.Api.Controllers;
-using GreenConnectPlatform.Business.Models.Exceptions;
 using GreenConnectPlatform.Business.Models.Paging;
 using GreenConnectPlatform.Business.Models.Users;
 using GreenConnectPlatform.Business.Services.PointHistories;
@@ -8,11 +7,7 @@ using GreenConnectPlatform.Business.Services.Users;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-using System;
-using System.Collections.Generic;
 using System.Security.Claims;
-using System.Threading.Tasks;
-using Xunit;
 
 namespace GreenConnectPlatform.Tests.Controllers
 {

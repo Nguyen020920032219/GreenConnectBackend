@@ -48,7 +48,7 @@ namespace GreenConnectPlatform.Tests.Controllers
         // 1. CREATE POST (PST-03, PST-04, PST-05)
         // ==========================================
 
-        [Fact] // PST-03: Create Scrap Post successfully
+        [Fact] // PST-03: Tạo bài đăng thành công
         public async Task PST03_Create_ReturnsCreated_WhenDataIsValid()
         {
             // Arrange
@@ -80,7 +80,7 @@ namespace GreenConnectPlatform.Tests.Controllers
             data.Title.Should().Be("Old Papers");
         }
 
-        [Fact] // PST-04: Create fail - Validation Error (Mock Service Logic)
+        [Fact] // PST-04: Tạo bài đăng thất bại - Lỗi xác thực (Mock Service Logic)
         public async Task PST04_Create_ThrowsBadRequest_WhenValidationFails()
         {
             // Arrange
@@ -95,7 +95,7 @@ namespace GreenConnectPlatform.Tests.Controllers
                 .Where(e => e.StatusCode == 400 && e.Message.Contains("Title"));
         }
 
-        [Fact] // PST-05: Create fail - Invalid Location
+        [Fact] // PST-05: Tạo bài đăng thất bại - Vị trí không hợp lệ
         public async Task PST05_Create_ThrowsBadRequest_WhenLocationIsInvalid()
         {
             // Arrange
@@ -114,7 +114,7 @@ namespace GreenConnectPlatform.Tests.Controllers
         // 2. SEARCH & GET (PST-06, PST-07, PST-08, PST-09, PST-10)
         // ==========================================
 
-        [Fact] // PST-06: Search Posts (Filtered by Category)
+        [Fact] // PST-06: Tìm kiếm bài đăng với bộ lọc danh mục
         public async Task PST06_Search_ReturnsOk_WhenFilteredByCategory()
         {
             // Arrange
@@ -138,7 +138,7 @@ namespace GreenConnectPlatform.Tests.Controllers
             data.Data.Should().HaveCount(1);
         }
 
-        [Fact] // PST-07: Get My Posts (Household View)
+        [Fact] // PST-07: Xem bài đăng của tôi
         public async Task PST07_GetMyPosts_ReturnsList_WhenCalled()
         {
             // Arrange
@@ -159,7 +159,7 @@ namespace GreenConnectPlatform.Tests.Controllers
             okResult.Value.Should().BeEquivalentTo(myPosts);
         }
 
-        [Fact] // PST-08: Search Posts (Sort by Location/Distance)
+        [Fact] // PST-08: Tìm kiếm bài đăng được sắp xếp theo vị trí
         public async Task PST08_Search_ReturnsOk_WhenSortedByLocation()
         {
             // Arrange
@@ -174,7 +174,7 @@ namespace GreenConnectPlatform.Tests.Controllers
             result.Should().BeOfType<OkObjectResult>();
         }
 
-        [Fact] // PST-09, PST-10: Get Detail (GetById)
+        [Fact] // PST-09 Tìm kiếm chi tiết bài đăng
         public async Task PST09_GetById_ReturnsOk_WhenPostExists()
         {
             // Arrange
@@ -192,6 +192,20 @@ namespace GreenConnectPlatform.Tests.Controllers
             ((ScrapPostModel)okResult.Value).ScrapPostId.Should().Be(postId);
         }
 
+        [Fact] // PST-10 Tìm kiếm chi tiết bài đăng không tồn tại
+        public async Task PST10_GetById_ReturnsNotFound_WhenPostDoesNotExists()
+        {
+            // Arrange
+            var postNotFoundId = Guid.NewGuid();
+
+            _mockScrapPostService.Setup(s => s.GetByIdAsync(postNotFoundId))
+                .ThrowsAsync(new ApiExceptionModel(404, "NOT_FOUND", "Scrap post not found"));
+
+            await _controller.Invoking(c => c.GetById(postNotFoundId))
+                .Should().ThrowAsync<ApiExceptionModel>()
+                .Where(e => e.StatusCode == 404);
+        }
+        
         // ==========================================
         // 3. UPDATE & DELETE (PST-11, PST-12, PST-13, PST-14)
         // ==========================================
@@ -215,7 +229,7 @@ namespace GreenConnectPlatform.Tests.Controllers
             ((ScrapPostModel)okResult.Value).Title.Should().Be("Updated Title");
         }
 
-        [Fact] // PST-12: Update Post Fail - Locked Status
+        [Fact] // PST-12: Update Post-Failed - Locked Status
         public async Task PST12_Update_ThrowsException_WhenPostIsLocked()
         {
             // Arrange

@@ -12,6 +12,8 @@ using GreenConnectPlatform.Data.Repositories.Profiles;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using NetTopologySuite;
+using NetTopologySuite.Geometries;
 
 namespace GreenConnectPlatform.Business.Services.Profile;
 
@@ -24,6 +26,7 @@ public class ProfileService : IProfileService
     private readonly IProfileRepository _profileRepository;
     private readonly UserManager<User> _userManager;
     private readonly IVerificationInfoRepository _verificationInfoRepository;
+    private readonly GeometryFactory _geometryFactory;
 
     public ProfileService(
         UserManager<User> userManager,
@@ -41,6 +44,7 @@ public class ProfileService : IProfileService
         _ekycService = ekycService;
         _notificationService = notificationService;
         _bankService = bankService;
+        _geometryFactory = NtsGeometryServices.Instance.CreateGeometryFactory(4326);
     }
 
     public async Task<ProfileModel> GetMyProfileAsync(Guid userId)
@@ -106,7 +110,15 @@ public class ProfileService : IProfileService
             await _profileRepository.AddAsync(profile);
         }
 
-        if (!string.IsNullOrEmpty(request.Address)) profile.Address = request.Address;
+        if (!string.IsNullOrEmpty(request.Address))
+        {
+            profile.Address = request.Address;
+        }
+        if (request.Location != null && request.Location.Latitude.HasValue && request.Location.Longitude.HasValue)
+        {
+            profile.Location = _geometryFactory.CreatePoint(new Coordinate(
+                request.Location.Longitude.Value, request.Location.Latitude.Value));
+        }
         if (request.Gender.HasValue) profile.Gender = request.Gender;
 
         if (request.DateOfBirth.HasValue) profile.DateOfBirth = request.DateOfBirth.Value;

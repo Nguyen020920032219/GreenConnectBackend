@@ -200,7 +200,7 @@ namespace GreenConnectPlatform.Tests.Controllers
                 Longitude = 106.660
             };
             // Arrange
-            var request = new UpdateProfileRequest { Address = "123 Street" }; // Các trường khác null
+            var request = new UpdateProfileRequest { Address = "123 Street", Location  = location}; // Các trường khác null
             var updatedProfile = new ProfileModel { UserId = _testUserId, Address = "123 Street" };
 
             _mockProfileService.Setup(s => s.UpdateMyProfileAsync(_testUserId, request))
@@ -213,6 +213,7 @@ namespace GreenConnectPlatform.Tests.Controllers
             var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
             ((ProfileModel)okResult.Value).Address.Should().Be("123 Street");
         }
+        
         
         
         

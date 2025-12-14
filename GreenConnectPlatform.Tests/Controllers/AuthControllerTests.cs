@@ -6,7 +6,8 @@ using GreenConnectPlatform.Business.Models.Users;
 using GreenConnectPlatform.Business.Services.Auth;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-
+using System.Threading.Tasks;
+using Xunit;
 
 namespace GreenConnectPlatform.Tests.Controllers
 {

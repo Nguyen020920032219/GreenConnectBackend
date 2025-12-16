@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Mvc;
 using Moq;
 using System.Security.Claims;
 using GreenConnectPlatform.Business.Models.ScrapPosts;
-using GreenConnectPlatform.Business.Models.VerificationInfos;
 
 namespace GreenConnectPlatform.Tests.Controllers
 {
@@ -155,22 +154,6 @@ namespace GreenConnectPlatform.Tests.Controllers
                 .Should().ThrowAsync<ApiExceptionModel>()
                 .Where(e => e.StatusCode == 400);
         }
-        
-        [Fact] // PF-07: Cập nhật Avatar thất bại - Sai định dạng file
-        public async Task PF07_UpdateAvatar_ThrowsException_WhenInvalidFormat()
-        {
-            // Arrange
-            var request = new UpdateFileRequestModel { FileName = "text.txt" };
-
-            _mockProfileService.Setup(s => s.UpdateAvatarAsync(_testUserId, request))
-                .ThrowsAsync(new ApiExceptionModel(400, "INVALID_FILE", "Invalid file format"));
-
-            // Act & Assert
-            await _controller.Invoking(c => c.UpdateAvatar(request))
-                .Should().ThrowAsync<ApiExceptionModel>()
-                .Where(e => e.StatusCode == 400);
-        }
-        
         
         [Fact] // PF-07: Cập nhật Avatar thất bại - Sai định dạng file
         public async Task PF07_UpdateAvatar_ThrowsException_WhenInvalidFormat()

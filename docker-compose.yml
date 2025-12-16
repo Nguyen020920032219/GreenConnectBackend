@@ -12,7 +12,7 @@ services:
       DatabaseConnection__DefaultConnection__DbHost: host.docker.internal
       
       DatabaseConnection__DefaultConnection__DbUser: postgres
-      DatabaseConnection__DefaultConnection__DbPass: "password"
+      DatabaseConnection__DefaultConnection__DbPass: "19082004"
       DatabaseConnection__DefaultConnection__Database: GreenConnectDb
       DatabaseConnection__DefaultConnection__DbPort: 5432
     restart: unless-stopped

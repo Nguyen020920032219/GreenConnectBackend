@@ -7,10 +7,7 @@ COPY GreenConnectPlatform.Api/GreenConnectPlatform.Api.csproj ./GreenConnectPlat
 COPY GreenConnectPlatform.Business/GreenConnectPlatform.Business.csproj ./GreenConnectPlatform.Business/
 COPY GreenConnectPlatform.Data/GreenConnectPlatform.Data.csproj ./GreenConnectPlatform.Data/
 
-COPY tests/GreenConnectPlatform.Api.IntegrationTests/GreenConnectPlatform.Api.IntegrationTests.csproj ./tests/GreenConnectPlatform.Api.IntegrationTests/
-COPY tests/GreenConnectPlatform.Business.UnitTests/GreenConnectPlatform.Business.UnitTests.csproj ./tests/GreenConnectPlatform.Business.UnitTests/
-COPY tests/GreenConnectPlatform.Data.RepositoryTests/GreenConnectPlatform.Data.RepositoryTests.csproj ./tests/GreenConnectPlatform.Data.RepositoryTests/
-
+COPY GreenConnectPlatform.Tests/GreenConnectPlatform.Tests.csproj ./GreenConnectPlatform.Tests/
 RUN dotnet restore "GreenConnectPlatformBackend.sln"
 
 COPY . .

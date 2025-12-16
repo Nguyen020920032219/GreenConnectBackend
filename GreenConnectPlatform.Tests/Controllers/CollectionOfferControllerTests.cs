@@ -141,7 +141,6 @@ namespace GreenConnectPlatform.Tests.Controllers
             var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
             okResult.StatusCode.Should().Be(200);
         }
-        
         [Fact] // BOK-06: Cancel failed - Already accepted
         public async Task BOK06_ToggleCancel_ThrowsBadRequest_WhenAccepted()
         {

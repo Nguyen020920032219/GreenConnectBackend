@@ -1,61 +1,56 @@
+using System.Security.Claims;
 using FluentAssertions;
 using GreenConnectPlatform.Api.Controllers;
-using GreenConnectPlatform.Business.Models.Exceptions;
 using GreenConnectPlatform.Business.Models.Reports;
 using GreenConnectPlatform.Business.Services.Reports;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-using System;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using Xunit;
 
-namespace GreenConnectPlatform.Tests.Controllers
+namespace GreenConnectPlatform.Tests.Controllers;
+
+public class ReportControllerTests
 {
-    public class ReportControllerTests
+    private readonly Guid _adminId;
+    private readonly ReportController _controller;
+    private readonly Mock<IReportService> _mockService;
+
+    public ReportControllerTests()
     {
-        private readonly Mock<IReportService> _mockService;
-        private readonly ReportController _controller;
-        private readonly Guid _adminId;
+        _mockService = new Mock<IReportService>();
+        _controller = new ReportController(_mockService.Object);
 
-        public ReportControllerTests()
+        _adminId = Guid.NewGuid();
+        var user = new ClaimsPrincipal(new ClaimsIdentity(new[]
         {
-            _mockService = new Mock<IReportService>();
-            _controller = new ReportController(_mockService.Object);
+            new Claim(ClaimTypes.NameIdentifier, _adminId.ToString()),
+            new Claim(ClaimTypes.Role, "Admin")
+        }, "mock"));
 
-            _adminId = Guid.NewGuid();
-            var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
-            {
-                new Claim(ClaimTypes.NameIdentifier, _adminId.ToString()),
-                new Claim(ClaimTypes.Role, "Admin")
-            }, "mock"));
-
-            _controller.ControllerContext = new ControllerContext()
-            {
-                HttpContext = new DefaultHttpContext() { User = user }
-            };
-        }
-
-        // --- ADM-11, ADM-12: Get Admin Report (Dashboard) ---
-        [Fact]
-        public async Task ADM11_GetReport_ReturnsOk_WithStats()
+        _controller.ControllerContext = new ControllerContext
         {
-            // Arrange
-            var start = DateTime.UtcNow.AddDays(-30);
-            var end = DateTime.UtcNow;
-            var reportData = new ReportModel(); // Giả lập dữ liệu
+            HttpContext = new DefaultHttpContext { User = user }
+        };
+    }
 
-            // Lưu ý: Controller có logic xử lý DateTimeKind, nhưng ở đây ta test Service call
-            _mockService.Setup(s => s.GetReport(It.IsAny<DateTime>(), It.IsAny<DateTime>()))
-                .ReturnsAsync(reportData);
+    // --- ADM-11, ADM-12: Get Admin Report (Dashboard) ---
+    [Fact]
+    public async Task ADM11_GetReport_ReturnsOk_WithStats()
+    {
+        // Arrange
+        var start = DateTime.UtcNow.AddDays(-30);
+        var end = DateTime.UtcNow;
+        var reportData = new ReportModel(); // Giả lập dữ liệu
 
-            // Act
-            var result = await _controller.GetReport(start, end);
+        // Lưu ý: Controller có logic xử lý DateTimeKind, nhưng ở đây ta test Service call
+        _mockService.Setup(s => s.GetReport(It.IsAny<DateTime>(), It.IsAny<DateTime>()))
+            .ReturnsAsync(reportData);
 
-            // Assert
-            var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-            okResult.Value.Should().BeOfType<ReportModel>();
-        }
+        // Act
+        var result = await _controller.GetReport(start, end);
+
+        // Assert
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        okResult.Value.Should().BeOfType<ReportModel>();
     }
 }

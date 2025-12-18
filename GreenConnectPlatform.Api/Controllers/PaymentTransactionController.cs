@@ -15,7 +15,7 @@ namespace GreenConnectPlatform.Api.Controllers;
 public class PaymentTransactionController(IPaymentTransactionService paymentTransactionService) : ControllerBase
 {
     /// <summary>
-    ///  (Collector) Xem danh sách giao dịch thanh toán của mình.
+    ///     (Collector) Xem danh sách giao dịch thanh toán của mình.
     /// </summary>
     /// <param name="pageIndex"></param>
     /// <param name="pageSize"></param>
@@ -34,7 +34,9 @@ public class PaymentTransactionController(IPaymentTransactionService paymentTran
         [FromQuery] PaymentStatus? status = null)
     {
         var userId = GetCurrentUserId();
-        var result = await paymentTransactionService.GetPaymentTransactionsByUserAsync(pageIndex, pageSize, userId, sortByCreatedAt, status);
+        var result =
+            await paymentTransactionService.GetPaymentTransactionsByUserAsync(pageIndex, pageSize, userId,
+                sortByCreatedAt, status);
         return Ok(result);
     }
 
@@ -60,9 +62,12 @@ public class PaymentTransactionController(IPaymentTransactionService paymentTran
             end = DateTime.SpecifyKind(end, DateTimeKind.Utc);
         else if (end.Kind == DateTimeKind.Local)
             end = end.ToUniversalTime();
-        var result = await paymentTransactionService.GetPaymentTransactionsAsync(pageIndex, pageSize, sortByCreatedAt, status, start, end);
+        var result =
+            await paymentTransactionService.GetPaymentTransactionsAsync(pageIndex, pageSize, sortByCreatedAt, status,
+                start, end);
         return Ok(result);
     }
+
     private Guid GetCurrentUserId()
     {
         var idStr = User.FindFirstValue(ClaimTypes.NameIdentifier);

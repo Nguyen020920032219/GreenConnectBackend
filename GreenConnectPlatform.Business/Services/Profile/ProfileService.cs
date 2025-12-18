@@ -22,11 +22,11 @@ public class ProfileService : IProfileService
     private readonly IBankService _bankService;
     private readonly IEkycService _ekycService;
     private readonly IFileStorageService _fileStorageService;
+    private readonly GeometryFactory _geometryFactory;
     private readonly INotificationService _notificationService;
     private readonly IProfileRepository _profileRepository;
     private readonly UserManager<User> _userManager;
     private readonly IVerificationInfoRepository _verificationInfoRepository;
-    private readonly GeometryFactory _geometryFactory;
 
     public ProfileService(
         UserManager<User> userManager,
@@ -114,11 +114,10 @@ public class ProfileService : IProfileService
         {
             profile.Address = request.Address;
             if (request.Location != null && request.Location.Latitude.HasValue && request.Location.Longitude.HasValue)
-            {
                 profile.Location = _geometryFactory.CreatePoint(new Coordinate(
                     request.Location.Longitude.Value, request.Location.Latitude.Value));
-            }
         }
+
         if (request.Gender.HasValue) profile.Gender = request.Gender;
 
         if (request.DateOfBirth.HasValue) profile.DateOfBirth = request.DateOfBirth.Value;

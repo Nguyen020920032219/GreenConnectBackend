@@ -11,10 +11,10 @@ public class RecurringScheduleConfiguration : IEntityTypeConfiguration<Recurring
         builder.HasKey(x => x.Id);
 
         builder.Property(x => x.Title).IsRequired().HasMaxLength(200);
-        
+
         // Map TimeOnly sang cột 'time' của Postgres
         builder.Property(x => x.PreferredTime).HasColumnType("time").IsRequired();
-        
+
         builder.Property(x => x.IsActive).HasDefaultValue(true);
 
         // Quan hệ với User

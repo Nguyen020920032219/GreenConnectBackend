@@ -9,10 +9,10 @@ namespace GreenConnectPlatform.Tests.Controllers;
 
 public class ChatHubTests
 {
-    private readonly Mock<IGroupManager> _mockGroups;
-    private readonly Mock<HubCallerContext> _mockContext;
-    private readonly Mock<IHubCallerClients> _mockClients;
     private readonly ChatHub _chatHub;
+    private readonly Mock<IHubCallerClients> _mockClients;
+    private readonly Mock<HubCallerContext> _mockContext;
+    private readonly Mock<IGroupManager> _mockGroups;
 
     public ChatHubTests()
     {

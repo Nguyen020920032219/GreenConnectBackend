@@ -7,200 +7,198 @@ using GreenConnectPlatform.Business.Services.Auth;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 
+namespace GreenConnectPlatform.Tests.Controllers;
 
-namespace GreenConnectPlatform.Tests.Controllers
+public class AuthControllerTests
 {
-    public class AuthControllerTests
+    private readonly AuthController _controller;
+    private readonly Mock<IAuthService> _mockAuthService;
+
+    public AuthControllerTests()
     {
-        private readonly Mock<IAuthService> _mockAuthService;
-        private readonly AuthController _controller;
+        _mockAuthService = new Mock<IAuthService>();
+        _controller = new AuthController(_mockAuthService.Object);
+    }
 
-        public AuthControllerTests()
+    // ==========================================
+    // GROUP 1: LoginOrRegister (5 Cases)
+    // ==========================================
+
+    // AUTH-01: Register New User (Household) successfully -> 201 Created
+    [Fact]
+    public async Task AUTH01_LoginOrRegister_NewUser_ReturnsCreated()
+    {
+        // Arrange
+        var request = new LoginOrRegisterRequest { FirebaseToken = "valid_new_user_token" };
+        var authResponse = new AuthResponse
         {
-            _mockAuthService = new Mock<IAuthService>();
-            _controller = new AuthController(_mockAuthService.Object);
-        }
+            AccessToken = "access_token_new",
+            User = new UserViewModel { FullName = "New User" }
+        };
 
-        // ==========================================
-        // GROUP 1: LoginOrRegister (5 Cases)
-        // ==========================================
+        // Mock service returns (Response, isNewUser: true)
+        _mockAuthService.Setup(s => s.LoginOrRegisterAsync(request))
+            .ReturnsAsync((authResponse, true));
 
-        // AUTH-01: Register New User (Household) successfully -> 201 Created
-        [Fact]
-        public async Task AUTH01_LoginOrRegister_NewUser_ReturnsCreated()
+        // Act
+        var result = await _controller.LoginOrRegister(request);
+
+        // Assert
+        var createdResult = result.Should().BeOfType<CreatedAtActionResult>().Subject;
+        createdResult.StatusCode.Should().Be(201);
+        createdResult.ActionName.Should().Be("GetMyProfile");
+
+        var data = createdResult.Value.Should().BeOfType<AuthResponse>().Subject;
+        data.AccessToken.Should().Be("access_token_new");
+    }
+
+    // AUTH-02: Login Existing User successfully -> 200 OK
+    [Fact]
+    public async Task AUTH02_LoginOrRegister_ExistingUser_ReturnsOk()
+    {
+        // Arrange
+        var request = new LoginOrRegisterRequest { FirebaseToken = "valid_existing_token" };
+        var authResponse = new AuthResponse
         {
-            // Arrange
-            var request = new LoginOrRegisterRequest { FirebaseToken = "valid_new_user_token" };
-            var authResponse = new AuthResponse 
-            { 
-                AccessToken = "access_token_new", 
-                User = new UserViewModel { FullName = "New User" }
-            };
+            AccessToken = "access_token_existing",
+            User = new UserViewModel { FullName = "Existing User" }
+        };
 
-            // Mock service returns (Response, isNewUser: true)
-            _mockAuthService.Setup(s => s.LoginOrRegisterAsync(request))
-                .ReturnsAsync((authResponse, true));
+        // Mock service returns (Response, isNewUser: false)
+        _mockAuthService.Setup(s => s.LoginOrRegisterAsync(request))
+            .ReturnsAsync((authResponse, false));
 
-            // Act
-            var result = await _controller.LoginOrRegister(request);
+        // Act
+        var result = await _controller.LoginOrRegister(request);
 
-            // Assert
-            var createdResult = result.Should().BeOfType<CreatedAtActionResult>().Subject;
-            createdResult.StatusCode.Should().Be(201);
-            createdResult.ActionName.Should().Be("GetMyProfile");
-            
-            var data = createdResult.Value.Should().BeOfType<AuthResponse>().Subject;
-            data.AccessToken.Should().Be("access_token_new");
-        }
+        // Assert
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        okResult.StatusCode.Should().Be(200);
 
-        // AUTH-02: Login Existing User successfully -> 200 OK
-        [Fact]
-        public async Task AUTH02_LoginOrRegister_ExistingUser_ReturnsOk()
-        {
-            // Arrange
-            var request = new LoginOrRegisterRequest { FirebaseToken = "valid_existing_token" };
-            var authResponse = new AuthResponse 
-            { 
-                AccessToken = "access_token_existing",
-                User = new UserViewModel { FullName = "Existing User" }
-            };
+        var data = okResult.Value.Should().BeOfType<AuthResponse>().Subject;
+        data.AccessToken.Should().Be("access_token_existing");
+    }
 
-            // Mock service returns (Response, isNewUser: false)
-            _mockAuthService.Setup(s => s.LoginOrRegisterAsync(request))
-                .ReturnsAsync((authResponse, false));
+    // AUTH-03: Login/Register fail - Invalid Token -> Throws 400 Bad Request
+    [Fact]
+    public async Task AUTH03_LoginOrRegister_InvalidToken_ThrowsBadRequest()
+    {
+        // Arrange
+        var request = new LoginOrRegisterRequest { FirebaseToken = "invalid_token" };
 
-            // Act
-            var result = await _controller.LoginOrRegister(request);
+        // Mock service throws ApiExceptionModel
+        _mockAuthService.Setup(s => s.LoginOrRegisterAsync(request))
+            .ThrowsAsync(new ApiExceptionModel(400, "INVALID_TOKEN", "Token verification failed"));
 
-            // Assert
-            var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-            okResult.StatusCode.Should().Be(200);
-            
-            var data = okResult.Value.Should().BeOfType<AuthResponse>().Subject;
-            data.AccessToken.Should().Be("access_token_existing");
-        }
+        // Act & Assert
+        await _controller.Invoking(c => c.LoginOrRegister(request))
+            .Should().ThrowAsync<ApiExceptionModel>()
+            .Where(e => e.StatusCode == 400 && e.Message == "Token verification failed");
+    }
 
-        // AUTH-03: Login/Register fail - Invalid Token -> Throws 400 Bad Request
-        [Fact]
-        public async Task AUTH03_LoginOrRegister_InvalidToken_ThrowsBadRequest()
-        {
-            // Arrange
-            var request = new LoginOrRegisterRequest { FirebaseToken = "invalid_token" };
+    // AUTH-04: Login/Register fail - Empty Token -> Throws 400 Bad Request
+    [Fact]
+    public async Task AUTH04_LoginOrRegister_EmptyToken_ThrowsBadRequest()
+    {
+        // Arrange
+        var request = new LoginOrRegisterRequest { FirebaseToken = "" };
 
-            // Mock service throws ApiExceptionModel
-            _mockAuthService.Setup(s => s.LoginOrRegisterAsync(request))
-                .ThrowsAsync(new ApiExceptionModel(400, "INVALID_TOKEN", "Token verification failed"));
+        _mockAuthService.Setup(s => s.LoginOrRegisterAsync(request))
+            .ThrowsAsync(new ApiExceptionModel(400, "VALIDATION_ERROR", "Token is required"));
 
-            // Act & Assert
-            await _controller.Invoking(c => c.LoginOrRegister(request))
-                .Should().ThrowAsync<ApiExceptionModel>()
-                .Where(e => e.StatusCode == 400 && e.Message == "Token verification failed");
-        }
+        // Act & Assert
+        await _controller.Invoking(c => c.LoginOrRegister(request))
+            .Should().ThrowAsync<ApiExceptionModel>()
+            .Where(e => e.StatusCode == 400);
+    }
 
-        // AUTH-04: Login/Register fail - Empty Token -> Throws 400 Bad Request
-        [Fact]
-        public async Task AUTH04_LoginOrRegister_EmptyToken_ThrowsBadRequest()
-        {
-            // Arrange
-            var request = new LoginOrRegisterRequest { FirebaseToken = "" };
+    // AUTH-05: Login fail - Banned Account -> Throws 403 Forbidden
+    [Fact]
+    public async Task AUTH05_LoginOrRegister_BannedUser_ThrowsForbidden()
+    {
+        // Arrange
+        var request = new LoginOrRegisterRequest { FirebaseToken = "banned_user_token" };
 
-            _mockAuthService.Setup(s => s.LoginOrRegisterAsync(request))
-                .ThrowsAsync(new ApiExceptionModel(400, "VALIDATION_ERROR", "Token is required"));
+        _mockAuthService.Setup(s => s.LoginOrRegisterAsync(request))
+            .ThrowsAsync(new ApiExceptionModel(403, "ACCOUNT_BANNED", "Account is banned"));
 
-            // Act & Assert
-            await _controller.Invoking(c => c.LoginOrRegister(request))
-                .Should().ThrowAsync<ApiExceptionModel>()
-                .Where(e => e.StatusCode == 400);
-        }
+        // Act & Assert
+        await _controller.Invoking(c => c.LoginOrRegister(request))
+            .Should().ThrowAsync<ApiExceptionModel>()
+            .Where(e => e.StatusCode == 403);
+    }
 
-        // AUTH-05: Login fail - Banned Account -> Throws 403 Forbidden
-        [Fact]
-        public async Task AUTH05_LoginOrRegister_BannedUser_ThrowsForbidden()
-        {
-            // Arrange
-            var request = new LoginOrRegisterRequest { FirebaseToken = "banned_user_token" };
+    // ==========================================
+    // GROUP 2: AdminLogin (4 Cases)
+    // ==========================================
 
-            _mockAuthService.Setup(s => s.LoginOrRegisterAsync(request))
-                .ThrowsAsync(new ApiExceptionModel(403, "ACCOUNT_BANNED", "Account is banned"));
+    // AUTH-06: Admin Login successfully -> 200 OK
+    [Fact]
+    public async Task AUTH06_AdminLogin_Success_ReturnsOk()
+    {
+        // Arrange
+        var request = new AdminLoginRequest { Email = "admin@test.com", Password = "123" };
+        var authResponse = new AuthResponse { AccessToken = "admin_token" };
 
-            // Act & Assert
-            await _controller.Invoking(c => c.LoginOrRegister(request))
-                .Should().ThrowAsync<ApiExceptionModel>()
-                .Where(e => e.StatusCode == 403);
-        }
+        _mockAuthService.Setup(s => s.AdminLoginAsync(request))
+            .ReturnsAsync(authResponse);
 
-        // ==========================================
-        // GROUP 2: AdminLogin (4 Cases)
-        // ==========================================
+        // Act
+        var result = await _controller.AdminLogin(request);
 
-        // AUTH-06: Admin Login successfully -> 200 OK
-        [Fact]
-        public async Task AUTH06_AdminLogin_Success_ReturnsOk()
-        {
-            // Arrange
-            var request = new AdminLoginRequest { Email = "admin@test.com", Password = "123" };
-            var authResponse = new AuthResponse { AccessToken = "admin_token" };
+        // Assert
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        okResult.StatusCode.Should().Be(200);
 
-            _mockAuthService.Setup(s => s.AdminLoginAsync(request))
-                .ReturnsAsync(authResponse);
+        var data = okResult.Value.Should().BeOfType<AuthResponse>().Subject;
+        data.AccessToken.Should().Be("admin_token");
+    }
 
-            // Act
-            var result = await _controller.AdminLogin(request);
+    // AUTH-07: Admin Login fail - Wrong Password -> Throws 401 Unauthorized (or 400)
+    [Fact]
+    public async Task AUTH07_AdminLogin_WrongPassword_ThrowsUnauthorized()
+    {
+        // Arrange
+        var request = new AdminLoginRequest { Email = "admin@test.com", Password = "wrong" };
 
-            // Assert
-            var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-            okResult.StatusCode.Should().Be(200);
-            
-            var data = okResult.Value.Should().BeOfType<AuthResponse>().Subject;
-            data.AccessToken.Should().Be("admin_token");
-        }
+        _mockAuthService.Setup(s => s.AdminLoginAsync(request))
+            .ThrowsAsync(new ApiExceptionModel(401, "AUTH_FAILED", "Invalid credentials"));
 
-        // AUTH-07: Admin Login fail - Wrong Password -> Throws 401 Unauthorized (or 400)
-        [Fact]
-        public async Task AUTH07_AdminLogin_WrongPassword_ThrowsUnauthorized()
-        {
-            // Arrange
-            var request = new AdminLoginRequest { Email = "admin@test.com", Password = "wrong" };
+        // Act & Assert
+        await _controller.Invoking(c => c.AdminLogin(request))
+            .Should().ThrowAsync<ApiExceptionModel>()
+            .Where(e => e.StatusCode == 401);
+    }
 
-            _mockAuthService.Setup(s => s.AdminLoginAsync(request))
-                .ThrowsAsync(new ApiExceptionModel(401, "AUTH_FAILED", "Invalid credentials"));
+    // AUTH-08: Admin Login fail - User Not Found -> Throws 404 Not Found
+    [Fact]
+    public async Task AUTH08_AdminLogin_UserNotFound_ThrowsNotFound()
+    {
+        // Arrange
+        var request = new AdminLoginRequest { Email = "unknown@test.com", Password = "123" };
 
-            // Act & Assert
-            await _controller.Invoking(c => c.AdminLogin(request))
-                .Should().ThrowAsync<ApiExceptionModel>()
-                .Where(e => e.StatusCode == 401);
-        }
+        _mockAuthService.Setup(s => s.AdminLoginAsync(request))
+            .ThrowsAsync(new ApiExceptionModel(404, "NOT_FOUND", "User not found"));
 
-        // AUTH-08: Admin Login fail - User Not Found -> Throws 404 Not Found
-        [Fact]
-        public async Task AUTH08_AdminLogin_UserNotFound_ThrowsNotFound()
-        {
-            // Arrange
-            var request = new AdminLoginRequest { Email = "unknown@test.com", Password = "123" };
+        // Act & Assert
+        await _controller.Invoking(c => c.AdminLogin(request))
+            .Should().ThrowAsync<ApiExceptionModel>()
+            .Where(e => e.StatusCode == 404);
+    }
 
-            _mockAuthService.Setup(s => s.AdminLoginAsync(request))
-                .ThrowsAsync(new ApiExceptionModel(404, "NOT_FOUND", "User not found"));
+    // AUTH-09: Admin Login fail - Missing Credentials -> Throws 400 Bad Request
+    [Fact]
+    public async Task AUTH09_AdminLogin_MissingCredentials_ThrowsBadRequest()
+    {
+        // Arrange
+        var request = new AdminLoginRequest { Email = "", Password = "" };
 
-            // Act & Assert
-            await _controller.Invoking(c => c.AdminLogin(request))
-                .Should().ThrowAsync<ApiExceptionModel>()
-                .Where(e => e.StatusCode == 404);
-        }
+        _mockAuthService.Setup(s => s.AdminLoginAsync(request))
+            .ThrowsAsync(new ApiExceptionModel(400, "VALIDATION_ERROR", "Email and Password are required"));
 
-        // AUTH-09: Admin Login fail - Missing Credentials -> Throws 400 Bad Request
-        [Fact]
-        public async Task AUTH09_AdminLogin_MissingCredentials_ThrowsBadRequest()
-        {
-            // Arrange
-            var request = new AdminLoginRequest { Email = "", Password = "" };
-
-            _mockAuthService.Setup(s => s.AdminLoginAsync(request))
-                .ThrowsAsync(new ApiExceptionModel(400, "VALIDATION_ERROR", "Email and Password are required"));
-
-            // Act & Assert
-            await _controller.Invoking(c => c.AdminLogin(request))
-                .Should().ThrowAsync<ApiExceptionModel>()
-                .Where(e => e.StatusCode == 400);
-        }
+        // Act & Assert
+        await _controller.Invoking(c => c.AdminLogin(request))
+            .Should().ThrowAsync<ApiExceptionModel>()
+            .Where(e => e.StatusCode == 400);
     }
 }

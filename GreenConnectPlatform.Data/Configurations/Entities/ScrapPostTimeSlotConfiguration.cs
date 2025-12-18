@@ -14,7 +14,7 @@ public class ScrapPostTimeSlotConfiguration : IEntityTypeConfiguration<ScrapPost
         builder.Property(x => x.SpecificDate).HasColumnType("date").IsRequired();
         builder.Property(x => x.StartTime).HasColumnType("time").IsRequired();
         builder.Property(x => x.EndTime).HasColumnType("time").IsRequired();
-        
+
         builder.Property(x => x.IsBooked).HasDefaultValue(false);
 
         // Index để tìm lịch nhanh

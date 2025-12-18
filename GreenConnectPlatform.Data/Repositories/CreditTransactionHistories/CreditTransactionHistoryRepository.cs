@@ -12,13 +12,14 @@ public class CreditTransactionHistoryRepository : BaseRepository<GreenConnectDbC
     {
     }
 
-    public async Task<(List<CreditTransactionHistory> Items, int TotalCount)> GetCreditTransactionHistoriesByUserId(int pageIndex, int pageSize, Guid userId, bool sortByCreatedAt,
+    public async Task<(List<CreditTransactionHistory> Items, int TotalCount)> GetCreditTransactionHistoriesByUserId(
+        int pageIndex, int pageSize, Guid userId, bool sortByCreatedAt,
         string? type = null)
     {
         var query = _dbSet
             .Where(cth => cth.UserId == userId)
             .AsNoTracking();
-        if(sortByCreatedAt)
+        if (sortByCreatedAt)
             query = query.OrderByDescending(cth => cth.CreatedAt);
         else
             query = query.OrderBy(cth => cth.CreatedAt);

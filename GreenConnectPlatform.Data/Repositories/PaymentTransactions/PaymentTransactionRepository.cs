@@ -18,7 +18,8 @@ public class PaymentTransactionRepository : BaseRepository<GreenConnectDbContext
         return await _dbSet.FirstOrDefaultAsync(t => t.TransactionRef == transactionRef);
     }
 
-    public async Task<(List<PaymentTransaction> Items, int TotalCount)> GetPaymentTransactionsByUserId(int pageIndex, int pageSize, Guid userId, bool sortByCreatedAt,
+    public async Task<(List<PaymentTransaction> Items, int TotalCount)> GetPaymentTransactionsByUserId(int pageIndex,
+        int pageSize, Guid userId, bool sortByCreatedAt,
         PaymentStatus? status = null)
     {
         var query = _dbSet
@@ -28,7 +29,7 @@ public class PaymentTransactionRepository : BaseRepository<GreenConnectDbContext
             query = query.OrderByDescending(t => t.CreatedAt);
         else
             query = query.OrderBy(t => t.CreatedAt);
-        if(status != null)
+        if (status != null)
             query = query.Where(t => t.Status == status);
         var totalCount = await query.CountAsync();
         var items = await query
@@ -41,7 +42,8 @@ public class PaymentTransactionRepository : BaseRepository<GreenConnectDbContext
         return (items, totalCount);
     }
 
-    public async Task<(List<PaymentTransaction> Items, int TotalCount)> GetAllPaymentTransactions(int pageIndex, int pageSize, bool sortByCreatedAt, PaymentStatus? status, DateTime startDate,
+    public async Task<(List<PaymentTransaction> Items, int TotalCount)> GetAllPaymentTransactions(int pageIndex,
+        int pageSize, bool sortByCreatedAt, PaymentStatus? status, DateTime startDate,
         DateTime endDate)
     {
         var query = _dbSet

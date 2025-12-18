@@ -12,7 +12,7 @@ public class RecurringScheduleDetailConfiguration : IEntityTypeConfiguration<Rec
         builder.HasKey(x => x.Id);
 
         builder.Property(x => x.Unit).HasMaxLength(50);
-        
+
         builder.Property(x => x.Type)
             .HasDefaultValue(ItemTransactionType.Sale)
             .IsRequired();

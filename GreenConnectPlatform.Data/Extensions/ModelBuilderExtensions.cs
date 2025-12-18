@@ -116,8 +116,7 @@ public static class ModelBuilderExtensions
 
         modelBuilder.Entity<ScrapCategory>().HasData(
             new ScrapCategory { Id = categoryGiayId, Name = "Giấy vụn" },
-            new ScrapCategory { Id = categoryNhuaId, Name = "Nhựa" },
-            new ScrapCategory { Id = categoryLonId, Name = "Lon Nhôm" }
+            new ScrapCategory { Id = categoryNhuaId, Name = "Nhựa" }
         );
 
         modelBuilder.Entity<ReferencePrice>().HasData(

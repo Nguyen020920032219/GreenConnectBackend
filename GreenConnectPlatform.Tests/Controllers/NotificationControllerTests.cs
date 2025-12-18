@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using FluentAssertions;
 using GreenConnectPlatform.Api.Controllers;
 using GreenConnectPlatform.Business.Models.Exceptions;
@@ -8,6 +7,8 @@ using GreenConnectPlatform.Business.Services.Notifications;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
+using System.Security.Claims;
+
 
 namespace GreenConnectPlatform.Tests.Controllers;
 

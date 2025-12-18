@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using GreenConnectPlatform.Business.Models.Exceptions;
 using GreenConnectPlatform.Business.Models.Paging;
 using GreenConnectPlatform.Business.Models.ReferencePrices;

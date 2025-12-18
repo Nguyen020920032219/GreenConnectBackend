@@ -48,13 +48,13 @@ namespace GreenConnectPlatform.Data.Migrations
                         new
                         {
                             UserId = new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"),
-                            ChatRoomId = new Guid("f46cfc4f-e950-4a62-a5b7-ace86d35b738"),
+                            ChatRoomId = new Guid("071c802b-cc1f-4919-b661-47ce8817bf11"),
                             JoinedAt = new DateTime(2025, 10, 9, 10, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
                             UserId = new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"),
-                            ChatRoomId = new Guid("f46cfc4f-e950-4a62-a5b7-ace86d35b738"),
+                            ChatRoomId = new Guid("071c802b-cc1f-4919-b661-47ce8817bf11"),
                             JoinedAt = new DateTime(2025, 10, 9, 10, 0, 0, 0, DateTimeKind.Utc)
                         });
                 });
@@ -80,7 +80,7 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.HasData(
                         new
                         {
-                            ChatRoomId = new Guid("f46cfc4f-e950-4a62-a5b7-ace86d35b738"),
+                            ChatRoomId = new Guid("071c802b-cc1f-4919-b661-47ce8817bf11"),
                             CreatedAt = new DateTime(2025, 10, 9, 10, 0, 0, 0, DateTimeKind.Utc),
                             TransactionId = new Guid("70000001-0000-0000-0000-000000000001")
                         });
@@ -248,7 +248,7 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.HasData(
                         new
                         {
-                            ComplaintId = new Guid("2d81459c-de4f-4923-96f0-5b1388dc1b6d"),
+                            ComplaintId = new Guid("f8315c8f-4d93-49ef-b892-db65621fa5de"),
                             AccusedId = new Guid("b2c3d4e5-f6a1-8899-0011-bbccddeeff00"),
                             ComplainantId = new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"),
                             CreatedAt = new DateTime(2025, 10, 5, 10, 0, 0, 0, DateTimeKind.Utc),
@@ -332,7 +332,7 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.HasData(
                         new
                         {
-                            FeedbackId = new Guid("b0ded13b-d244-4432-bc6f-02a39964e397"),
+                            FeedbackId = new Guid("290c172e-e5fe-41fd-afaa-d6253f20f8c0"),
                             Comment = "Nhanh gọn lẹ.",
                             CreatedAt = new DateTime(2025, 10, 10, 13, 0, 0, 0, DateTimeKind.Utc),
                             Rate = 5,
@@ -377,8 +377,8 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.HasData(
                         new
                         {
-                            MessageId = new Guid("f4a22bcb-359e-4540-a49b-b2972e4c15fc"),
-                            ChatRoomId = new Guid("f46cfc4f-e950-4a62-a5b7-ace86d35b738"),
+                            MessageId = new Guid("e603e1e5-9185-4a2c-bbf1-0ff9f51b5bf1"),
+                            ChatRoomId = new Guid("071c802b-cc1f-4919-b661-47ce8817bf11"),
                             Content = "Chào chị, em tới rồi.",
                             IsRead = true,
                             SenderId = new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"),
@@ -386,8 +386,8 @@ namespace GreenConnectPlatform.Data.Migrations
                         },
                         new
                         {
-                            MessageId = new Guid("26d89cd4-a0c0-47fe-b7b6-a7060544a456"),
-                            ChatRoomId = new Guid("f46cfc4f-e950-4a62-a5b7-ace86d35b738"),
+                            MessageId = new Guid("22c42174-d894-4438-bb58-312802f5c2f6"),
+                            ChatRoomId = new Guid("071c802b-cc1f-4919-b661-47ce8817bf11"),
                             Content = "Ok em.",
                             IsRead = true,
                             SenderId = new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"),
@@ -432,7 +432,7 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.HasData(
                         new
                         {
-                            NotificationId = new Guid("c2213c00-475c-4819-a090-cdc0b55a5875"),
+                            NotificationId = new Guid("8cafcf2a-6a7b-4b8d-bafa-00a0b48fec6f"),
                             Content = "Vựa ABC đã hoàn thành đơn hàng.",
                             CreatedAt = new DateTime(2025, 10, 10, 13, 0, 0, 0, DateTimeKind.Utc),
                             EntityId = new Guid("70000001-0000-0000-0000-000000000001"),
@@ -478,7 +478,7 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.HasData(
                         new
                         {
-                            OfferDetailId = new Guid("27182d4e-1ca0-49f5-9482-f767966b3ba9"),
+                            OfferDetailId = new Guid("2b9e6d15-b854-4913-ba85-e1a450ae747f"),
                             CollectionOfferId = new Guid("f0000001-0000-0000-0000-000000000001"),
                             PricePerUnit = 3000m,
                             ScrapCategoryId = new Guid("11111111-1111-1111-1111-111111111111"),
@@ -487,7 +487,7 @@ namespace GreenConnectPlatform.Data.Migrations
                         },
                         new
                         {
-                            OfferDetailId = new Guid("b8ba387a-b2c3-4e31-a26c-766e8ce6a22a"),
+                            OfferDetailId = new Guid("a5623305-1383-4e66-812d-4faac7f1010a"),
                             CollectionOfferId = new Guid("f0000001-0000-0000-0000-000000000001"),
                             PricePerUnit = 5000m,
                             ScrapCategoryId = new Guid("22222222-2222-2222-2222-222222222222"),
@@ -608,7 +608,7 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.HasData(
                         new
                         {
-                            PaymentId = new Guid("bd2c4e8f-0bef-4c60-8647-7388f0d8aee6"),
+                            PaymentId = new Guid("ce9ecacb-3024-4ada-811e-9144805fcbf1"),
                             Amount = 200000m,
                             BankCode = "NCB",
                             CreatedAt = new DateTime(2025, 10, 5, 10, 0, 0, 0, DateTimeKind.Utc),
@@ -652,7 +652,7 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.HasData(
                         new
                         {
-                            PointHistoryId = new Guid("7e5629ae-37f6-40fb-aca1-9cd8a5606212"),
+                            PointHistoryId = new Guid("e66d2554-2dc4-4865-ba3b-6346fb8f6929"),
                             CreatedAt = new DateTime(2025, 10, 10, 13, 0, 0, 0, DateTimeKind.Utc),
                             PointChange = 10,
                             Reason = "Hoàn thành đơn",
@@ -660,7 +660,7 @@ namespace GreenConnectPlatform.Data.Migrations
                         },
                         new
                         {
-                            PointHistoryId = new Guid("1099913a-3bf6-4702-b9a1-b42fcc4f8863"),
+                            PointHistoryId = new Guid("4e652fdb-e2d2-4c09-ab65-5e395acd36f8"),
                             CreatedAt = new DateTime(2025, 10, 5, 10, 0, 0, 0, DateTimeKind.Utc),
                             PointChange = -20,
                             Reason = "Khiếu nại",
@@ -733,7 +733,7 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.HasData(
                         new
                         {
-                            ProfileId = new Guid("b8ca0afb-58b8-434e-b3aa-3d48728fb586"),
+                            ProfileId = new Guid("04bf3108-9f3e-4a88-9080-5f24c5e91fa1"),
                             Address = "Headquarter",
                             CreditBalance = 0,
                             PointBalance = 9999,
@@ -742,7 +742,7 @@ namespace GreenConnectPlatform.Data.Migrations
                         },
                         new
                         {
-                            ProfileId = new Guid("8931ab5c-dab3-4143-9795-33ed73548bfe"),
+                            ProfileId = new Guid("49a4bc8d-8d4a-40cf-84bd-f95e69a73afe"),
                             Address = "123 CMT8, Q3, HCM",
                             BankAccountName = "NGUYEN THI TU",
                             BankAccountNumber = "0922222222",
@@ -756,7 +756,7 @@ namespace GreenConnectPlatform.Data.Migrations
                         },
                         new
                         {
-                            ProfileId = new Guid("1588a46d-e038-4731-a870-681faba79dca"),
+                            ProfileId = new Guid("018a9a4a-8a9a-45c9-b90a-d6a4091ec6d9"),
                             Address = "Hẻm 456 Lê Văn Sỹ, Q3, HCM",
                             CreditBalance = 0,
                             Gender = "Male",
@@ -767,7 +767,7 @@ namespace GreenConnectPlatform.Data.Migrations
                         },
                         new
                         {
-                            ProfileId = new Guid("67c26633-7c6d-48c9-bfcd-59c559042ce8"),
+                            ProfileId = new Guid("1e455517-ea52-4658-8c4b-8d4527aa8c11"),
                             Address = "Kho Quận 7, HCM",
                             BankAccountName = "CTY ABC",
                             BankAccountNumber = "0988888888",
@@ -931,7 +931,7 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.HasData(
                         new
                         {
-                            ReferencePriceId = new Guid("a17a5fe0-cce0-4fff-a5b1-5729606bceef"),
+                            ReferencePriceId = new Guid("5ffb7bb8-8246-465e-959c-e5cc6860469b"),
                             LastUpdated = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc),
                             PricePerKg = 3000m,
                             ScrapCategoryId = new Guid("11111111-1111-1111-1111-111111111111"),
@@ -939,7 +939,7 @@ namespace GreenConnectPlatform.Data.Migrations
                         },
                         new
                         {
-                            ReferencePriceId = new Guid("d9625346-0dc9-45e1-b86e-2465fe1fd460"),
+                            ReferencePriceId = new Guid("f435b299-35bd-4778-8e4a-519749905d98"),
                             LastUpdated = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc),
                             PricePerKg = 5000m,
                             ScrapCategoryId = new Guid("22222222-2222-2222-2222-222222222222"),
@@ -947,7 +947,7 @@ namespace GreenConnectPlatform.Data.Migrations
                         },
                         new
                         {
-                            ReferencePriceId = new Guid("db5333ec-1c0f-4131-9d4b-b98bd71bba02"),
+                            ReferencePriceId = new Guid("087ce033-5432-4f87-bf3e-24a52c76287b"),
                             LastUpdated = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc),
                             PricePerKg = 1000m,
                             ScrapCategoryId = new Guid("33333333-3333-3333-3333-333333333333"),
@@ -1067,7 +1067,7 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.HasData(
                         new
                         {
-                            ScheduleProposalId = new Guid("f00d2454-e965-48c7-9eed-252717f64606"),
+                            ScheduleProposalId = new Guid("4747a0d3-a5a2-4d32-91a1-0ccdb1ceec9a"),
                             CollectionOfferId = new Guid("f0000001-0000-0000-0000-000000000001"),
                             CreatedAt = new DateTime(2025, 10, 9, 10, 0, 0, 0, DateTimeKind.Utc),
                             ProposedTime = new DateTime(2025, 10, 10, 12, 0, 0, 0, DateTimeKind.Utc),
@@ -1106,6 +1106,11 @@ namespace GreenConnectPlatform.Data.Migrations
                         {
                             Id = new Guid("22222222-2222-2222-2222-222222222222"),
                             Name = "Nhựa"
+                        },
+                        new
+                        {
+                            Id = new Guid("33333333-3333-3333-3333-333333333333"),
+                            Name = "Lon Nhôm"
                         });
                 });
 
@@ -1341,7 +1346,7 @@ namespace GreenConnectPlatform.Data.Migrations
                             TransactionId = new Guid("70000001-0000-0000-0000-000000000001"),
                             CheckInLocation = (NetTopologySuite.Geometries.Point)new NetTopologySuite.IO.WKTReader().Read("SRID=4326;POINT (106.69 10.777)"),
                             CheckInTime = new DateTime(2025, 10, 10, 12, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedAt = new DateTime(2025, 12, 18, 10, 7, 6, 588, DateTimeKind.Utc).AddTicks(4854),
+                            CreatedAt = new DateTime(2025, 12, 18, 15, 30, 4, 257, DateTimeKind.Utc).AddTicks(9296),
                             HouseholdId = new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"),
                             OfferId = new Guid("f0000001-0000-0000-0000-000000000001"),
                             PaymentMethod = "Cash",
@@ -1514,7 +1519,7 @@ namespace GreenConnectPlatform.Data.Migrations
                         {
                             Id = new Guid("a1b2c3d4-e5f6-7788-9900-aabbccddeeff"),
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "86d73b85-3891-4ca6-9e35-abbc678d3e74",
+                            ConcurrencyStamp = "2c0a7b9b-544a-4803-9600-7a66bf5f7ab1",
                             CreatedAt = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc),
                             Email = "admin@gc.com",
                             EmailConfirmed = true,
@@ -1525,7 +1530,7 @@ namespace GreenConnectPlatform.Data.Migrations
                             PasswordHash = "AQAAAAIAAYagAAAAELSd8S1/ERD0+I4lEAStNTTw/VOGuVVH8vE3SL92wYldv4i4XV78koh+GJ3GpdR05A==",
                             PhoneNumber = "0900000000",
                             PhoneNumberConfirmed = true,
-                            SecurityStamp = "2129e108-fc0b-4bd7-829a-218552913ff3",
+                            SecurityStamp = "d461522e-a71b-47e7-9da0-90481c3c4009",
                             Status = "Active",
                             TwoFactorEnabled = false,
                             UserName = "0900000000"
@@ -1534,7 +1539,7 @@ namespace GreenConnectPlatform.Data.Migrations
                         {
                             Id = new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"),
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "c183da79-9e79-48c8-b13f-9cce47006f62",
+                            ConcurrencyStamp = "8c1cc2b6-7949-47c9-8d45-bb1c098b2017",
                             CreatedAt = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc),
                             Email = "chitu@gc.com",
                             EmailConfirmed = true,
@@ -1545,7 +1550,7 @@ namespace GreenConnectPlatform.Data.Migrations
                             PasswordHash = "AQAAAAIAAYagAAAAELSd8S1/ERD0+I4lEAStNTTw/VOGuVVH8vE3SL92wYldv4i4XV78koh+GJ3GpdR05A==",
                             PhoneNumber = "0922222222",
                             PhoneNumberConfirmed = true,
-                            SecurityStamp = "29afac11-a7b6-484f-a23c-142ae07d180d",
+                            SecurityStamp = "3fd68c43-a862-4064-a4be-447c19a94c6a",
                             Status = "Active",
                             TwoFactorEnabled = false,
                             UserName = "0922222222"
@@ -1555,7 +1560,7 @@ namespace GreenConnectPlatform.Data.Migrations
                             Id = new Guid("b2c3d4e5-f6a1-8899-0011-bbccddeeff00"),
                             AccessFailedCount = 0,
                             BuyerType = "Individual",
-                            ConcurrencyStamp = "622266f8-b7bd-4076-beb2-efe377b5ac67",
+                            ConcurrencyStamp = "08a2b067-1144-4c77-8765-80ac9d6fb7bb",
                             CreatedAt = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc),
                             Email = "anhba@gc.com",
                             EmailConfirmed = true,
@@ -1566,7 +1571,7 @@ namespace GreenConnectPlatform.Data.Migrations
                             PasswordHash = "AQAAAAIAAYagAAAAELSd8S1/ERD0+I4lEAStNTTw/VOGuVVH8vE3SL92wYldv4i4XV78koh+GJ3GpdR05A==",
                             PhoneNumber = "0933333333",
                             PhoneNumberConfirmed = true,
-                            SecurityStamp = "2caa764a-dabd-44cb-bf11-164965ffe542",
+                            SecurityStamp = "2ecaa9da-b0f0-4f08-814f-7905668b5754",
                             Status = "Active",
                             TwoFactorEnabled = false,
                             UserName = "0933333333"
@@ -1576,7 +1581,7 @@ namespace GreenConnectPlatform.Data.Migrations
                             Id = new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"),
                             AccessFailedCount = 0,
                             BuyerType = "Business",
-                            ConcurrencyStamp = "726210bf-75a5-4436-afd7-d7b55c566280",
+                            ConcurrencyStamp = "08cadce4-32b9-46fb-af1a-3e0519d2a267",
                             CreatedAt = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc),
                             Email = "vuaabc@gc.com",
                             EmailConfirmed = true,
@@ -1587,7 +1592,7 @@ namespace GreenConnectPlatform.Data.Migrations
                             PasswordHash = "AQAAAAIAAYagAAAAELSd8S1/ERD0+I4lEAStNTTw/VOGuVVH8vE3SL92wYldv4i4XV78koh+GJ3GpdR05A==",
                             PhoneNumber = "0988888888",
                             PhoneNumberConfirmed = true,
-                            SecurityStamp = "60c26f6f-82c6-4041-bf20-30a0c2d81c09",
+                            SecurityStamp = "548eb8db-7a57-4a6e-b62e-db712f11e5e6",
                             Status = "Active",
                             TwoFactorEnabled = false,
                             UserName = "0988888888"
@@ -1655,7 +1660,7 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.HasData(
                         new
                         {
-                            UserPackageId = new Guid("6c766bee-ddd7-43ed-acf6-5e08f767c9a2"),
+                            UserPackageId = new Guid("b2e8bf31-e78a-48c4-b1a7-d4d6439e5962"),
                             ActivationDate = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc),
                             PackageId = new Guid("a1111111-0000-0000-0000-000000000001"),
                             RemainingConnections = 5,
@@ -1663,7 +1668,7 @@ namespace GreenConnectPlatform.Data.Migrations
                         },
                         new
                         {
-                            UserPackageId = new Guid("55a45ac4-7c17-4086-b38f-91ea0cf74a56"),
+                            UserPackageId = new Guid("bed8cee1-aa1e-4af6-9bdf-56416b2d4187"),
                             ActivationDate = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc),
                             ExpirationDate = new DateTime(2025, 11, 9, 10, 0, 0, 0, DateTimeKind.Utc),
                             PackageId = new Guid("a2222222-0000-0000-0000-000000000001"),

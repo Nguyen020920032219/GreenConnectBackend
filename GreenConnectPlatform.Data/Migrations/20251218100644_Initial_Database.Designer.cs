@@ -3,6 +3,7 @@ using System;
 using GreenConnectPlatform.Data.Configurations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GreenConnectPlatform.Data.Migrations
 {
     [DbContext(typeof(GreenConnectDbContext))]
-    partial class GreenConnectDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251218100644_Initial_Database")]
+    partial class Initial_Database
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -43,20 +46,6 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.HasIndex("ChatRoomId");
 
                     b.ToTable("ChatParticipants");
-
-                    b.HasData(
-                        new
-                        {
-                            UserId = new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"),
-                            ChatRoomId = new Guid("f46cfc4f-e950-4a62-a5b7-ace86d35b738"),
-                            JoinedAt = new DateTime(2025, 10, 9, 10, 0, 0, 0, DateTimeKind.Utc)
-                        },
-                        new
-                        {
-                            UserId = new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"),
-                            ChatRoomId = new Guid("f46cfc4f-e950-4a62-a5b7-ace86d35b738"),
-                            JoinedAt = new DateTime(2025, 10, 9, 10, 0, 0, 0, DateTimeKind.Utc)
-                        });
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.ChatRoom", b =>
@@ -76,14 +65,6 @@ namespace GreenConnectPlatform.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("ChatRooms");
-
-                    b.HasData(
-                        new
-                        {
-                            ChatRoomId = new Guid("f46cfc4f-e950-4a62-a5b7-ace86d35b738"),
-                            CreatedAt = new DateTime(2025, 10, 9, 10, 0, 0, 0, DateTimeKind.Utc),
-                            TransactionId = new Guid("70000001-0000-0000-0000-000000000001")
-                        });
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.CollectionOffer", b =>
@@ -111,16 +92,6 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.HasIndex("ScrapPostId");
 
                     b.ToTable("CollectionOffers");
-
-                    b.HasData(
-                        new
-                        {
-                            CollectionOfferId = new Guid("f0000001-0000-0000-0000-000000000001"),
-                            CreatedAt = new DateTime(2025, 10, 9, 10, 0, 0, 0, DateTimeKind.Utc),
-                            ScrapCollectorId = new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"),
-                            ScrapPostId = new Guid("b0000001-0000-0000-0000-000000000001"),
-                            Status = "Accepted"
-                        });
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.CollectorVerificationInfo", b =>
@@ -177,34 +148,6 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.HasIndex("Status");
 
                     b.ToTable("CollectorVerificationInfos");
-
-                    b.HasData(
-                        new
-                        {
-                            UserId = new Guid("b2c3d4e5-f6a1-8899-0011-bbccddeeff00"),
-                            DateOfBirth = new DateTime(1990, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            FullnameOnId = "NGUYEN VAN BA",
-                            IdentityNumber = "079090000001",
-                            IssuedBy = "Cục Cảnh sát QLHC về TTXH",
-                            IssuedDate = new DateTime(2020, 5, 10, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PlaceOfOrigin = "TP.HCM",
-                            Status = "PendingReview",
-                            SubmittedAt = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc)
-                        },
-                        new
-                        {
-                            UserId = new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"),
-                            FullnameOnId = "CONG TY TNHH VUA VE CHAI ABC",
-                            IdentityNumber = "0312345678",
-                            IssuedBy = "Sở Kế hoạch và Đầu tư TP.HCM",
-                            IssuedDate = new DateTime(2018, 10, 20, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PlaceOfOrigin = "TP.HCM",
-                            ReviewedAt = new DateTime(2025, 10, 1, 10, 0, 0, 0, DateTimeKind.Utc),
-                            ReviewerId = new Guid("a1b2c3d4-e5f6-7788-9900-aabbccddeeff"),
-                            ReviewerNotes = "Giấy phép kinh doanh hợp lệ.",
-                            Status = "Approved",
-                            SubmittedAt = new DateTime(2025, 9, 30, 10, 0, 0, 0, DateTimeKind.Utc)
-                        });
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.Complaint", b =>
@@ -244,18 +187,6 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.HasIndex("TransactionId");
 
                     b.ToTable("Complaints");
-
-                    b.HasData(
-                        new
-                        {
-                            ComplaintId = new Guid("2d81459c-de4f-4923-96f0-5b1388dc1b6d"),
-                            AccusedId = new Guid("b2c3d4e5-f6a1-8899-0011-bbccddeeff00"),
-                            ComplainantId = new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"),
-                            CreatedAt = new DateTime(2025, 10, 5, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Reason = "Hẹn không đến.",
-                            Status = "Submitted",
-                            TransactionId = new Guid("70000002-0000-0000-0000-000000000002")
-                        });
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.CreditTransactionHistory", b =>
@@ -328,18 +259,6 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.HasIndex("TransactionId");
 
                     b.ToTable("Feedbacks");
-
-                    b.HasData(
-                        new
-                        {
-                            FeedbackId = new Guid("b0ded13b-d244-4432-bc6f-02a39964e397"),
-                            Comment = "Nhanh gọn lẹ.",
-                            CreatedAt = new DateTime(2025, 10, 10, 13, 0, 0, 0, DateTimeKind.Utc),
-                            Rate = 5,
-                            RevieweeId = new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"),
-                            ReviewerId = new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"),
-                            TransactionId = new Guid("70000001-0000-0000-0000-000000000001")
-                        });
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.Message", b =>
@@ -373,26 +292,6 @@ namespace GreenConnectPlatform.Data.Migrations
                         .IsDescending(false, true);
 
                     b.ToTable("Messages");
-
-                    b.HasData(
-                        new
-                        {
-                            MessageId = new Guid("f4a22bcb-359e-4540-a49b-b2972e4c15fc"),
-                            ChatRoomId = new Guid("f46cfc4f-e950-4a62-a5b7-ace86d35b738"),
-                            Content = "Chào chị, em tới rồi.",
-                            IsRead = true,
-                            SenderId = new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"),
-                            Timestamp = new DateTime(2025, 10, 10, 12, 0, 0, 0, DateTimeKind.Utc)
-                        },
-                        new
-                        {
-                            MessageId = new Guid("26d89cd4-a0c0-47fe-b7b6-a7060544a456"),
-                            ChatRoomId = new Guid("f46cfc4f-e950-4a62-a5b7-ace86d35b738"),
-                            Content = "Ok em.",
-                            IsRead = true,
-                            SenderId = new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"),
-                            Timestamp = new DateTime(2025, 10, 10, 12, 1, 0, 0, DateTimeKind.Utc)
-                        });
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.Notification", b =>
@@ -428,18 +327,6 @@ namespace GreenConnectPlatform.Data.Migrations
                         .IsDescending(false, true);
 
                     b.ToTable("Notifications");
-
-                    b.HasData(
-                        new
-                        {
-                            NotificationId = new Guid("c2213c00-475c-4819-a090-cdc0b55a5875"),
-                            Content = "Vựa ABC đã hoàn thành đơn hàng.",
-                            CreatedAt = new DateTime(2025, 10, 10, 13, 0, 0, 0, DateTimeKind.Utc),
-                            EntityId = new Guid("70000001-0000-0000-0000-000000000001"),
-                            EntityType = "Transaction",
-                            IsRead = false,
-                            RecipientId = new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011")
-                        });
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.OfferDetail", b =>
@@ -474,26 +361,6 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.HasIndex("ScrapCategoryId");
 
                     b.ToTable("OfferDetail");
-
-                    b.HasData(
-                        new
-                        {
-                            OfferDetailId = new Guid("27182d4e-1ca0-49f5-9482-f767966b3ba9"),
-                            CollectionOfferId = new Guid("f0000001-0000-0000-0000-000000000001"),
-                            PricePerUnit = 3000m,
-                            ScrapCategoryId = new Guid("11111111-1111-1111-1111-111111111111"),
-                            Type = 0,
-                            Unit = "kg"
-                        },
-                        new
-                        {
-                            OfferDetailId = new Guid("b8ba387a-b2c3-4e31-a26c-766e8ce6a22a"),
-                            CollectionOfferId = new Guid("f0000001-0000-0000-0000-000000000001"),
-                            PricePerUnit = 5000m,
-                            ScrapCategoryId = new Guid("22222222-2222-2222-2222-222222222222"),
-                            Type = 0,
-                            Unit = "kg"
-                        });
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.PaymentPackage", b =>
@@ -526,28 +393,6 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.HasKey("PackageId");
 
                     b.ToTable("PaymentPackages");
-
-                    b.HasData(
-                        new
-                        {
-                            PackageId = new Guid("a1111111-0000-0000-0000-000000000001"),
-                            ConnectionAmount = 5,
-                            Description = "5 lượt/tuần",
-                            IsActive = true,
-                            Name = "Gói Free",
-                            PackageType = "Freemium",
-                            Price = 0m
-                        },
-                        new
-                        {
-                            PackageId = new Guid("a2222222-0000-0000-0000-000000000001"),
-                            ConnectionAmount = 500,
-                            Description = "500 lượt/tháng",
-                            IsActive = true,
-                            Name = "Gói Pro",
-                            PackageType = "Paid",
-                            Price = 200000m
-                        });
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.PaymentTransaction", b =>
@@ -604,23 +449,6 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("PaymentTransactions");
-
-                    b.HasData(
-                        new
-                        {
-                            PaymentId = new Guid("bd2c4e8f-0bef-4c60-8647-7388f0d8aee6"),
-                            Amount = 200000m,
-                            BankCode = "NCB",
-                            CreatedAt = new DateTime(2025, 10, 5, 10, 0, 0, 0, DateTimeKind.Utc),
-                            OrderInfo = "Mua Goi Pro",
-                            PackageId = new Guid("a2222222-0000-0000-0000-000000000001"),
-                            PaymentGateway = "VNPay",
-                            ResponseCode = "00",
-                            Status = "Success",
-                            TransactionRef = "ORD001",
-                            UserId = new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"),
-                            VnpTransactionNo = "VNP001"
-                        });
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.PointHistory", b =>
@@ -648,24 +476,6 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("PointHistories");
-
-                    b.HasData(
-                        new
-                        {
-                            PointHistoryId = new Guid("7e5629ae-37f6-40fb-aca1-9cd8a5606212"),
-                            CreatedAt = new DateTime(2025, 10, 10, 13, 0, 0, 0, DateTimeKind.Utc),
-                            PointChange = 10,
-                            Reason = "Hoàn thành đơn",
-                            UserId = new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011")
-                        },
-                        new
-                        {
-                            PointHistoryId = new Guid("1099913a-3bf6-4702-b9a1-b42fcc4f8863"),
-                            CreatedAt = new DateTime(2025, 10, 5, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PointChange = -20,
-                            Reason = "Khiếu nại",
-                            UserId = new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011")
-                        });
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.Profile", b =>
@@ -729,55 +539,6 @@ namespace GreenConnectPlatform.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("Profiles");
-
-                    b.HasData(
-                        new
-                        {
-                            ProfileId = new Guid("b8ca0afb-58b8-434e-b3aa-3d48728fb586"),
-                            Address = "Headquarter",
-                            CreditBalance = 0,
-                            PointBalance = 9999,
-                            RankId = 3,
-                            UserId = new Guid("a1b2c3d4-e5f6-7788-9900-aabbccddeeff")
-                        },
-                        new
-                        {
-                            ProfileId = new Guid("8931ab5c-dab3-4143-9795-33ed73548bfe"),
-                            Address = "123 CMT8, Q3, HCM",
-                            BankAccountName = "NGUYEN THI TU",
-                            BankAccountNumber = "0922222222",
-                            BankCode = "970422",
-                            CreditBalance = 0,
-                            Gender = "Female",
-                            Location = (NetTopologySuite.Geometries.Point)new NetTopologySuite.IO.WKTReader().Read("SRID=4326;POINT (106.69 10.777)"),
-                            PointBalance = 50,
-                            RankId = 1,
-                            UserId = new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011")
-                        },
-                        new
-                        {
-                            ProfileId = new Guid("1588a46d-e038-4731-a870-681faba79dca"),
-                            Address = "Hẻm 456 Lê Văn Sỹ, Q3, HCM",
-                            CreditBalance = 0,
-                            Gender = "Male",
-                            Location = (NetTopologySuite.Geometries.Point)new NetTopologySuite.IO.WKTReader().Read("SRID=4326;POINT (106.68 10.78)"),
-                            PointBalance = 120,
-                            RankId = 1,
-                            UserId = new Guid("b2c3d4e5-f6a1-8899-0011-bbccddeeff00")
-                        },
-                        new
-                        {
-                            ProfileId = new Guid("67c26633-7c6d-48c9-bfcd-59c559042ce8"),
-                            Address = "Kho Quận 7, HCM",
-                            BankAccountName = "CTY ABC",
-                            BankAccountNumber = "0988888888",
-                            BankCode = "970436",
-                            CreditBalance = 0,
-                            Location = (NetTopologySuite.Geometries.Point)new NetTopologySuite.IO.WKTReader().Read("SRID=4326;POINT (106.72 10.75)"),
-                            PointBalance = 5000,
-                            RankId = 2,
-                            UserId = new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef")
-                        });
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.Rank", b =>
@@ -805,29 +566,6 @@ namespace GreenConnectPlatform.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("Ranks");
-
-                    b.HasData(
-                        new
-                        {
-                            RankId = 1,
-                            BadgeImageUrl = "bronze.png",
-                            MinPoints = 0,
-                            Name = "Mới"
-                        },
-                        new
-                        {
-                            RankId = 2,
-                            BadgeImageUrl = "silver.png",
-                            MinPoints = 1000,
-                            Name = "Bạc"
-                        },
-                        new
-                        {
-                            RankId = 3,
-                            BadgeImageUrl = "gold.png",
-                            MinPoints = 5000,
-                            Name = "Vàng"
-                        });
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.RecurringSchedule", b =>
@@ -927,32 +665,6 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.HasIndex("UpdatedByAdminId");
 
                     b.ToTable("ReferencePrices");
-
-                    b.HasData(
-                        new
-                        {
-                            ReferencePriceId = new Guid("a17a5fe0-cce0-4fff-a5b1-5729606bceef"),
-                            LastUpdated = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PricePerKg = 3000m,
-                            ScrapCategoryId = new Guid("11111111-1111-1111-1111-111111111111"),
-                            UpdatedByAdminId = new Guid("a1b2c3d4-e5f6-7788-9900-aabbccddeeff")
-                        },
-                        new
-                        {
-                            ReferencePriceId = new Guid("d9625346-0dc9-45e1-b86e-2465fe1fd460"),
-                            LastUpdated = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PricePerKg = 5000m,
-                            ScrapCategoryId = new Guid("22222222-2222-2222-2222-222222222222"),
-                            UpdatedByAdminId = new Guid("a1b2c3d4-e5f6-7788-9900-aabbccddeeff")
-                        },
-                        new
-                        {
-                            ReferencePriceId = new Guid("db5333ec-1c0f-4131-9d4b-b98bd71bba02"),
-                            LastUpdated = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PricePerKg = 1000m,
-                            ScrapCategoryId = new Guid("33333333-3333-3333-3333-333333333333"),
-                            UpdatedByAdminId = new Guid("a1b2c3d4-e5f6-7788-9900-aabbccddeeff")
-                        });
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.RewardItem", b =>
@@ -988,48 +700,6 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.HasKey("RewardItemId");
 
                     b.ToTable("RewardItems");
-
-                    b.HasData(
-                        new
-                        {
-                            RewardItemId = 1,
-                            Description = "Đổi ngay 1 lượt xem SĐT để liên hệ chủ bài đăng.",
-                            ImageUrl = "https://firebasestorage.googleapis.com/.../icon_credit_1.png",
-                            ItemName = "1 Lượt Kết Nối",
-                            PointsCost = 100,
-                            Type = "Credit",
-                            Value = "1"
-                        },
-                        new
-                        {
-                            RewardItemId = 2,
-                            Description = "Gói tiết kiệm. Phù hợp cho người thu gom thường xuyên.",
-                            ImageUrl = "https://firebasestorage.googleapis.com/.../icon_credit_5.png",
-                            ItemName = "Combo 5 Lượt",
-                            PointsCost = 450,
-                            Type = "Credit",
-                            Value = "5"
-                        },
-                        new
-                        {
-                            RewardItemId = 3,
-                            Description = "Gói sỉ siêu hời. Thoải mái kết nối.",
-                            ImageUrl = "https://firebasestorage.googleapis.com/.../icon_credit_10.png",
-                            ItemName = "Combo 10 Lượt",
-                            PointsCost = 800,
-                            Type = "Credit",
-                            Value = "10"
-                        },
-                        new
-                        {
-                            RewardItemId = 4,
-                            Description = "Mở khóa không giới hạn lượt xem và tính năng Pro trong 24h.",
-                            ImageUrl = "https://firebasestorage.googleapis.com/.../icon_vip_day.png",
-                            ItemName = "Dùng thử VIP 1 Ngày",
-                            PointsCost = 2000,
-                            Type = "Package",
-                            Value = "a2222222-0000-0000-0000-000000000001|1"
-                        });
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.ScheduleProposal", b =>
@@ -1063,18 +733,6 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.HasIndex("ProposerId");
 
                     b.ToTable("ScheduleProposals");
-
-                    b.HasData(
-                        new
-                        {
-                            ScheduleProposalId = new Guid("f00d2454-e965-48c7-9eed-252717f64606"),
-                            CollectionOfferId = new Guid("f0000001-0000-0000-0000-000000000001"),
-                            CreatedAt = new DateTime(2025, 10, 9, 10, 0, 0, 0, DateTimeKind.Utc),
-                            ProposedTime = new DateTime(2025, 10, 10, 12, 0, 0, 0, DateTimeKind.Utc),
-                            ProposerId = new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"),
-                            ResponseMessage = "Ok chốt",
-                            Status = "Accepted"
-                        });
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.ScrapCategory", b =>
@@ -1095,18 +753,6 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ScrapCategories");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("11111111-1111-1111-1111-111111111111"),
-                            Name = "Giấy vụn"
-                        },
-                        new
-                        {
-                            Id = new Guid("22222222-2222-2222-2222-222222222222"),
-                            Name = "Nhựa"
-                        });
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.ScrapPost", b =>
@@ -1161,32 +807,6 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("ScrapPosts");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("b0000001-0000-0000-0000-000000000001"),
-                            Address = "123 CMT8",
-                            CreatedAt = new DateTime(2025, 10, 8, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Lấy hết giúp em.",
-                            HouseholdId = new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"),
-                            Location = (NetTopologySuite.Geometries.Point)new NetTopologySuite.IO.WKTReader().Read("SRID=4326;POINT (106.69 10.777)"),
-                            MustTakeAll = true,
-                            Status = 3,
-                            Title = "Dọn kho Giấy & Nhựa"
-                        },
-                        new
-                        {
-                            Id = new Guid("b0000002-0000-0000-0000-000000000001"),
-                            Address = "123 CMT8",
-                            CreatedAt = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Ai tiện ghé lấy.",
-                            HouseholdId = new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"),
-                            Location = (NetTopologySuite.Geometries.Point)new NetTopologySuite.IO.WKTReader().Read("SRID=4326;POINT (106.69 10.777)"),
-                            MustTakeAll = false,
-                            Status = 0,
-                            Title = "Bán 50 vỏ lon"
-                        });
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.ScrapPostDetail", b =>
@@ -1225,32 +845,6 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.HasIndex("ScrapCategoryId1");
 
                     b.ToTable("ScrapPostDetails");
-
-                    b.HasData(
-                        new
-                        {
-                            ScrapPostId = new Guid("b0000001-0000-0000-0000-000000000001"),
-                            ScrapCategoryId = new Guid("11111111-1111-1111-1111-111111111111"),
-                            AmountDescription = "20kg",
-                            Status = 2,
-                            Type = 0
-                        },
-                        new
-                        {
-                            ScrapPostId = new Guid("b0000001-0000-0000-0000-000000000001"),
-                            ScrapCategoryId = new Guid("22222222-2222-2222-2222-222222222222"),
-                            AmountDescription = "2 bao",
-                            Status = 2,
-                            Type = 0
-                        },
-                        new
-                        {
-                            ScrapPostId = new Guid("b0000002-0000-0000-0000-000000000001"),
-                            ScrapCategoryId = new Guid("33333333-3333-3333-3333-333333333333"),
-                            AmountDescription = "50 lon",
-                            Status = 0,
-                            Type = 0
-                        });
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.ScrapPostTimeSlot", b =>
@@ -1334,32 +928,6 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.HasIndex("ScrapCollectorId");
 
                     b.ToTable("Transactions");
-
-                    b.HasData(
-                        new
-                        {
-                            TransactionId = new Guid("70000001-0000-0000-0000-000000000001"),
-                            CheckInLocation = (NetTopologySuite.Geometries.Point)new NetTopologySuite.IO.WKTReader().Read("SRID=4326;POINT (106.69 10.777)"),
-                            CheckInTime = new DateTime(2025, 10, 10, 12, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedAt = new DateTime(2025, 12, 18, 10, 7, 6, 588, DateTimeKind.Utc).AddTicks(4854),
-                            HouseholdId = new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"),
-                            OfferId = new Guid("f0000001-0000-0000-0000-000000000001"),
-                            PaymentMethod = "Cash",
-                            ScheduledTime = new DateTime(2025, 10, 10, 12, 0, 0, 0, DateTimeKind.Utc),
-                            ScrapCollectorId = new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"),
-                            Status = "Completed",
-                            TotalAmount = 100000m
-                        },
-                        new
-                        {
-                            TransactionId = new Guid("70000002-0000-0000-0000-000000000002"),
-                            CreatedAt = new DateTime(2025, 10, 5, 10, 0, 0, 0, DateTimeKind.Utc),
-                            HouseholdId = new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"),
-                            OfferId = new Guid("f0000001-0000-0000-0000-000000000001"),
-                            ScrapCollectorId = new Guid("b2c3d4e5-f6a1-8899-0011-bbccddeeff00"),
-                            Status = "CanceledByUser",
-                            TotalAmount = 0m
-                        });
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.TransactionDetail", b =>
@@ -1399,28 +967,6 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.HasIndex("ScrapCategoryId1");
 
                     b.ToTable("TransactionDetails");
-
-                    b.HasData(
-                        new
-                        {
-                            TransactionId = new Guid("70000001-0000-0000-0000-000000000001"),
-                            ScrapCategoryId = new Guid("11111111-1111-1111-1111-111111111111"),
-                            FinalPrice = 45000m,
-                            PricePerUnit = 3000m,
-                            Quantity = 15f,
-                            Type = 0,
-                            Unit = "kg"
-                        },
-                        new
-                        {
-                            TransactionId = new Guid("70000001-0000-0000-0000-000000000001"),
-                            ScrapCategoryId = new Guid("22222222-2222-2222-2222-222222222222"),
-                            FinalPrice = 55000m,
-                            PricePerUnit = 5000m,
-                            Quantity = 11f,
-                            Type = 0,
-                            Unit = "kg"
-                        });
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.User", b =>
@@ -1508,90 +1054,6 @@ namespace GreenConnectPlatform.Data.Migrations
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("a1b2c3d4-e5f6-7788-9900-aabbccddeeff"),
-                            AccessFailedCount = 0,
-                            ConcurrencyStamp = "86d73b85-3891-4ca6-9e35-abbc678d3e74",
-                            CreatedAt = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Email = "admin@gc.com",
-                            EmailConfirmed = true,
-                            FullName = "Admin System",
-                            LockoutEnabled = false,
-                            NormalizedEmail = "ADMIN@GC.COM",
-                            NormalizedUserName = "0900000000",
-                            PasswordHash = "AQAAAAIAAYagAAAAELSd8S1/ERD0+I4lEAStNTTw/VOGuVVH8vE3SL92wYldv4i4XV78koh+GJ3GpdR05A==",
-                            PhoneNumber = "0900000000",
-                            PhoneNumberConfirmed = true,
-                            SecurityStamp = "2129e108-fc0b-4bd7-829a-218552913ff3",
-                            Status = "Active",
-                            TwoFactorEnabled = false,
-                            UserName = "0900000000"
-                        },
-                        new
-                        {
-                            Id = new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"),
-                            AccessFailedCount = 0,
-                            ConcurrencyStamp = "c183da79-9e79-48c8-b13f-9cce47006f62",
-                            CreatedAt = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Email = "chitu@gc.com",
-                            EmailConfirmed = true,
-                            FullName = "Chị Tư Nội Trợ",
-                            LockoutEnabled = false,
-                            NormalizedEmail = "CHITU@GC.COM",
-                            NormalizedUserName = "0922222222",
-                            PasswordHash = "AQAAAAIAAYagAAAAELSd8S1/ERD0+I4lEAStNTTw/VOGuVVH8vE3SL92wYldv4i4XV78koh+GJ3GpdR05A==",
-                            PhoneNumber = "0922222222",
-                            PhoneNumberConfirmed = true,
-                            SecurityStamp = "29afac11-a7b6-484f-a23c-142ae07d180d",
-                            Status = "Active",
-                            TwoFactorEnabled = false,
-                            UserName = "0922222222"
-                        },
-                        new
-                        {
-                            Id = new Guid("b2c3d4e5-f6a1-8899-0011-bbccddeeff00"),
-                            AccessFailedCount = 0,
-                            BuyerType = "Individual",
-                            ConcurrencyStamp = "622266f8-b7bd-4076-beb2-efe377b5ac67",
-                            CreatedAt = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Email = "anhba@gc.com",
-                            EmailConfirmed = true,
-                            FullName = "Anh Ba Ve Chai",
-                            LockoutEnabled = false,
-                            NormalizedEmail = "ANHBA@GC.COM",
-                            NormalizedUserName = "0933333333",
-                            PasswordHash = "AQAAAAIAAYagAAAAELSd8S1/ERD0+I4lEAStNTTw/VOGuVVH8vE3SL92wYldv4i4XV78koh+GJ3GpdR05A==",
-                            PhoneNumber = "0933333333",
-                            PhoneNumberConfirmed = true,
-                            SecurityStamp = "2caa764a-dabd-44cb-bf11-164965ffe542",
-                            Status = "Active",
-                            TwoFactorEnabled = false,
-                            UserName = "0933333333"
-                        },
-                        new
-                        {
-                            Id = new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"),
-                            AccessFailedCount = 0,
-                            BuyerType = "Business",
-                            ConcurrencyStamp = "726210bf-75a5-4436-afd7-d7b55c566280",
-                            CreatedAt = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Email = "vuaabc@gc.com",
-                            EmailConfirmed = true,
-                            FullName = "Vựa Tái Chế ABC",
-                            LockoutEnabled = false,
-                            NormalizedEmail = "VUAABC@GC.COM",
-                            NormalizedUserName = "0988888888",
-                            PasswordHash = "AQAAAAIAAYagAAAAELSd8S1/ERD0+I4lEAStNTTw/VOGuVVH8vE3SL92wYldv4i4XV78koh+GJ3GpdR05A==",
-                            PhoneNumber = "0988888888",
-                            PhoneNumberConfirmed = true,
-                            SecurityStamp = "60c26f6f-82c6-4041-bf20-30a0c2d81c09",
-                            Status = "Active",
-                            TwoFactorEnabled = false,
-                            UserName = "0988888888"
-                        });
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.UserDevice", b =>
@@ -1651,25 +1113,6 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("UserPackages");
-
-                    b.HasData(
-                        new
-                        {
-                            UserPackageId = new Guid("6c766bee-ddd7-43ed-acf6-5e08f767c9a2"),
-                            ActivationDate = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PackageId = new Guid("a1111111-0000-0000-0000-000000000001"),
-                            RemainingConnections = 5,
-                            UserId = new Guid("b2c3d4e5-f6a1-8899-0011-bbccddeeff00")
-                        },
-                        new
-                        {
-                            UserPackageId = new Guid("55a45ac4-7c17-4086-b38f-91ea0cf74a56"),
-                            ActivationDate = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc),
-                            ExpirationDate = new DateTime(2025, 11, 9, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PackageId = new Guid("a2222222-0000-0000-0000-000000000001"),
-                            RemainingConnections = 499,
-                            UserId = new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef")
-                        });
                 });
 
             modelBuilder.Entity("GreenConnectPlatform.Data.Entities.UserRewardRedemption", b =>
@@ -1690,14 +1133,6 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.HasIndex("RewardItemId");
 
                     b.ToTable("UserRewardRedemptions");
-
-                    b.HasData(
-                        new
-                        {
-                            UserId = new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"),
-                            RewardItemId = 2,
-                            RedemptionDate = new DateTime(2025, 10, 10, 11, 0, 0, 0, DateTimeKind.Utc)
-                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>
@@ -1725,32 +1160,6 @@ namespace GreenConnectPlatform.Data.Migrations
                         .HasDatabaseName("RoleNameIndex");
 
                     b.ToTable("AspNetRoles", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("8dd3637c-72a3-4a25-99d2-a7d1bce85542"),
-                            Name = "Admin",
-                            NormalizedName = "ADMIN"
-                        },
-                        new
-                        {
-                            Id = new Guid("f9e7c1b5-9c8f-4b1a-8c7d-6e5f4a3b2a1c"),
-                            Name = "Household",
-                            NormalizedName = "HOUSEHOLD"
-                        },
-                        new
-                        {
-                            Id = new Guid("d7d0c75c-9c3f-4e6b-9b7a-8f8d9a6c9e84"),
-                            Name = "IndividualCollector",
-                            NormalizedName = "INDIVIDUALCOLLECTOR"
-                        },
-                        new
-                        {
-                            Id = new Guid("e0a5a415-5a4e-4f6a-8b9a-1b2c3d4e5f6a"),
-                            Name = "BusinessCollector",
-                            NormalizedName = "BUSINESSCOLLECTOR"
-                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -1835,28 +1244,6 @@ namespace GreenConnectPlatform.Data.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("AspNetUserRoles", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            UserId = new Guid("a1b2c3d4-e5f6-7788-9900-aabbccddeeff"),
-                            RoleId = new Guid("8dd3637c-72a3-4a25-99d2-a7d1bce85542")
-                        },
-                        new
-                        {
-                            UserId = new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"),
-                            RoleId = new Guid("f9e7c1b5-9c8f-4b1a-8c7d-6e5f4a3b2a1c")
-                        },
-                        new
-                        {
-                            UserId = new Guid("b2c3d4e5-f6a1-8899-0011-bbccddeeff00"),
-                            RoleId = new Guid("d7d0c75c-9c3f-4e6b-9b7a-8f8d9a6c9e84")
-                        },
-                        new
-                        {
-                            UserId = new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"),
-                            RoleId = new Guid("e0a5a415-5a4e-4f6a-8b9a-1b2c3d4e5f6a")
-                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>

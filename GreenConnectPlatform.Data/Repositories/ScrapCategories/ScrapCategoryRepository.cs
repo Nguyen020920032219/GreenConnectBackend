@@ -33,9 +33,4 @@ public class ScrapCategoryRepository : BaseRepository<GreenConnectDbContext, Scr
 
         return (items, totalCount);
     }
-
-    public async Task<int> GetCategoryIdMax()
-    {
-        return await _dbSet.MaxAsync(c => c.ScrapCategoryId);
-    }
 }

@@ -1,4 +1,5 @@
 using GreenConnectPlatform.Data.Entities;
+using GreenConnectPlatform.Data.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -8,26 +9,53 @@ public class ScrapPostConfiguration : IEntityTypeConfiguration<ScrapPost>
 {
     public void Configure(EntityTypeBuilder<ScrapPost> builder)
     {
-        builder.HasKey(e => e.ScrapPostId);
-        builder.Property(e => e.ScrapPostId).ValueGeneratedNever();
+        // 1. Primary Key
+        builder.HasKey(x => x.Id);
 
-        builder.Property(e => e.Title).HasMaxLength(200).IsRequired();
-        builder.Property(e => e.Address).HasMaxLength(255).IsRequired();
+        // 2. Properties Config
+        builder.Property(x => x.Title)
+            .IsRequired()
+            .HasMaxLength(200); // Giới hạn độ dài tiêu đề
 
-        builder.Property(e => e.Status).HasConversion<string>();
+        builder.Property(x => x.Description)
+            .HasMaxLength(1000); // Giới hạn mô tả
 
-        builder.Property(e => e.Location).HasColumnType("geometry(Point,4326)");
-        builder.HasIndex(e => e.Location).HasMethod("gist");
+        builder.Property(x => x.Address)
+            .IsRequired()
+            .HasMaxLength(500);
 
-        builder.HasIndex(e => new { e.Status, e.HouseholdId });
+        // Enum conversion (Lưu dưới DB là số int cho nhẹ, hoặc string nếu muốn dễ đọc)
+        // Ở đây dùng int mặc định, nhưng nên set Default Value
+        builder.Property(x => x.Status)
+            .HasDefaultValue(PostStatus.Open)
+            .IsRequired();
 
+        builder.Property(x => x.MustTakeAll)
+            .HasDefaultValue(false);
+
+        // Map Point cho PostGIS
+        builder.Property(x => x.Location)
+            .HasColumnType("geometry(Point, 4326)"); // Hệ tọa độ GPS chuẩn
+
+        // 3. Relationships
+        
+        // Post - User (Household)
+        builder.HasOne(p => p.Household)
+            .WithMany() // User không nhất thiết phải list hết Post trong object User
+            .HasForeignKey(p => p.HouseholdId)
+            .OnDelete(DeleteBehavior.Restrict); // Xóa User không xóa Post ngay (để lưu history)
+
+        // Post - TimeSlots (QUAN TRỌNG)
+        // Khi xóa Post -> Xóa luôn các Slot rảnh (Cascade)
         builder.HasMany(p => p.TimeSlots)
             .WithOne(ts => ts.ScrapPost)
-            .HasForeignKey(ts => ts.ScrapPostId);
-
-        builder.HasOne(d => d.Household)
-            .WithMany(p => p.ScrapPosts)
-            .HasForeignKey(d => d.HouseholdId)
+            .HasForeignKey(ts => ts.ScrapPostId)
+            .OnDelete(DeleteBehavior.Cascade);
+            
+        // Post - Details
+        builder.HasMany(p => p.ScrapPostDetails)
+            .WithOne(d => d.ScrapPost)
+            .HasForeignKey(d => d.ScrapPostId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

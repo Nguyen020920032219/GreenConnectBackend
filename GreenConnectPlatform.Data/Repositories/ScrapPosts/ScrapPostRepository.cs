@@ -19,13 +19,13 @@ public class ScrapPostRepository : BaseRepository<GreenConnectDbContext, ScrapPo
             .Include(p => p.Household).ThenInclude(u => u.Profile).ThenInclude(pr => pr!.Rank)
             .Include(p => p.ScrapPostDetails).ThenInclude(d => d.ScrapCategory)
             .AsSplitQuery()
-            .FirstOrDefaultAsync(p => p.ScrapPostId == id);
+            .FirstOrDefaultAsync(p => p.Id == id);
     }
 
 
     public async Task<(List<ScrapPost> Items, int TotalCount)> SearchAsync(
         string roleName,
-        int? categoryId,
+        Guid? categoryId,
         PostStatus? status,
         Point? userLocation,
         bool sortByLocation,
@@ -44,7 +44,7 @@ public class ScrapPostRepository : BaseRepository<GreenConnectDbContext, ScrapPo
 
         if (categoryId != null)
             query = query.Where(p =>
-                p.ScrapPostDetails.Any(d => d.ScrapCategory.ScrapCategoryId == categoryId));
+                p.ScrapPostDetails.Any(d => d.ScrapCategory.Id == categoryId));
 
         var totalCount = await query.CountAsync();
 
@@ -99,7 +99,7 @@ public class ScrapPostRepository : BaseRepository<GreenConnectDbContext, ScrapPo
         return (items, totalCount);
     }
 
-    public async Task<bool> IsCategoryInUseAsync(int categoryId)
+    public async Task<bool> IsCategoryInUseAsync(Guid categoryId)
     {
         return await _dbSet.AnyAsync(p => p.ScrapPostDetails.Any(d => d.ScrapCategoryId == categoryId));
     }

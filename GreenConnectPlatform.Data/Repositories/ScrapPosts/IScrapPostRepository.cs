@@ -11,7 +11,7 @@ public interface IScrapPostRepository : IBaseRepository<ScrapPost, Guid>
 
     Task<(List<ScrapPost> Items, int TotalCount)> SearchAsync(
         string roleName,
-        int? categoryId,
+        Guid? categoryId,
         PostStatus? status,
         Point? userLocation,
         bool sortByLocation,
@@ -27,7 +27,7 @@ public interface IScrapPostRepository : IBaseRepository<ScrapPost, Guid>
         int pageIndex,
         int pageSize);
 
-    Task<bool> IsCategoryInUseAsync(int categoryId);
+    Task<bool> IsCategoryInUseAsync(Guid categoryId);
 
     Task<List<ScrapPost>> GetScrapPostForReport(DateTime startDate, DateTime endDate);
     Task<List<ScrapPost>> GetMyScrapPostsForReport(Guid userId, DateTime startDate, DateTime endDate);

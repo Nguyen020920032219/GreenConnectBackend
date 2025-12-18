@@ -37,6 +37,9 @@ public class GreenConnectDbContext : IdentityDbContext<User, IdentityRole<Guid>,
     public virtual DbSet<PointHistory> PointHistories { get; set; }
     public virtual DbSet<Rank> Ranks { get; set; }
     public virtual DbSet<UserDevice> UserDevices { get; set; }
+    public DbSet<ScrapPostTimeSlot> ScrapPostTimeSlots { get; set; }
+    public DbSet<RecurringSchedule> RecurringSchedules { get; set; }
+    public DbSet<RecurringScheduleDetail> RecurringScheduleDetails { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -48,6 +51,6 @@ public class GreenConnectDbContext : IdentityDbContext<User, IdentityRole<Guid>,
 
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
-        modelBuilder.Seed();
+        // modelBuilder.Seed();
     }
 }

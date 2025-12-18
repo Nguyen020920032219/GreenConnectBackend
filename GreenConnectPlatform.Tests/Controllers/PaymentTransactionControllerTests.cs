@@ -13,8 +13,8 @@ namespace GreenConnectPlatform.Tests.Controllers;
 
 public class PaymentTransactionControllerTests
 {
-    private readonly Mock<IPaymentTransactionService> _mockService;
     private readonly PaymentTransactionController _controller;
+    private readonly Mock<IPaymentTransactionService> _mockService;
     private readonly Guid _testUserId;
 
     public PaymentTransactionControllerTests()
@@ -23,15 +23,15 @@ public class PaymentTransactionControllerTests
         _controller = new PaymentTransactionController(_mockService.Object);
         _testUserId = Guid.NewGuid();
 
-        var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+        var user = new ClaimsPrincipal(new ClaimsIdentity(new[]
         {
             new Claim(ClaimTypes.NameIdentifier, _testUserId.ToString()),
             new Claim(ClaimTypes.Role, "IndividualCollector")
         }, "mock"));
 
-        _controller.ControllerContext = new ControllerContext()
+        _controller.ControllerContext = new ControllerContext
         {
-            HttpContext = new DefaultHttpContext() { User = user }
+            HttpContext = new DefaultHttpContext { User = user }
         };
     }
 
@@ -42,16 +42,16 @@ public class PaymentTransactionControllerTests
     public async Task PAY13_GetMyHistory_ReturnsOk_WithList()
     {
         // Arrange
-        int page = 1;
-        int size = 10;
-        bool sortByDate = true;
+        var page = 1;
+        var size = 10;
+        var sortByDate = true;
 
         // Giả lập dữ liệu trả về
         var pagedResult = new PaginatedResult<PaymentTransactionModel>
         {
             Data = new List<PaymentTransactionModel>
             {
-                new PaymentTransactionModel
+                new()
                 {
                     PaymentId = Guid.NewGuid(),
                     Amount = 100000,
@@ -84,52 +84,52 @@ public class PaymentTransactionControllerTests
 
     [Fact] // PAY-14 Xem lịch sử thanh toán hệ thống (Admin)
     public async Task PAY14_GetPaymentTransactions_ReturnsOk_WithSystemHistory()
+    {
+        // Arrange
+        // Đổi User Context sang Admin
+        var adminUser = new ClaimsPrincipal(new ClaimsIdentity(new[]
         {
-            // Arrange
-            // Đổi User Context sang Admin
-            var adminUser = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+            new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()),
+            new Claim(ClaimTypes.Role, "Admin")
+        }, "mock"));
+        _controller.ControllerContext.HttpContext.User = adminUser;
+
+        // Tham số đầu vào cho Admin
+        var start = DateTime.Now.AddDays(-7);
+        var end = DateTime.Now;
+        var pageIndex = 1;
+        var pageSize = 10;
+        var sortByCreatedAt = true;
+        PaymentStatus? status = null;
+
+        var pagedResult = new PaginatedResult<PaymentTransactionModel>
+        {
+            Data = new List<PaymentTransactionModel>
             {
-                new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.Role, "Admin")
-            }, "mock"));
-            _controller.ControllerContext.HttpContext.User = adminUser;
+                new() { Amount = 500000, Status = PaymentStatus.Success },
+                new() { Amount = 20000, Status = PaymentStatus.Failed }
+            },
+            Pagination = new PaginationModel(2, 1, 10)
+        };
 
-            // Tham số đầu vào cho Admin
-            var start = DateTime.Now.AddDays(-7);
-            var end = DateTime.Now;
-            int pageIndex = 1;
-            int pageSize = 10;
-            bool sortByCreatedAt = true;
-            PaymentStatus? status = null;
+        // Setup Mock: Gọi hàm GetPaymentTransactionsAsync
+        // Lưu ý: Controller có logic xử lý DateTime (ToUniversalTime), nên ở mock ta dùng It.IsAny<DateTime>
+        // để tránh sai lệch milliseconds hoặc múi giờ khi verify.
+        _mockService.Setup(s => s.GetPaymentTransactionsAsync(
+                pageIndex, pageSize, sortByCreatedAt, status, It.IsAny<DateTime>(), It.IsAny<DateTime>()))
+            .ReturnsAsync(pagedResult);
 
-            var pagedResult = new PaginatedResult<PaymentTransactionModel>
-            {
-                Data = new List<PaymentTransactionModel>
-                {
-                    new PaymentTransactionModel { Amount = 500000, Status = PaymentStatus.Success },
-                    new PaymentTransactionModel { Amount = 20000, Status = PaymentStatus.Failed }
-                },
-                Pagination = new PaginationModel(2, 1, 10)
-            };
+        // Act
+        var result = await _controller.GetPaymentTransactions(start, end, pageIndex, pageSize, sortByCreatedAt, status);
 
-            // Setup Mock: Gọi hàm GetPaymentTransactionsAsync
-            // Lưu ý: Controller có logic xử lý DateTime (ToUniversalTime), nên ở mock ta dùng It.IsAny<DateTime>
-            // để tránh sai lệch milliseconds hoặc múi giờ khi verify.
-            _mockService.Setup(s => s.GetPaymentTransactionsAsync(
-                    pageIndex, pageSize, sortByCreatedAt, status, It.IsAny<DateTime>(), It.IsAny<DateTime>()))
-                .ReturnsAsync(pagedResult);
+        // Assert
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        var data = okResult.Value.Should().BeOfType<PaginatedResult<PaymentTransactionModel>>().Subject;
 
-            // Act
-            var result = await _controller.GetPaymentTransactions(start, end, pageIndex, pageSize, sortByCreatedAt, status);
+        data.Data.Should().HaveCount(2);
 
-            // Assert
-            var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-            var data = okResult.Value.Should().BeOfType<PaginatedResult<PaymentTransactionModel>>().Subject;
-
-            data.Data.Should().HaveCount(2);
-            
-            // Verify
-            _mockService.Verify(s => s.GetPaymentTransactionsAsync(
-                pageIndex, pageSize, sortByCreatedAt, status, It.IsAny<DateTime>(), It.IsAny<DateTime>()), Times.Once);
-        }
+        // Verify
+        _mockService.Verify(s => s.GetPaymentTransactionsAsync(
+            pageIndex, pageSize, sortByCreatedAt, status, It.IsAny<DateTime>(), It.IsAny<DateTime>()), Times.Once);
+    }
 }

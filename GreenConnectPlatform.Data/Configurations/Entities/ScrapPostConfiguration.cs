@@ -38,7 +38,7 @@ public class ScrapPostConfiguration : IEntityTypeConfiguration<ScrapPost>
             .HasColumnType("geometry(Point, 4326)"); // Hệ tọa độ GPS chuẩn
 
         // 3. Relationships
-        
+
         // Post - User (Household)
         builder.HasOne(p => p.Household)
             .WithMany() // User không nhất thiết phải list hết Post trong object User
@@ -51,7 +51,7 @@ public class ScrapPostConfiguration : IEntityTypeConfiguration<ScrapPost>
             .WithOne(ts => ts.ScrapPost)
             .HasForeignKey(ts => ts.ScrapPostId)
             .OnDelete(DeleteBehavior.Cascade);
-            
+
         // Post - Details
         builder.HasMany(p => p.ScrapPostDetails)
             .WithOne(d => d.ScrapPost)

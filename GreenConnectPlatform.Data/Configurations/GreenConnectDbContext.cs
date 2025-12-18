@@ -51,6 +51,6 @@ public class GreenConnectDbContext : IdentityDbContext<User, IdentityRole<Guid>,
 
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
-        // modelBuilder.Seed();
+        modelBuilder.Seed();
     }
 }

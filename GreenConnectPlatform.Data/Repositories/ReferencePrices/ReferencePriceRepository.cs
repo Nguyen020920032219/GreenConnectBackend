@@ -35,7 +35,7 @@ public class ReferencePriceRepository : BaseRepository<GreenConnectDbContext, Re
     {
         var query = _dbSet.AsNoTracking();
         if (!string.IsNullOrEmpty(scrapCategoryName))
-            query = query.Where(r => r.ScrapCategory.CategoryName.ToLower().Contains(scrapCategoryName.ToLower()));
+            query = query.Where(r => r.ScrapCategory.Name.ToLower().Contains(scrapCategoryName.ToLower()));
         if (sortByPrice.HasValue)
             query = query.OrderByDescending(r => r.PricePerKg);
         else

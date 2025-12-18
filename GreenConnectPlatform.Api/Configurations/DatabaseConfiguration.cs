@@ -21,7 +21,7 @@ public static class DatabaseConfiguration
 
         AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
         AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
-        
+
         services.AddDbContext<GreenConnectDbContext>(options =>
         {
             options.UseNpgsql(

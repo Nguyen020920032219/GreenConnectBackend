@@ -35,7 +35,7 @@ public class ScrapPostDetailConfiguration : IEntityTypeConfiguration<ScrapPostDe
             .WithMany()
             .HasForeignKey(x => x.ScrapCategoryId)
             .OnDelete(DeleteBehavior.Restrict);
-            
+
         // Quan hệ với ScrapPost đã cấu hình ở file ScrapPostConfiguration
     }
 }

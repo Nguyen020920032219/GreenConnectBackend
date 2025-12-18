@@ -115,23 +115,26 @@ public static class ModelBuilderExtensions
         var categoryLonId = Guid.Parse("33333333-3333-3333-3333-333333333333");
 
         modelBuilder.Entity<ScrapCategory>().HasData(
-            new ScrapCategory { Id = categoryGiayId, Name = "Giấy vụn", Unit = "kg" },
-            new ScrapCategory { Id = categoryNhuaId, Name = "Nhựa", Unit = "kg" }
+            new ScrapCategory { Id = categoryGiayId, Name = "Giấy vụn" },
+            new ScrapCategory { Id = categoryNhuaId, Name = "Nhựa" }
         );
 
         modelBuilder.Entity<ReferencePrice>().HasData(
             new ReferencePrice
             {
-                ReferencePriceId = Guid.NewGuid(), ScrapCategoryId = categoryGiayId, PricePerKg = 3000, UpdatedByAdminId = adminId,
+                ReferencePriceId = Guid.NewGuid(), ScrapCategoryId = categoryGiayId, PricePerKg = 3000,
+                UpdatedByAdminId = adminId,
                 LastUpdated = seedDate
             },
             new ReferencePrice
             {
-                ReferencePriceId = Guid.NewGuid(), ScrapCategoryId = categoryNhuaId, PricePerKg = 5000, UpdatedByAdminId = adminId,
+                ReferencePriceId = Guid.NewGuid(), ScrapCategoryId = categoryNhuaId, PricePerKg = 5000,
+                UpdatedByAdminId = adminId,
                 LastUpdated = seedDate
-            },new ReferencePrice
+            }, new ReferencePrice
             {
-                ReferencePriceId = Guid.NewGuid(), ScrapCategoryId = categoryLonId, PricePerKg = 1000, UpdatedByAdminId = adminId,
+                ReferencePriceId = Guid.NewGuid(), ScrapCategoryId = categoryLonId, PricePerKg = 1000,
+                UpdatedByAdminId = adminId,
                 LastUpdated = seedDate
             }
         );
@@ -242,12 +245,14 @@ public static class ModelBuilderExtensions
         modelBuilder.Entity<OfferDetail>().HasData(
             new OfferDetail
             {
-                OfferDetailId = Guid.NewGuid(), CollectionOfferId = offer1Id, ScrapCategoryId = categoryGiayId, PricePerUnit = 3000,
+                OfferDetailId = Guid.NewGuid(), CollectionOfferId = offer1Id, ScrapCategoryId = categoryGiayId,
+                PricePerUnit = 3000,
                 Unit = "kg"
             },
             new OfferDetail
             {
-                OfferDetailId = Guid.NewGuid(), CollectionOfferId = offer1Id, ScrapCategoryId = categoryNhuaId, PricePerUnit = 5000,
+                OfferDetailId = Guid.NewGuid(), CollectionOfferId = offer1Id, ScrapCategoryId = categoryNhuaId,
+                PricePerUnit = 5000,
                 Unit = "kg"
             }
         );
@@ -268,12 +273,14 @@ public static class ModelBuilderExtensions
         modelBuilder.Entity<TransactionDetail>().HasData(
             new TransactionDetail
             {
-                TransactionId = trans1Id, ScrapCategoryId = categoryGiayId, PricePerUnit = 3000, Unit = "kg", Quantity = 15,
+                TransactionId = trans1Id, ScrapCategoryId = categoryGiayId, PricePerUnit = 3000, Unit = "kg",
+                Quantity = 15,
                 FinalPrice = 45000
             },
             new TransactionDetail
             {
-                TransactionId = trans1Id, ScrapCategoryId = categoryNhuaId, PricePerUnit = 5000, Unit = "kg", Quantity = 11,
+                TransactionId = trans1Id, ScrapCategoryId = categoryNhuaId, PricePerUnit = 5000, Unit = "kg",
+                Quantity = 11,
                 FinalPrice = 55000
             }
         );

@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using FluentAssertions;
 using GreenConnectPlatform.Api.Controllers;
 using GreenConnectPlatform.Business.Models.AI;
@@ -7,91 +8,86 @@ using GreenConnectPlatform.Business.Services.Storage;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-using System;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using Xunit;
 
-namespace GreenConnectPlatform.Tests.Controllers
+namespace GreenConnectPlatform.Tests.Controllers;
+
+public class AIControllerTests
 {
-    public class AIControllerTests
+    private readonly AIController _controller;
+    private readonly Mock<IScrapRecognitionService> _mockAIService;
+    private readonly Mock<IStorageService> _mockStorageService;
+    private readonly Guid _testUserId;
+
+    public AIControllerTests()
     {
-        private readonly Mock<IScrapRecognitionService> _mockAIService;
-        private readonly Mock<IStorageService> _mockStorageService;
-        private readonly AIController _controller;
-        private readonly Guid _testUserId;
+        _mockAIService = new Mock<IScrapRecognitionService>();
+        _mockStorageService = new Mock<IStorageService>();
+        _controller = new AIController(_mockAIService.Object, _mockStorageService.Object);
 
-        public AIControllerTests()
+        _testUserId = Guid.NewGuid();
+        var user = new ClaimsPrincipal(new ClaimsIdentity(new[]
         {
-            _mockAIService = new Mock<IScrapRecognitionService>();
-            _mockStorageService = new Mock<IStorageService>();
-            _controller = new AIController(_mockAIService.Object, _mockStorageService.Object);
+            new Claim(ClaimTypes.NameIdentifier, _testUserId.ToString())
+        }, "mock"));
 
-            _testUserId = Guid.NewGuid();
-            var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
-            {
-                new Claim(ClaimTypes.NameIdentifier, _testUserId.ToString()),
-            }, "mock"));
-
-            _controller.ControllerContext = new ControllerContext()
-            {
-                HttpContext = new DefaultHttpContext() { User = user }
-            };
-        }
-
-        // PST-01: Analyze scrap image successfully
-        [Fact]
-        public async Task PST01_RecognizeScrap_ReturnsResult_WhenImageIsValid()
+        _controller.ControllerContext = new ControllerContext
         {
-            // Arrange
-            var fileMock = new Mock<IFormFile>();
-            var ms = new System.IO.MemoryStream();
-            fileMock.Setup(_ => _.OpenReadStream()).Returns(ms);
-            fileMock.Setup(_ => _.CopyToAsync(It.IsAny<System.IO.Stream>(), It.IsAny<System.Threading.CancellationToken>()))
-                .Returns(Task.CompletedTask);
+            HttpContext = new DefaultHttpContext { User = user }
+        };
+    }
 
-            var aiResponse = new ScrapRecognitionResponse 
-            { 
-                // Populate expected AI response fields
-            };
+    // PST-01: Analyze scrap image successfully
+    [Fact]
+    public async Task PST01_RecognizeScrap_ReturnsResult_WhenImageIsValid()
+    {
+        // Arrange
+        var fileMock = new Mock<IFormFile>();
+        var ms = new MemoryStream();
+        fileMock.Setup(_ => _.OpenReadStream()).Returns(ms);
+        fileMock.Setup(_ => _.CopyToAsync(It.IsAny<Stream>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
 
-            // Mock AI Service
-            _mockAIService.Setup(s => s.RecognizeScrapImageAsync(fileMock.Object))
-                .ReturnsAsync(aiResponse);
-
-            // Mock Storage Service (Direct Upload)
-            _mockStorageService.Setup(s => s.UploadScrapImageDirectAsync(_testUserId, fileMock.Object))
-                .ReturnsAsync("path/to/image.jpg");
-
-            // Mock Storage Service (Get URL)
-            _mockStorageService.Setup(s => s.GetFileReadUrlAsync(_testUserId, "", "path/to/image.jpg"))
-                .ReturnsAsync("https://firebase.url/image.jpg");
-
-            // Act
-            var result = await _controller.RecognizeScrap(fileMock.Object);
-
-            // Assert
-            var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-            var data = okResult.Value.Should().BeOfType<ScrapRecognitionResponse>().Subject;
-            data.SavedImageUrl.Should().Be("https://firebase.url/image.jpg");
-        }
-
-        // PST-02: Analyze scrap image fail (AI Service Error)
-        [Fact]
-        public async Task PST02_RecognizeScrap_ThrowsException_WhenAnalysisFails()
+        var aiResponse = new ScrapRecognitionResponse
         {
-            // Arrange
-            var fileMock = new Mock<IFormFile>();
-            var ms = new System.IO.MemoryStream();
-            fileMock.Setup(_ => _.OpenReadStream()).Returns(ms);
+            // Populate expected AI response fields
+        };
 
-            // Mock AI Service throwing error
-            _mockAIService.Setup(s => s.RecognizeScrapImageAsync(fileMock.Object))
-                .ThrowsAsync(new ApiExceptionModel(400, "AI_ERROR", "Cannot detect scrap"));
+        // Mock AI Service
+        _mockAIService.Setup(s => s.RecognizeScrapImageAsync(fileMock.Object))
+            .ReturnsAsync(aiResponse);
 
-            // Act & Assert
-            await _controller.Invoking(c => c.RecognizeScrap(fileMock.Object))
-                .Should().ThrowAsync<ApiExceptionModel>();
-        }
+        // Mock Storage Service (Direct Upload)
+        _mockStorageService.Setup(s => s.UploadScrapImageDirectAsync(_testUserId, fileMock.Object))
+            .ReturnsAsync("path/to/image.jpg");
+
+        // Mock Storage Service (Get URL)
+        _mockStorageService.Setup(s => s.GetFileReadUrlAsync(_testUserId, "", "path/to/image.jpg"))
+            .ReturnsAsync("https://firebase.url/image.jpg");
+
+        // Act
+        var result = await _controller.RecognizeScrap(fileMock.Object);
+
+        // Assert
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        var data = okResult.Value.Should().BeOfType<ScrapRecognitionResponse>().Subject;
+        data.SavedImageUrl.Should().Be("https://firebase.url/image.jpg");
+    }
+
+    // PST-02: Analyze scrap image fail (AI Service Error)
+    [Fact]
+    public async Task PST02_RecognizeScrap_ThrowsException_WhenAnalysisFails()
+    {
+        // Arrange
+        var fileMock = new Mock<IFormFile>();
+        var ms = new MemoryStream();
+        fileMock.Setup(_ => _.OpenReadStream()).Returns(ms);
+
+        // Mock AI Service throwing error
+        _mockAIService.Setup(s => s.RecognizeScrapImageAsync(fileMock.Object))
+            .ThrowsAsync(new ApiExceptionModel(400, "AI_ERROR", "Cannot detect scrap"));
+
+        // Act & Assert
+        await _controller.Invoking(c => c.RecognizeScrap(fileMock.Object))
+            .Should().ThrowAsync<ApiExceptionModel>();
     }
 }

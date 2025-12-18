@@ -15,7 +15,7 @@ public class OfferDetailConfiguration : IEntityTypeConfiguration<OfferDetail>
         // 2. Properties
         builder.Property(x => x.Unit)
             .HasMaxLength(20);
-            
+
         builder.Property(x => x.PricePerUnit)
             .HasColumnType("decimal(18,2)"); // Định dạng tiền tệ
 

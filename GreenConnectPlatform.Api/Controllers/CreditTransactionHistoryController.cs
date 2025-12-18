@@ -11,10 +11,11 @@ namespace GreenConnectPlatform.Api.Controllers;
 [Route("api/v1/credit-transaction")]
 [Tags("22. Credit Transaction History")]
 [ApiController]
-public class CreditTransactionHistoryController(ICreditTransactionHistoryService creditTransactionHistoryService) : ControllerBase
+public class CreditTransactionHistoryController(ICreditTransactionHistoryService creditTransactionHistoryService)
+    : ControllerBase
 {
     /// <summary>
-    ///   (Collector) Xem danh sách lịch sử giao dịch tín dụng của mình.
+    ///     (Collector) Xem danh sách lịch sử giao dịch tín dụng của mình.
     /// </summary>
     /// <param name="pageIndex"></param>
     /// <param name="pageSize"></param>
@@ -33,10 +34,12 @@ public class CreditTransactionHistoryController(ICreditTransactionHistoryService
         [FromQuery] string? type = null)
     {
         var userId = GetCurrentUserId();
-        var result = await creditTransactionHistoryService.GetCreditTransactionHistoriesByUserIdAsync(pageIndex, pageSize, userId, sortByCreatedAt, type);
+        var result =
+            await creditTransactionHistoryService.GetCreditTransactionHistoriesByUserIdAsync(pageIndex, pageSize,
+                userId, sortByCreatedAt, type);
         return Ok(result);
     }
-    
+
     private Guid GetCurrentUserId()
     {
         var idStr = User.FindFirstValue(ClaimTypes.NameIdentifier);

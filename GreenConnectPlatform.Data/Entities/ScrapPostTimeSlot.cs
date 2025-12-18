@@ -1,5 +1,3 @@
-using System;
-
 namespace GreenConnectPlatform.Data.Entities;
 
 public class ScrapPostTimeSlot

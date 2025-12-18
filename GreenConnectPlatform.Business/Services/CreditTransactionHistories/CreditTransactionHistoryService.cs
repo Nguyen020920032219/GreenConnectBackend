@@ -9,14 +9,16 @@ public class CreditTransactionHistoryService : ICreditTransactionHistoryService
 {
     private readonly ICreditTransactionHistoryRepository _creditTransactionHistoryRepository;
     private readonly IMapper _mapper;
-    
-    public CreditTransactionHistoryService(ICreditTransactionHistoryRepository creditTransactionHistoryRepository, IMapper mapper)
+
+    public CreditTransactionHistoryService(ICreditTransactionHistoryRepository creditTransactionHistoryRepository,
+        IMapper mapper)
     {
         _creditTransactionHistoryRepository = creditTransactionHistoryRepository;
         _mapper = mapper;
     }
-    
-    public async Task<PaginatedResult<CreditTransactionHistoryModel>> GetCreditTransactionHistoriesByUserIdAsync(int pageIndex, int pageSize, Guid userId, bool sortByCreatedAt,
+
+    public async Task<PaginatedResult<CreditTransactionHistoryModel>> GetCreditTransactionHistoriesByUserIdAsync(
+        int pageIndex, int pageSize, Guid userId, bool sortByCreatedAt,
         string? type = null)
     {
         var (items, totalCount) = await _creditTransactionHistoryRepository

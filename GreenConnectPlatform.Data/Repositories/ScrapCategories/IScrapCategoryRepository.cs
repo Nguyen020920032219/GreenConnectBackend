@@ -7,6 +7,4 @@ public interface IScrapCategoryRepository : IBaseRepository<ScrapCategory, int>
 {
     Task<(IList<ScrapCategory> Items, int TotalCount)> SearchAndPaginateAsync(string? keyword, int pageIndex,
         int pageSize);
-
-    Task<int> GetCategoryIdMax();
 }

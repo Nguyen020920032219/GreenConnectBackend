@@ -8,31 +8,25 @@ public class RecurringScheduleConfiguration : IEntityTypeConfiguration<Recurring
 {
     public void Configure(EntityTypeBuilder<RecurringSchedule> builder)
     {
-        builder.ToTable("RecurringSchedules");
-
         builder.HasKey(x => x.Id);
 
-        builder.Property(x => x.DayOfWeek)
-            .IsRequired()
-            .HasConversion<int>();
+        builder.Property(x => x.Title).IsRequired().HasMaxLength(200);
+        
+        // Map TimeOnly sang cột 'time' của Postgres
+        builder.Property(x => x.PreferredTime).HasColumnType("time").IsRequired();
+        
+        builder.Property(x => x.IsActive).HasDefaultValue(true);
 
-        builder.Property(x => x.TimeSlotStart)
-            .HasColumnType("time")
-            .IsRequired();
-
-        builder.Property(x => x.TimeSlotEnd)
-            .HasColumnType("time")
-            .IsRequired();
-
-        builder.Property(x => x.ScrapCategoryIds)
-            .HasMaxLength(100);
-
-        builder.Property(x => x.IsActive)
-            .HasDefaultValue(true);
-
+        // Quan hệ với User
         builder.HasOne(x => x.Household)
             .WithMany()
             .HasForeignKey(x => x.HouseholdId)
+            .OnDelete(DeleteBehavior.Cascade); // Xóa User -> Xóa luôn lịch
+
+        // Quan hệ với Details (Cascade Delete)
+        builder.HasMany(x => x.ScheduleDetails)
+            .WithOne(d => d.RecurringSchedule)
+            .HasForeignKey(d => d.RecurringScheduleId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

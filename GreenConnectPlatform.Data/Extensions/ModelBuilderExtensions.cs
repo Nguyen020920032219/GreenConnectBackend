@@ -110,33 +110,28 @@ public static class ModelBuilderExtensions
             new Rank { RankId = 3, Name = "Vàng", MinPoints = 5000, BadgeImageUrl = "gold.png" }
         );
 
+        var categoryGiayId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+        var categoryNhuaId = Guid.Parse("22222222-2222-2222-2222-222222222222");
+        var categoryLonId = Guid.Parse("33333333-3333-3333-3333-333333333333");
+
         modelBuilder.Entity<ScrapCategory>().HasData(
-            new ScrapCategory { ScrapCategoryId = 1, CategoryName = "Giấy / Carton" },
-            new ScrapCategory { ScrapCategoryId = 2, CategoryName = "Nhựa (Chai/Lọ)" },
-            new ScrapCategory { ScrapCategoryId = 3, CategoryName = "Lon Nhôm" },
-            new ScrapCategory { ScrapCategoryId = 4, CategoryName = "Sắt vụn" },
-            new ScrapCategory { ScrapCategoryId = 5, CategoryName = "Đồ điện tử" }
+            new ScrapCategory { Id = categoryGiayId, Name = "Giấy vụn", Unit = "kg" },
+            new ScrapCategory { Id = categoryNhuaId, Name = "Nhựa", Unit = "kg" }
         );
 
         modelBuilder.Entity<ReferencePrice>().HasData(
             new ReferencePrice
             {
-                ReferencePriceId = Guid.NewGuid(), ScrapCategoryId = 1, PricePerKg = 3000, UpdatedByAdminId = adminId,
+                ReferencePriceId = Guid.NewGuid(), ScrapCategoryId = categoryGiayId, PricePerKg = 3000, UpdatedByAdminId = adminId,
                 LastUpdated = seedDate
             },
             new ReferencePrice
             {
-                ReferencePriceId = Guid.NewGuid(), ScrapCategoryId = 2, PricePerKg = 5000, UpdatedByAdminId = adminId,
+                ReferencePriceId = Guid.NewGuid(), ScrapCategoryId = categoryNhuaId, PricePerKg = 5000, UpdatedByAdminId = adminId,
                 LastUpdated = seedDate
-            },
-            new ReferencePrice
+            },new ReferencePrice
             {
-                ReferencePriceId = Guid.NewGuid(), ScrapCategoryId = 3, PricePerKg = 15000, UpdatedByAdminId = adminId,
-                LastUpdated = seedDate
-            },
-            new ReferencePrice
-            {
-                ReferencePriceId = Guid.NewGuid(), ScrapCategoryId = 4, PricePerKg = 8000, UpdatedByAdminId = adminId,
+                ReferencePriceId = Guid.NewGuid(), ScrapCategoryId = categoryLonId, PricePerKg = 1000, UpdatedByAdminId = adminId,
                 LastUpdated = seedDate
             }
         );
@@ -216,7 +211,7 @@ public static class ModelBuilderExtensions
         modelBuilder.Entity<ScrapPost>().HasData(
             new ScrapPost
             {
-                ScrapPostId = post1Id, HouseholdId = householdId, Title = "Dọn kho Giấy & Nhựa",
+                Id = post1Id, HouseholdId = householdId, Title = "Dọn kho Giấy & Nhựa",
                 Description = "Lấy hết giúp em.", Address = "123 CMT8", Status = PostStatus.Completed,
                 MustTakeAll = true, Location = new Point(106.690, 10.777) { SRID = 4326 },
                 CreatedAt = seedDate.AddDays(-2)
@@ -225,12 +220,12 @@ public static class ModelBuilderExtensions
         modelBuilder.Entity<ScrapPostDetail>().HasData(
             new ScrapPostDetail
             {
-                ScrapPostId = post1Id, ScrapCategoryId = 1, AmountDescription = "20kg",
+                ScrapPostId = post1Id, ScrapCategoryId = categoryGiayId, AmountDescription = "20kg",
                 Status = PostDetailStatus.Collected
             },
             new ScrapPostDetail
             {
-                ScrapPostId = post1Id, ScrapCategoryId = 2, AmountDescription = "2 bao",
+                ScrapPostId = post1Id, ScrapCategoryId = categoryNhuaId, AmountDescription = "2 bao",
                 Status = PostDetailStatus.Collected
             }
         );
@@ -247,12 +242,12 @@ public static class ModelBuilderExtensions
         modelBuilder.Entity<OfferDetail>().HasData(
             new OfferDetail
             {
-                OfferDetailId = Guid.NewGuid(), CollectionOfferId = offer1Id, ScrapCategoryId = 1, PricePerUnit = 3000,
+                OfferDetailId = Guid.NewGuid(), CollectionOfferId = offer1Id, ScrapCategoryId = categoryGiayId, PricePerUnit = 3000,
                 Unit = "kg"
             },
             new OfferDetail
             {
-                OfferDetailId = Guid.NewGuid(), CollectionOfferId = offer1Id, ScrapCategoryId = 2, PricePerUnit = 5000,
+                OfferDetailId = Guid.NewGuid(), CollectionOfferId = offer1Id, ScrapCategoryId = categoryNhuaId, PricePerUnit = 5000,
                 Unit = "kg"
             }
         );
@@ -273,12 +268,12 @@ public static class ModelBuilderExtensions
         modelBuilder.Entity<TransactionDetail>().HasData(
             new TransactionDetail
             {
-                TransactionId = trans1Id, ScrapCategoryId = 1, PricePerUnit = 3000, Unit = "kg", Quantity = 15,
+                TransactionId = trans1Id, ScrapCategoryId = categoryGiayId, PricePerUnit = 3000, Unit = "kg", Quantity = 15,
                 FinalPrice = 45000
             },
             new TransactionDetail
             {
-                TransactionId = trans1Id, ScrapCategoryId = 2, PricePerUnit = 5000, Unit = "kg", Quantity = 11,
+                TransactionId = trans1Id, ScrapCategoryId = categoryNhuaId, PricePerUnit = 5000, Unit = "kg", Quantity = 11,
                 FinalPrice = 55000
             }
         );
@@ -288,7 +283,7 @@ public static class ModelBuilderExtensions
         modelBuilder.Entity<ScrapPost>().HasData(
             new ScrapPost
             {
-                ScrapPostId = post2Id, HouseholdId = householdId, Title = "Bán 50 vỏ lon",
+                Id = post2Id, HouseholdId = householdId, Title = "Bán 50 vỏ lon",
                 Description = "Ai tiện ghé lấy.", Address = "123 CMT8", Status = PostStatus.Open,
                 MustTakeAll = false, Location = new Point(106.690, 10.777) { SRID = 4326 }, CreatedAt = seedDate
             }
@@ -296,7 +291,7 @@ public static class ModelBuilderExtensions
         modelBuilder.Entity<ScrapPostDetail>().HasData(
             new ScrapPostDetail
             {
-                ScrapPostId = post2Id, ScrapCategoryId = 3, AmountDescription = "50 lon",
+                ScrapPostId = post2Id, ScrapCategoryId = categoryLonId, AmountDescription = "50 lon",
                 Status = PostDetailStatus.Available
             }
         );

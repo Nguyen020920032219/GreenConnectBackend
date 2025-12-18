@@ -120,7 +120,7 @@ public class ScrapPostService : IScrapPostService
 
         var postModel = new ScrapPostModel
         {
-            ScrapPostId = post.ScrapPostId,
+            ScrapPostId = post.Id,
             Title = post.Title,
             Description = post.Description,
             Address = post.Address,
@@ -155,7 +155,7 @@ public class ScrapPostService : IScrapPostService
                     $"Loại ve chai ID {catId} không hợp lệ.");
 
         var post = _mapper.Map<ScrapPost>(request);
-        post.ScrapPostId = Guid.NewGuid();
+        post.Id = Guid.NewGuid();
         post.HouseholdId = householdId;
         post.Status = PostStatus.Open;
         post.CreatedAt = DateTime.UtcNow;
@@ -168,7 +168,7 @@ public class ScrapPostService : IScrapPostService
 
         await _postRepository.AddAsync(post);
 
-        return await GetByIdAsync(post.ScrapPostId);
+        return await GetByIdAsync(post.Id);
     }
 
     public async Task<ScrapPostModel> UpdateAsync(Guid householdId, Guid postId, ScrapPostUpdateModel request)

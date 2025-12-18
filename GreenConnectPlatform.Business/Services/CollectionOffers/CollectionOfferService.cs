@@ -195,7 +195,7 @@ public class CollectionOfferService : ICollectionOfferService
         {
             { "type", "Offer" },
             { "id", offer.CollectionOfferId.ToString() },
-            { "postId", post.ScrapPostId.ToString() }
+            { "postId", post.Id.ToString() }
         };
         await _notificationService.SendNotificationAsync(post.HouseholdId, notiTitle, notiBody, notiData);
 

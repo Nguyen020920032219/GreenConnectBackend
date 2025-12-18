@@ -21,7 +21,7 @@ public class ReferencePriceRepository : BaseRepository<GreenConnectDbContext, Re
             .FirstOrDefaultAsync(x => x.ReferencePriceId == referencePriceId);
     }
 
-    public async Task<ReferencePrice?> GetReferencePriceByCategoryId(int categoryId)
+    public async Task<ReferencePrice?> GetReferencePriceByCategoryId(Guid categoryId)
     {
         return await _dbSet
             .Include(r => r.ScrapCategory)

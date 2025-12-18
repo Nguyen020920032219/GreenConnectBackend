@@ -8,22 +8,16 @@ public class ScrapPostTimeSlotConfiguration : IEntityTypeConfiguration<ScrapPost
 {
     public void Configure(EntityTypeBuilder<ScrapPostTimeSlot> builder)
     {
-        builder.ToTable("ScrapPostTimeSlots");
-
         builder.HasKey(x => x.Id);
 
-        builder.Property(x => x.StartTime)
-            .IsRequired()
-            .HasColumnType("time");
+        // Map DateOnly và TimeOnly sang Postgres
+        builder.Property(x => x.SpecificDate).HasColumnType("date").IsRequired();
+        builder.Property(x => x.StartTime).HasColumnType("time").IsRequired();
+        builder.Property(x => x.EndTime).HasColumnType("time").IsRequired();
+        
+        builder.Property(x => x.IsBooked).HasDefaultValue(false);
 
-        builder.Property(x => x.EndTime)
-            .IsRequired()
-            .HasColumnType("time");
-
-        builder.Property(x => x.SpecificDate)
-            .HasColumnType("date");
-
-        builder.Property(x => x.ScrapPostId)
-            .IsRequired();
+        // Index để tìm lịch nhanh
+        builder.HasIndex(x => x.SpecificDate);
     }
 }

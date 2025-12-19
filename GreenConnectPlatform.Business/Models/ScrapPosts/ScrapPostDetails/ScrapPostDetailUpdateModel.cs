@@ -6,5 +6,5 @@ public class ScrapPostDetailUpdateModel
 {
     public string? AmountDescription { get; set; }
     public string? ImageUrl { get; set; }
-    public PostDetailStatus Status { get; set; }
+    public ItemTransactionType? Type { get; set; }
 }

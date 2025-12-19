@@ -233,7 +233,7 @@ public class CollectionOfferControllerTests
         var offerId = Guid.NewGuid();
         var request = new OfferDetailCreateModel
         {
-            ScrapCategoryId = 1,
+            ScrapCategoryId = Guid.NewGuid(),
             PricePerUnit = 5000,
             Unit = "kg"
         };

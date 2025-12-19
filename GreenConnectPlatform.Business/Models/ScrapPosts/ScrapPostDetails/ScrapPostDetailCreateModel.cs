@@ -9,13 +9,15 @@ public class ScrapPostDetailCreateModel
     [JsonIgnore] public Guid ScrapPostId { get; set; }
 
     [Required(ErrorMessage = "ScrapCategoryId là bắt buộc.")]
-    public int ScrapCategoryId { get; set; }
+    public Guid ScrapCategoryId { get; set; }
 
     [Required(ErrorMessage = "AmountDescription là bắt buộc.")]
     public string? AmountDescription { get; set; }
 
     [Required(ErrorMessage = "ImageUrl là bắt buộc.")]
     public string? ImageUrl { get; set; }
+    [Required(ErrorMessage = "Type là bắt buộc.")]
+    public ItemTransactionType Type { get; set; }
 
     [JsonIgnore] public PostDetailStatus Status { get; set; } = PostDetailStatus.Available;
 }

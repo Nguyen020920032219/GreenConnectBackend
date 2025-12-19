@@ -33,4 +33,9 @@ public class ScrapCategoryRepository : BaseRepository<GreenConnectDbContext, Scr
 
         return (items, totalCount);
     }
+
+    public async Task<ScrapCategory?> GetByIdAsync(Guid id)
+    {
+        return await _dbSet.FirstOrDefaultAsync(x => x.Id == id);
+    }
 }

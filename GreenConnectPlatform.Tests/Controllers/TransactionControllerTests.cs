@@ -90,9 +90,10 @@ public class TransactionControllerTests
     {
         // Arrange
         var transactionId = Guid.NewGuid();
+        var categoryId = Guid.NewGuid();
         var details = new List<TransactionDetailCreateModel>
         {
-            new() { ScrapCategoryId = 1, Quantity = 10, PricePerUnit = 50000 }
+            new() { ScrapCategoryId = categoryId, Quantity = 10, PricePerUnit = 50000 }
         };
         var resultList = new List<TransactionDetailModel>
         {
@@ -115,9 +116,10 @@ public class TransactionControllerTests
     {
         // Arrange
         var transactionId = Guid.NewGuid();
+        var categoryId = Guid.NewGuid();
         var details = new List<TransactionDetailCreateModel>
         {
-            new() { ScrapCategoryId = 1, PricePerUnit = -5000 }
+            new() { ScrapCategoryId = categoryId, PricePerUnit = -5000 }
         };
 
         // Mock Service throwing exception based on business logic validation

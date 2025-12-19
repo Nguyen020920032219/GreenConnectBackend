@@ -6,7 +6,7 @@ public class TransactionDetailModel
 {
     public Guid TransactionId { get; set; }
 
-    public int ScrapCategoryId { get; set; }
+    public Guid ScrapCategoryId { get; set; }
     public ScrapCategoryModel ScrapCategory { get; set; } = new();
 
     public decimal PricePerUnit { get; set; }

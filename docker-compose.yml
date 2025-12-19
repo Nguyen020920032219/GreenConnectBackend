@@ -1,29 +1,52 @@
 version: '3.8'
 
 services:
+  # 1. DỊCH VỤ DATABASE (PostGIS)
+  db:
+    image: postgis/postgis:16-3.4  # Dùng bản PostGIS để hỗ trợ bản đồ (đúng theo code của bạn)
+    container_name: greenconnect-db-container
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: supercalifragilisticexpialidocious  # Mật khẩu DB
+      POSTGRES_DB: GreenConnectDb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # Két sắt lưu dữ liệu, xóa container không mất
+    ports:
+      - "5432:5432" # Mở cổng để bạn dùng PgAdmin ở nhà kết nối vào kiểm tra
+    restart: always
+
+  # 2. DỊCH VỤ API (.NET 9)
   greenconnect-api:
     container_name: greenconnect-api-container
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "5000:8080"
+      - "5000:8080" # Cổng debug phụ
     environment:
-      DatabaseConnection__DefaultConnection__DbHost: host.docker.internal
-      
-      DatabaseConnection__DefaultConnection__DbUser: postgres
-      DatabaseConnection__DefaultConnection__DbPass: "password"
-      DatabaseConnection__DefaultConnection__Database: GreenConnectDb
+      # CẤU HÌNH KẾT NỐI DB (Quan trọng)
+      # 'db' là tên service bên trên, Docker tự hiểu IP
+      DatabaseConnection__DefaultConnection__DbHost: db
       DatabaseConnection__DefaultConnection__DbPort: 5432
+      DatabaseConnection__DefaultConnection__DbUser: postgres
+      DatabaseConnection__DefaultConnection__DbPass: "supercalifragilisticexpialidocious"
+      DatabaseConnection__DefaultConnection__Database: GreenConnectDb
+    depends_on:
+      - db # Đợi DB chạy xong mới chạy API
     restart: unless-stopped
   
+  # 3. DỊCH VỤ FRONTEND PROXY (Nginx)
   nginx:
     image: nginx:alpine
     container_name: greenconnect-nginx-container
     ports:
-      - "80:80"
+      - "80:80" # Cổng chính cho người dùng truy cập
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - greenconnect-api
     restart: always
+
+# Khai báo nơi lưu trữ dữ liệu bền vững
+volumes:
+  postgres_data:

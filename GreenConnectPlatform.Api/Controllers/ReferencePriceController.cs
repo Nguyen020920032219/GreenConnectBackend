@@ -62,7 +62,7 @@ public class ReferencePriceController(IReferencePriceService priceService) : Con
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> CreateReferencePrice([FromQuery] int scrapCategoryId,
+    public async Task<IActionResult> CreateReferencePrice([FromQuery] Guid scrapCategoryId,
         [FromQuery] decimal pricePerKg)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);

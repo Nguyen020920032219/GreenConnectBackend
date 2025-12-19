@@ -31,7 +31,7 @@ public class ScrapCategoryControllerTests
         {
             Data = new List<ScrapCategoryModel>
             {
-                new() { ScrapCategoryId = 1, CategoryName = "Plastic" }
+                new() { Id = Guid.NewGuid(), Name = "Plastic" }
             },
             Pagination = new PaginationModel(1, 1, 10)
         };
@@ -48,7 +48,7 @@ public class ScrapCategoryControllerTests
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         var data = okResult.Value.Should().BeOfType<PaginatedResult<ScrapCategoryModel>>().Subject;
         data.Data.Should().HaveCount(1);
-        data.Data[0].CategoryName.Should().Be("Plastic");
+        data.Data[0].Name.Should().Be("Plastic");
     }
 
     // ==========================================
@@ -57,29 +57,31 @@ public class ScrapCategoryControllerTests
     [Fact] //PST-16 Xem chi tiết loại phế liệu theo ID
     public async Task PST16_GetById_ReturnsCategory_WhenIdExists()
     {
+        var categoryId = Guid.NewGuid();
         // Arrange
-        var category = new ScrapCategoryModel { ScrapCategoryId = 1, CategoryName = "Paper" };
+        var category = new ScrapCategoryModel { Id = categoryId, Name = "Paper" };
 
-        _mockService.Setup(s => s.GetByIdAsync(1))
+        _mockService.Setup(s => s.GetByIdAsync(categoryId))
             .ReturnsAsync(category);
 
         // Act
-        var result = await _controller.GetById(1);
+        var result = await _controller.GetById(categoryId);
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        ((ScrapCategoryModel)okResult.Value).CategoryName.Should().Be("Paper");
+        ((ScrapCategoryModel)okResult.Value).Name.Should().Be("Paper");
     }
 
     [Fact] //PST-17 Xem chi tiết loại phế liệu theo ID không tồn tại
     public async Task PST17_GetById_ThrowsNotFound_WhenIdNotExists()
     {
+        var categoryId = Guid.NewGuid();
         // Arrange
-        _mockService.Setup(s => s.GetByIdAsync(99))
+        _mockService.Setup(s => s.GetByIdAsync(categoryId))
             .ThrowsAsync(new ApiExceptionModel(404, "NOT_FOUND", "Category not found"));
 
         // Act & Assert
-        await _controller.Invoking(c => c.GetById(99))
+        await _controller.Invoking(c => c.GetById(categoryId))
             .Should().ThrowAsync<ApiExceptionModel>()
             .Where(e => e.StatusCode == 404);
     }
@@ -92,27 +94,27 @@ public class ScrapCategoryControllerTests
     {
         // Arrange
         var name = "Electronics";
-        var description = "Electronic devices";
+        var imageUrl = "image.png";
 
         var createdCategory = new ScrapCategoryModel
         {
-            ScrapCategoryId = 1,
-            CategoryName = name,
-            Description = description
+            Id = Guid.NewGuid(),
+            Name = name,
+            ImageUrl = imageUrl
         };
 
         // Setup service call với tham số string riêng lẻ
-        _mockService.Setup(s => s.CreateAsync(name, description))
+        _mockService.Setup(s => s.CreateAsync(name, imageUrl))
             .ReturnsAsync(createdCategory);
 
         // Act
         // Gọi hàm với tham số string theo định nghĩa Controller
-        var result = await _controller.Create(name, description);
+        var result = await _controller.Create(name, imageUrl);
 
         // Assert
         var createdResult = result.Should().BeOfType<CreatedAtActionResult>().Subject;
         createdResult.StatusCode.Should().Be(201);
-        ((ScrapCategoryModel)createdResult.Value).CategoryName.Should().Be(name);
+        ((ScrapCategoryModel)createdResult.Value).Name.Should().Be(name);
     }
 
     [Fact] //ADM-02 Tạo loại phế liệu mới với tên không hợp lệ
@@ -138,14 +140,14 @@ public class ScrapCategoryControllerTests
     public async Task ADM03_Update_ReturnsOk_WhenValid()
     {
         // Arrange
-        var categoryId = 1;
+        var categoryId = Guid.NewGuid();
         var newName = "Updated Name";
         var newDesc = "Updated Desc";
 
         var updatedCategory = new ScrapCategoryModel
         {
-            ScrapCategoryId = categoryId,
-            CategoryName = newName
+            Id = categoryId,
+            Name = newName
         };
 
         // Setup service call với tham số string riêng lẻ
@@ -157,7 +159,7 @@ public class ScrapCategoryControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        ((ScrapCategoryModel)okResult.Value).CategoryName.Should().Be(newName);
+        ((ScrapCategoryModel)okResult.Value).Name.Should().Be(newName);
     }
 
     // ==========================================
@@ -167,7 +169,7 @@ public class ScrapCategoryControllerTests
     public async Task ADM04_Delete_ReturnsNoContent_WhenSuccess()
     {
         // Arrange
-        var categoryId = 1;
+        var categoryId = Guid.NewGuid();
         _mockService.Setup(s => s.DeleteAsync(categoryId)).Returns(Task.CompletedTask);
 
         // Act
@@ -181,7 +183,7 @@ public class ScrapCategoryControllerTests
     public async Task ADM05_Delete_ThrowsBadRequest_WhenCategoryInUse()
     {
         // Arrange
-        var categoryId = 1;
+        var categoryId = Guid.NewGuid();
         _mockService.Setup(s => s.DeleteAsync(categoryId))
             .ThrowsAsync(new ApiExceptionModel(400, "BAD_REQUEST", "Cannot delete category currently in use"));
 

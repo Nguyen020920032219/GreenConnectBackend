@@ -6,7 +6,7 @@ namespace GreenConnectPlatform.Business.Models.ScrapPosts;
 
 public class ScrapPostModel
 {
-    public Guid ScrapPostId { get; set; }
+    public Guid Id { get; set; }
     public string Title { get; set; } = null!;
     public string? Description { get; set; }
     public string Address { get; set; } = null!;

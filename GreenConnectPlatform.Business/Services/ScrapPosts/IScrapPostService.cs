@@ -10,7 +10,7 @@ public interface IScrapPostService
     Task<PaginatedResult<ScrapPostOverralModel>> SearchPostsAsync(
         string roleName,
         int pageNumber, int pageSize,
-        int? categoryId, PostStatus? status,
+        Guid? categoryId, PostStatus? status,
         bool sortByLocation, bool sortByCreateAt,
         Guid currentUserId);
 
@@ -24,6 +24,6 @@ public interface IScrapPostService
     Task<ScrapPostModel> UpdateAsync(Guid householdId, Guid postId, ScrapPostUpdateModel request);
     Task ToggleStatusAsync(Guid userId, Guid postId, string userRole);
     Task AddDetailAsync(Guid householdId, Guid postId, ScrapPostDetailCreateModel detailRequest);
-    Task UpdateDetailAsync(Guid householdId, Guid postId, int categoryId, ScrapPostDetailUpdateModel detailRequest);
-    Task DeleteDetailAsync(Guid userId, Guid postId, int categoryId, string userRole);
+    Task UpdateDetailAsync(Guid householdId, Guid postId, Guid categoryId, ScrapPostDetailUpdateModel detailRequest);
+    Task DeleteDetailAsync(Guid userId, Guid postId, Guid categoryId, string userRole);
 }

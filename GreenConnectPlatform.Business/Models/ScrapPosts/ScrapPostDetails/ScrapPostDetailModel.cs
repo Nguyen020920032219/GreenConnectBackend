@@ -5,7 +5,7 @@ namespace GreenConnectPlatform.Business.Models.ScrapPosts.ScrapPostDetails;
 
 public class ScrapPostDetailModel
 {
-    public int ScrapCategoryId { get; set; }
+    public Guid ScrapCategoryId { get; set; }
     public ScrapCategoryModel ScrapCategory { get; set; } = new();
 
     public string? AmountDescription { get; set; }
@@ -13,4 +13,6 @@ public class ScrapPostDetailModel
     public string? ImageUrl { get; set; }
 
     public PostDetailStatus Status { get; set; } = PostDetailStatus.Available;
+    
+    public ItemTransactionType Type { get; set; }
 }

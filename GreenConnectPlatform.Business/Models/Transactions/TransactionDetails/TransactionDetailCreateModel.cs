@@ -5,7 +5,7 @@ namespace GreenConnectPlatform.Business.Models.Transactions.TransactionDetails;
 public class TransactionDetailCreateModel
 {
     [Required(ErrorMessage = "ScrapCategoryId là bắt buộc.")]
-    public int ScrapCategoryId { get; set; }
+    public Guid ScrapCategoryId { get; set; }
 
     [Required(ErrorMessage = "PricePerUnit là bắt buộc.")]
     [Range(0.01, double.MaxValue, ErrorMessage = "PricePerUnit phải lớn hơn 0.")]

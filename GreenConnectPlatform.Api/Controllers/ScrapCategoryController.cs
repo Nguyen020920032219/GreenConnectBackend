@@ -56,11 +56,11 @@ public class ScrapCategoryController : ControllerBase
     /// <param name="id">ID của danh mục (Số nguyên).</param>
     /// <response code="200">Thành công. Trả về object `ScrapCategoryModel`.</response>
     /// <response code="404">Không tìm thấy danh mục với ID này.</response>
-    [HttpGet("{id:int}")]
+    [HttpGet("{id:Guid}")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(ScrapCategoryModel), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetById(int id)
+    public async Task<IActionResult> GetById(Guid id)
     {
         var result = await _service.GetByIdAsync(id);
         return Ok(result);
@@ -90,7 +90,7 @@ public class ScrapCategoryController : ControllerBase
     public async Task<IActionResult> Create([FromQuery] string categoryName, [FromQuery] string description)
     {
         var result = await _service.CreateAsync(categoryName, description);
-        return CreatedAtAction(nameof(GetById), new { id = result.ScrapCategoryId }, result);
+        return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
     /// <summary>
@@ -106,12 +106,12 @@ public class ScrapCategoryController : ControllerBase
     /// <response code="200">Cập nhật thành công.</response>
     /// <response code="409">Tên mới bị trùng với danh mục khác.</response>
     /// <response code="404">Danh mục không tồn tại.</response>
-    [HttpPut("{id:int}")]
+    [HttpPut("{id:Guid}")]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(ScrapCategoryModel), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Update(int id, [FromQuery] string? categoryName, [FromQuery] string? description)
+    public async Task<IActionResult> Update(Guid id, [FromQuery] string? categoryName, [FromQuery] string? description)
     {
         var result = await _service.UpdateAsync(id, categoryName, description);
         return Ok(result);
@@ -132,12 +132,12 @@ public class ScrapCategoryController : ControllerBase
     /// <response code="204">Xóa thành công.</response>
     /// <response code="400">Không thể xóa do danh mục đang được sử dụng (Ràng buộc dữ liệu).</response>
     /// <response code="404">Danh mục không tồn tại.</response>
-    [HttpDelete("{id:int}")]
+    [HttpDelete("{id:Guid}")]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<IActionResult> Delete(Guid id)
     {
         await _service.DeleteAsync(id);
         return NoContent();

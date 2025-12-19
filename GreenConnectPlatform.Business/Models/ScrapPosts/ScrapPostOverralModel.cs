@@ -5,7 +5,7 @@ namespace GreenConnectPlatform.Business.Models.ScrapPosts;
 
 public class ScrapPostOverralModel
 {
-    public Guid ScrapPostId { get; set; }
+    public Guid Id { get; set; }
     public Guid HouseholdId { get; set; }
     public UserViewModel Household { get; set; } = new();
     public string Title { get; set; } = null!;

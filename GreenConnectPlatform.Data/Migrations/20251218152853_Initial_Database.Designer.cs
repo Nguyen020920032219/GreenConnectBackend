@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GreenConnectPlatform.Data.Migrations
 {
     [DbContext(typeof(GreenConnectDbContext))]
-    [Migration("20251218100644_Initial_Database")]
+    [Migration("20251218152853_Initial_Database")]
     partial class Initial_Database
     {
         /// <inheritdoc />

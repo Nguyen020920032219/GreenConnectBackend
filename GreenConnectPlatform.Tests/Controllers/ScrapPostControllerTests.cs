@@ -59,7 +59,7 @@ public class ScrapPostControllerTests
             Description = "Come after 5PM"
         };
 
-        var createdPost = new ScrapPostModel { ScrapPostId = Guid.NewGuid(), Title = "Old Papers" };
+        var createdPost = new ScrapPostModel { Id = Guid.NewGuid(), Title = "Old Papers" };
 
         _mockScrapPostService.Setup(s => s.CreateAsync(_testUserId, request))
             .ReturnsAsync(createdPost);
@@ -120,11 +120,11 @@ public class ScrapPostControllerTests
 
         // Mock service call with categoryId = 1
         _mockScrapPostService.Setup(s => s.SearchPostsAsync(
-                It.IsAny<string>(), 1, 10, 1, null, false, false, It.IsAny<Guid>()))
+                It.IsAny<string>(), 1, 10, null, null, false, false, It.IsAny<Guid>()))
             .ReturnsAsync(result);
 
         // Act
-        var response = await _controller.Search(1, null);
+        var response = await _controller.Search(null, null);
 
         // Assert
         var okResult = response.Should().BeOfType<OkObjectResult>().Subject;
@@ -173,7 +173,7 @@ public class ScrapPostControllerTests
     {
         // Arrange
         var postId = Guid.NewGuid();
-        var postDetail = new ScrapPostModel { ScrapPostId = postId, Title = "Detail Post" };
+        var postDetail = new ScrapPostModel { Id = postId, Title = "Detail Post" };
 
         _mockScrapPostService.Setup(s => s.GetByIdAsync(postId))
             .ReturnsAsync(postDetail);
@@ -183,7 +183,7 @@ public class ScrapPostControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        ((ScrapPostModel)okResult.Value).ScrapPostId.Should().Be(postId);
+        ((ScrapPostModel)okResult.Value).Id.Should().Be(postId);
     }
 
     [Fact] // PST-10 Tìm kiếm chi tiết bài đăng không tồn tại
@@ -210,7 +210,7 @@ public class ScrapPostControllerTests
         // Arrange
         var postId = Guid.NewGuid();
         var updateReq = new ScrapPostUpdateModel { Title = "Updated Title" };
-        var updatedPost = new ScrapPostModel { ScrapPostId = postId, Title = "Updated Title" };
+        var updatedPost = new ScrapPostModel { Id = postId, Title = "Updated Title" };
 
         _mockScrapPostService.Setup(s => s.UpdateAsync(_testUserId, postId, updateReq))
             .ReturnsAsync(updatedPost);

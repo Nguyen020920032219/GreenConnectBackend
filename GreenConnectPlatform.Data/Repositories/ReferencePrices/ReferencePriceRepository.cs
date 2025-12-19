@@ -47,6 +47,7 @@ public class ReferencePriceRepository : BaseRepository<GreenConnectDbContext, Re
 
         var totalCount = await query.CountAsync();
         var items = await query
+            .Include(r => r.ScrapCategory)
             .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();

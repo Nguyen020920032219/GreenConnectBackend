@@ -6,7 +6,7 @@ namespace GreenConnectPlatform.Business.Models.ReferencePrices;
 public class ReferencePriceModel
 {
     public Guid ReferencePriceId { get; set; }
-    public int ScrapCategoryId { get; set; }
+    public Guid ScrapCategoryId { get; set; }
     public ScrapCategoryModel ScrapCategory { get; set; } = new();
     public decimal PricePerKg { get; set; }
     public DateTime LastUpdated { get; set; }

@@ -1,4 +1,4 @@
-# Stage 1: Build (Giữ nguyên như cũ vì đã tốt rồi)
+# Stage 1: Build
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
@@ -14,15 +14,13 @@ COPY . .
 WORKDIR /src
 RUN dotnet publish "GreenConnectPlatform.Api/GreenConnectPlatform.Api.csproj" -c Release -o /app/publish --no-restore
 
-# Stage 2: Runtime (Đã thêm cài đặt giờ VN)
+# Stage 2: Runtime
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 WORKDIR /app
 
-# --- BẮT ĐẦU PHẦN THÊM MỚI ---
-# Cài đặt Timezone sang Asia/Ho_Chi_Minh (GMT+7)
+# Cài đặt Timezone Việt Nam
 RUN apt-get update && apt-get install -y tzdata
 ENV TZ=Asia/Ho_Chi_Minh
-# --- KẾT THÚC PHẦN THÊM MỚI ---
 
 COPY --from=build /app/publish .
 

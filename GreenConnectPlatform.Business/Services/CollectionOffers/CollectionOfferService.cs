@@ -156,20 +156,20 @@ public class CollectionOfferService : ICollectionOfferService
                 detail.Type = matchingPostDetail.Type;
         }
         
-        if (request.ScheduleProposal != null)
-        {
-            var proposal = _mapper.Map<ScheduleProposal>(request.ScheduleProposal);
-            proposal.CollectionOfferId = offer.CollectionOfferId;
-            proposal.ScheduleProposalId = Guid.NewGuid();
-            proposal.ProposerId = collectorId;
-            proposal.Status = ProposalStatus.Pending;
-            proposal.CreatedAt = DateTime.UtcNow;
-            offer.ScheduleProposals.Add(proposal);
-        }
-        else
-        {
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Lịch hẹn đề xuất bắt buộc phải có.");
-        }
+        // if (request.ScheduleProposal != null)
+        // {
+        //     var proposal = _mapper.Map<ScheduleProposal>(request.ScheduleProposal);
+        //     proposal.CollectionOfferId = offer.CollectionOfferId;
+        //     proposal.ScheduleProposalId = Guid.NewGuid();
+        //     proposal.ProposerId = collectorId;
+        //     proposal.Status = ProposalStatus.Pending;
+        //     proposal.CreatedAt = DateTime.UtcNow;
+        //     offer.ScheduleProposals.Add(proposal);
+        // }
+        // else
+        // {
+        //     throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Lịch hẹn đề xuất bắt buộc phải có.");
+        // }
 
         var scrapPostDetailToUpdate = post.ScrapPostDetails
             .Where(d => offerCategoryIds.Contains(d.ScrapCategoryId))
@@ -228,8 +228,8 @@ public class CollectionOfferService : ICollectionOfferService
         if (isAccepted)
         {
             offer.Status = OfferStatus.Accepted;
-            var pendingProposal = offer.ScheduleProposals.FirstOrDefault(p => p.Status == ProposalStatus.Pending);
-            if (pendingProposal != null) pendingProposal.Status = ProposalStatus.Accepted;
+            // var pendingProposal = offer.ScheduleProposals.FirstOrDefault(p => p.Status == ProposalStatus.Pending);
+            // if (pendingProposal != null) pendingProposal.Status = ProposalStatus.Accepted;
 
             var transaction = new Transaction
             {
@@ -238,7 +238,7 @@ public class CollectionOfferService : ICollectionOfferService
                 ScrapCollectorId = offer.ScrapCollectorId,
                 OfferId = offerId,
                 Status = TransactionStatus.Scheduled,
-                ScheduledTime = pendingProposal?.ProposedTime,
+                // ScheduledTime = pendingProposal?.ProposedTime,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -289,9 +289,9 @@ public class CollectionOfferService : ICollectionOfferService
         else
         {
             offer.Status = OfferStatus.Rejected;
-            var schedule = offer.ScheduleProposals.Where(s => s.Status == ProposalStatus.Pending).ToList();
-            foreach (var s in schedule)
-                s.Status = ProposalStatus.Rejected;
+            // var schedule = offer.ScheduleProposals.Where(s => s.Status == ProposalStatus.Pending).ToList();
+            // foreach (var s in schedule)
+                // s.Status = ProposalStatus.Rejected;
             var offerCategoryIds = offer.OfferDetails.Select(d => d.ScrapCategoryId).ToList();
             var post = offer.ScrapPost.ScrapPostDetails
                 .Where(d => offerCategoryIds.Contains(d.ScrapCategoryId)).ToList();

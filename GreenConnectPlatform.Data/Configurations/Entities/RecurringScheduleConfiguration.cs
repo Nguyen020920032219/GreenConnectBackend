@@ -11,19 +11,21 @@ public class RecurringScheduleConfiguration : IEntityTypeConfiguration<Recurring
         builder.HasKey(x => x.Id);
 
         builder.Property(x => x.Title).IsRequired().HasMaxLength(200);
-
-        // Map TimeOnly sang cột 'time' của Postgres
+        builder.Property(x => x.Description).HasMaxLength(1000);
+        builder.Property(x => x.Address).IsRequired().HasMaxLength(500);
+        
+        builder.Property(x => x.Location).HasColumnType("geometry(Point, 4326)");
+        
         builder.Property(x => x.PreferredTime).HasColumnType("time").IsRequired();
-
+        
+        builder.Property(x => x.MustTakeAll).HasDefaultValue(false);
         builder.Property(x => x.IsActive).HasDefaultValue(true);
 
-        // Quan hệ với User
         builder.HasOne(x => x.Household)
             .WithMany()
             .HasForeignKey(x => x.HouseholdId)
-            .OnDelete(DeleteBehavior.Cascade); // Xóa User -> Xóa luôn lịch
-
-        // Quan hệ với Details (Cascade Delete)
+            .OnDelete(DeleteBehavior.Cascade);
+               
         builder.HasMany(x => x.ScheduleDetails)
             .WithOne(d => d.RecurringSchedule)
             .HasForeignKey(d => d.RecurringScheduleId)

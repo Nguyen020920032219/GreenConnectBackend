@@ -43,7 +43,7 @@ public class User : IdentityUser<Guid>
 
     public virtual Profile? Profile { get; set; }
 
-    public virtual ICollection<ScheduleProposal> ScheduleProposals { get; set; } = new List<ScheduleProposal>();
+    // public virtual ICollection<ScheduleProposal> ScheduleProposals { get; set; } = new List<ScheduleProposal>();
 
     public virtual ICollection<ScrapPost> ScrapPosts { get; set; } = new List<ScrapPost>();
 

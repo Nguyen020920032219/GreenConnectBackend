@@ -305,14 +305,14 @@ public static class ModelBuilderExtensions
         );
 
         // --- D. COMMUNICATION ---
-        modelBuilder.Entity<ScheduleProposal>().HasData(
-            new ScheduleProposal
-            {
-                ScheduleProposalId = Guid.NewGuid(), CollectionOfferId = offer1Id, ProposerId = businessId,
-                ProposedTime = seedDate.AddHours(2), Status = ProposalStatus.Accepted, ResponseMessage = "Ok chốt",
-                CreatedAt = seedDate.AddDays(-1)
-            }
-        );
+        // modelBuilder.Entity<ScheduleProposal>().HasData(
+        //     new ScheduleProposal
+        //     {
+        //         ScheduleProposalId = Guid.NewGuid(), CollectionOfferId = offer1Id, ProposerId = businessId,
+        //         ProposedTime = seedDate.AddHours(2), Status = ProposalStatus.Accepted, ResponseMessage = "Ok chốt",
+        //         CreatedAt = seedDate.AddDays(-1)
+        //     }
+        // );
 
         var chatRoomId = Guid.NewGuid();
         modelBuilder.Entity<ChatRoom>().HasData(

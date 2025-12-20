@@ -341,6 +341,10 @@ namespace GreenConnectPlatform.Data.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     HouseholdId = table.Column<Guid>(type: "uuid", nullable: false),
                     Title = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    Description = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
+                    Address = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
+                    Location = table.Column<Point>(type: "geometry(Point, 4326)", nullable: true),
+                    MustTakeAll = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     DayOfWeek = table.Column<int>(type: "integer", nullable: false),
                     PreferredTime = table.Column<TimeOnly>(type: "time", nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
@@ -568,7 +572,8 @@ namespace GreenConnectPlatform.Data.Migrations
                     RecurringScheduleId = table.Column<Guid>(type: "uuid", nullable: false),
                     ScrapCategoryId = table.Column<Guid>(type: "uuid", nullable: false),
                     Quantity = table.Column<double>(type: "double precision", nullable: false),
-                    Unit = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    Unit = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    AmountDescription = table.Column<string>(type: "text", nullable: true),
                     Type = table.Column<int>(type: "integer", nullable: false, defaultValue: 0)
                 },
                 constraints: table =>
@@ -589,38 +594,13 @@ namespace GreenConnectPlatform.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "CollectionOffers",
-                columns: table => new
-                {
-                    CollectionOfferId = table.Column<Guid>(type: "uuid", nullable: false),
-                    ScrapPostId = table.Column<Guid>(type: "uuid", nullable: false),
-                    ScrapCollectorId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Status = table.Column<string>(type: "text", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_CollectionOffers", x => x.CollectionOfferId);
-                    table.ForeignKey(
-                        name: "FK_CollectionOffers_AspNetUsers_ScrapCollectorId",
-                        column: x => x.ScrapCollectorId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_CollectionOffers_ScrapPosts_ScrapPostId",
-                        column: x => x.ScrapPostId,
-                        principalTable: "ScrapPosts",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "ScrapPostDetails",
                 columns: table => new
                 {
                     ScrapPostId = table.Column<Guid>(type: "uuid", nullable: false),
                     ScrapCategoryId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Quantity = table.Column<double>(type: "double precision", nullable: false),
+                    Unit = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false, defaultValue: "kg"),
                     AmountDescription = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
                     ImageUrl = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     Type = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
@@ -672,6 +652,40 @@ namespace GreenConnectPlatform.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "CollectionOffers",
+                columns: table => new
+                {
+                    CollectionOfferId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ScrapPostId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ScrapCollectorId = table.Column<Guid>(type: "uuid", nullable: false),
+                    TimeSlotId = table.Column<Guid>(type: "uuid", nullable: true),
+                    Status = table.Column<string>(type: "text", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CollectionOffers", x => x.CollectionOfferId);
+                    table.ForeignKey(
+                        name: "FK_CollectionOffers_AspNetUsers_ScrapCollectorId",
+                        column: x => x.ScrapCollectorId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_CollectionOffers_ScrapPostTimeSlots_TimeSlotId",
+                        column: x => x.TimeSlotId,
+                        principalTable: "ScrapPostTimeSlots",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_CollectionOffers_ScrapPosts_ScrapPostId",
+                        column: x => x.ScrapPostId,
+                        principalTable: "ScrapPosts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "OfferDetail",
                 columns: table => new
                 {
@@ -697,35 +711,6 @@ namespace GreenConnectPlatform.Data.Migrations
                         principalTable: "ScrapCategories",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ScheduleProposals",
-                columns: table => new
-                {
-                    ScheduleProposalId = table.Column<Guid>(type: "uuid", nullable: false),
-                    CollectionOfferId = table.Column<Guid>(type: "uuid", nullable: false),
-                    ProposerId = table.Column<Guid>(type: "uuid", nullable: false),
-                    ProposedTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
-                    Status = table.Column<string>(type: "text", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
-                    ResponseMessage = table.Column<string>(type: "text", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ScheduleProposals", x => x.ScheduleProposalId);
-                    table.ForeignKey(
-                        name: "FK_ScheduleProposals_AspNetUsers_ProposerId",
-                        column: x => x.ProposerId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_ScheduleProposals_CollectionOffers_CollectionOfferId",
-                        column: x => x.CollectionOfferId,
-                        principalTable: "CollectionOffers",
-                        principalColumn: "CollectionOfferId",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -1005,6 +990,11 @@ namespace GreenConnectPlatform.Data.Migrations
                 column: "ScrapPostId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_CollectionOffers_TimeSlotId",
+                table: "CollectionOffers",
+                column: "TimeSlotId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_CollectorVerificationInfos_IdentityNumber",
                 table: "CollectorVerificationInfos",
                 column: "IdentityNumber",
@@ -1146,16 +1136,6 @@ namespace GreenConnectPlatform.Data.Migrations
                 column: "UpdatedByAdminId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ScheduleProposals_CollectionOfferId",
-                table: "ScheduleProposals",
-                column: "CollectionOfferId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ScheduleProposals_ProposerId",
-                table: "ScheduleProposals",
-                column: "ProposerId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_ScrapPostDetails_ScrapCategoryId",
                 table: "ScrapPostDetails",
                 column: "ScrapCategoryId");
@@ -1295,13 +1275,7 @@ namespace GreenConnectPlatform.Data.Migrations
                 name: "ReferencePrices");
 
             migrationBuilder.DropTable(
-                name: "ScheduleProposals");
-
-            migrationBuilder.DropTable(
                 name: "ScrapPostDetails");
-
-            migrationBuilder.DropTable(
-                name: "ScrapPostTimeSlots");
 
             migrationBuilder.DropTable(
                 name: "TransactionDetails");
@@ -1341,6 +1315,9 @@ namespace GreenConnectPlatform.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "CollectionOffers");
+
+            migrationBuilder.DropTable(
+                name: "ScrapPostTimeSlots");
 
             migrationBuilder.DropTable(
                 name: "ScrapPosts");

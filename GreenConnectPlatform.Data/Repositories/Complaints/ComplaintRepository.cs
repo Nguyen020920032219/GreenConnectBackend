@@ -34,7 +34,7 @@ public class ComplaintRepository : BaseRepository<GreenConnectDbContext, Complai
             .ThenInclude(t => t.ScrapPost)
             .Include(c => c.Transaction)
             .ThenInclude(t => t.Offer)
-            .ThenInclude(t => t.ScheduleProposals)
+            // .ThenInclude(t => t.ScheduleProposals)
             .AsSplitQuery()
             .FirstOrDefaultAsync(c => c.ComplaintId == complaintId);
     }
@@ -69,7 +69,7 @@ public class ComplaintRepository : BaseRepository<GreenConnectDbContext, Complai
             .ThenInclude(t => t.ScrapPost)
             .Include(c => c.Transaction)
             .ThenInclude(t => t.Offer)
-            .ThenInclude(t => t.ScheduleProposals)
+            // .ThenInclude(t => t.ScheduleProposals)
             .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();

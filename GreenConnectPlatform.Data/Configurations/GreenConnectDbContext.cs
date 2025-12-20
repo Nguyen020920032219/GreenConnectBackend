@@ -23,7 +23,6 @@ public class GreenConnectDbContext : IdentityDbContext<User, IdentityRole<Guid>,
     public virtual DbSet<Notification> Notifications { get; set; }
     public virtual DbSet<Profile> Profiles { get; set; }
     public virtual DbSet<RewardItem> RewardItems { get; set; }
-    public virtual DbSet<ScheduleProposal> ScheduleProposals { get; set; }
     public virtual DbSet<ScrapCategory> ScrapCategories { get; set; }
     public virtual DbSet<ScrapPost> ScrapPosts { get; set; }
     public virtual DbSet<ScrapPostDetail> ScrapPostDetails { get; set; }

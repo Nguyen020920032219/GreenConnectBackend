@@ -1,4 +1,5 @@
 using GreenConnectPlatform.Data.Entities;
+using GreenConnectPlatform.Data.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -8,19 +9,20 @@ public class ScrapPostDetailConfiguration : IEntityTypeConfiguration<ScrapPostDe
 {
     public void Configure(EntityTypeBuilder<ScrapPostDetail> builder)
     {
-        builder.HasKey(e => new { e.ScrapPostId, e.ScrapCategoryId });
+        builder.HasKey(x => new { x.ScrapPostId, x.ScrapCategoryId });
 
-        builder.Property(e => e.AmountDescription).HasMaxLength(100);
-        builder.Property(e => e.Status).HasConversion<string>();
+        builder.HasOne(x => x.ScrapCategory)
+            .WithMany()
+            .HasForeignKey(x => x.ScrapCategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne(d => d.ScrapPost)
-            .WithMany(p => p.ScrapPostDetails)
-            .HasForeignKey(d => d.ScrapPostId)
-            .OnDelete(DeleteBehavior.Cascade);
+        builder.Property(x => x.AmountDescription).HasMaxLength(200);
+        builder.Property(x => x.ImageUrl).HasMaxLength(500);
+        
+        builder.Property(x => x.Unit).HasMaxLength(50).HasDefaultValue("kg").IsRequired();
+        builder.Property(x => x.Quantity).IsRequired();
 
-        builder.HasOne(d => d.ScrapCategory)
-            .WithMany(p => p.ScrapPostDetails)
-            .HasForeignKey(d => d.ScrapCategoryId)
-            .OnDelete(DeleteBehavior.Cascade);
+        builder.Property(x => x.Type).HasDefaultValue(ItemTransactionType.Sale);
+        builder.Property(x => x.Status).HasDefaultValue(PostDetailStatus.Available);
     }
 }

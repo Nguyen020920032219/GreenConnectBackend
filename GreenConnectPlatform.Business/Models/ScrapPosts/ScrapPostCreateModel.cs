@@ -7,8 +7,6 @@ namespace GreenConnectPlatform.Business.Models.ScrapPosts;
 
 public class ScrapPostCreateModel
 {
-    [JsonIgnore] public Guid ScrapPostId { get; set; }
-
     [Required(ErrorMessage = "Title là bắt buộc.")]
     public string Title { get; set; } = null!;
 

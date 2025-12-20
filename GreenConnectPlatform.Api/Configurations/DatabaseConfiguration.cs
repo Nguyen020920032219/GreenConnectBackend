@@ -19,6 +19,9 @@ public static class DatabaseConfiguration
         if (string.IsNullOrWhiteSpace(props.DbHost))
             throw new ConfigurationErrorsException("Missing DbHost for database configuration");
 
+        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+        AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
+
         services.AddDbContext<GreenConnectDbContext>(options =>
         {
             options.UseNpgsql(
@@ -93,6 +96,8 @@ public static class DatabaseConfiguration
         NpgsqlConnection.GlobalTypeMapper.MapEnum<PackageType>("package_type");
         NpgsqlConnection.GlobalTypeMapper.MapEnum<PaymentStatus>("payment_status");
         NpgsqlConnection.GlobalTypeMapper.MapEnum<BuyerType>("buyer_type");
+        NpgsqlConnection.GlobalTypeMapper.MapEnum<ItemTransactionType>("item_transaction_type");
+        NpgsqlConnection.GlobalTypeMapper.MapEnum<TransactionPaymentMethod>("transaction_payment_method");
         Console.WriteLine("[Database] PostgreSQL enums mapped successfully.");
     }
 }

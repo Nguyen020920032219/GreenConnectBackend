@@ -8,7 +8,12 @@ public class ScrapCategoryConfiguration : IEntityTypeConfiguration<ScrapCategory
 {
     public void Configure(EntityTypeBuilder<ScrapCategory> builder)
     {
-        builder.HasKey(e => e.ScrapCategoryId);
-        builder.Property(e => e.CategoryName).HasMaxLength(100).IsRequired();
+        builder.HasKey(x => x.Id);
+
+        builder.Property(x => x.Name)
+            .IsRequired()
+            .HasMaxLength(100);
+
+        builder.Property(x => x.ImageUrl).HasMaxLength(500);
     }
 }

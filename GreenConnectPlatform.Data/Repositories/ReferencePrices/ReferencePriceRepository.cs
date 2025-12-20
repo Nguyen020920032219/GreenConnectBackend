@@ -21,7 +21,7 @@ public class ReferencePriceRepository : BaseRepository<GreenConnectDbContext, Re
             .FirstOrDefaultAsync(x => x.ReferencePriceId == referencePriceId);
     }
 
-    public async Task<ReferencePrice?> GetReferencePriceByCategoryId(int categoryId)
+    public async Task<ReferencePrice?> GetReferencePriceByCategoryId(Guid categoryId)
     {
         return await _dbSet
             .Include(r => r.ScrapCategory)
@@ -35,7 +35,7 @@ public class ReferencePriceRepository : BaseRepository<GreenConnectDbContext, Re
     {
         var query = _dbSet.AsNoTracking();
         if (!string.IsNullOrEmpty(scrapCategoryName))
-            query = query.Where(r => r.ScrapCategory.CategoryName.ToLower().Contains(scrapCategoryName.ToLower()));
+            query = query.Where(r => r.ScrapCategory.Name.ToLower().Contains(scrapCategoryName.ToLower()));
         if (sortByPrice.HasValue)
             query = query.OrderByDescending(r => r.PricePerKg);
         else
@@ -47,6 +47,7 @@ public class ReferencePriceRepository : BaseRepository<GreenConnectDbContext, Re
 
         var totalCount = await query.CountAsync();
         var items = await query
+            .Include(r => r.ScrapCategory)
             .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();

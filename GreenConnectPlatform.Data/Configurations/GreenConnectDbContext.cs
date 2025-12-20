@@ -23,7 +23,6 @@ public class GreenConnectDbContext : IdentityDbContext<User, IdentityRole<Guid>,
     public virtual DbSet<Notification> Notifications { get; set; }
     public virtual DbSet<Profile> Profiles { get; set; }
     public virtual DbSet<RewardItem> RewardItems { get; set; }
-    public virtual DbSet<ScheduleProposal> ScheduleProposals { get; set; }
     public virtual DbSet<ScrapCategory> ScrapCategories { get; set; }
     public virtual DbSet<ScrapPost> ScrapPosts { get; set; }
     public virtual DbSet<ScrapPostDetail> ScrapPostDetails { get; set; }
@@ -37,6 +36,9 @@ public class GreenConnectDbContext : IdentityDbContext<User, IdentityRole<Guid>,
     public virtual DbSet<PointHistory> PointHistories { get; set; }
     public virtual DbSet<Rank> Ranks { get; set; }
     public virtual DbSet<UserDevice> UserDevices { get; set; }
+    public DbSet<ScrapPostTimeSlot> ScrapPostTimeSlots { get; set; }
+    public DbSet<RecurringSchedule> RecurringSchedules { get; set; }
+    public DbSet<RecurringScheduleDetail> RecurringScheduleDetails { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

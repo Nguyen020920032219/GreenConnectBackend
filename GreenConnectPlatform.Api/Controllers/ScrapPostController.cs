@@ -52,7 +52,7 @@ public class ScrapPostController : ControllerBase
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> Search(
-        [FromQuery] int? categoryId,
+        [FromQuery] Guid? categoryId,
         [FromQuery] PostStatus? status,
         [FromQuery] bool sortByLocation = false,
         [FromQuery] bool sortByCreateAt = false,
@@ -135,7 +135,7 @@ public class ScrapPostController : ControllerBase
     {
         var userId = GetCurrentUserId();
         var result = await _service.CreateAsync(userId, request);
-        return CreatedAtAction(nameof(GetById), new { id = result.ScrapPostId }, result);
+        return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
     /// <summary>
@@ -221,11 +221,11 @@ public class ScrapPostController : ControllerBase
     /// <param name="id">ID bài đăng.</param>
     /// <param name="categoryId">ID loại ve chai cần sửa.</param>
     /// <param name="request">Thông tin cập nhật.</param>
-    [HttpPut("{id:guid}/details/{categoryId:int}")]
+    [HttpPut("{id:guid}/details/{categoryId:guid}")]
     [Authorize(Roles = "Household")]
     [ProducesResponseType(typeof(ScrapPostModel), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> UpdateDetail(Guid id, int categoryId,
+    public async Task<IActionResult> UpdateDetail(Guid id, Guid categoryId,
         [FromBody] ScrapPostDetailUpdateModel request)
     {
         var userId = GetCurrentUserId();
@@ -245,12 +245,12 @@ public class ScrapPostController : ControllerBase
     /// <response code="204">Xóa thành công.</response>
     /// <response code="400">Không thể xóa vì hàng đã được đặt hoặc thu gom.</response>
     /// <response code="404">Không tìm thấy món hàng này.</response>
-    [HttpDelete("{id:guid}/details/{categoryId:int}")]
+    [HttpDelete("{id:guid}/details/{categoryId:guid}")]
     [Authorize(Roles = "Household, Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> DeleteDetail(Guid id, int categoryId)
+    public async Task<IActionResult> DeleteDetail(Guid id, Guid categoryId)
     {
         var userId = GetCurrentUserId();
         var role = User.FindFirstValue(ClaimTypes.Role) ?? "";

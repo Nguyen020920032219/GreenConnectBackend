@@ -20,7 +20,7 @@ public class TransactionRepository : BaseRepository<GreenConnectDbContext, Trans
             .Include(t => t.ScrapCollector).ThenInclude(u => u.Profile)
             .Include(t => t.Offer).ThenInclude(o => o.OfferDetails)
             .Include(t => t.Offer).ThenInclude(o => o.ScrapPost).ThenInclude(s => s.ScrapPostDetails)
-            .Include(t => t.Offer).ThenInclude(o => o.ScheduleProposals)
+            // .Include(t => t.Offer).ThenInclude(o => o.ScheduleProposals)
             .AsSplitQuery()
             .FirstOrDefaultAsync(t => t.TransactionId == id);
     }
@@ -55,7 +55,7 @@ public class TransactionRepository : BaseRepository<GreenConnectDbContext, Trans
             .Include(t => t.ScrapCollector).ThenInclude(u => u.Profile)
             .Include(t => t.Offer).ThenInclude(o => o.OfferDetails)
             .Include(t => t.Offer).ThenInclude(o => o.ScrapPost).ThenInclude(s => s.ScrapPostDetails)
-            .Include(t => t.Offer).ThenInclude(o => o.ScheduleProposals)
+            // .Include(t => t.Offer).ThenInclude(o => o.ScheduleProposals)
             .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
@@ -85,7 +85,7 @@ public class TransactionRepository : BaseRepository<GreenConnectDbContext, Trans
             .Include(t => t.ScrapCollector).ThenInclude(u => u.Profile)
             .Include(t => t.Offer).ThenInclude(o => o.OfferDetails)
             .Include(t => t.Offer).ThenInclude(o => o.ScrapPost).ThenInclude(s => s.ScrapPostDetails)
-            .Include(t => t.Offer).ThenInclude(o => o.ScheduleProposals)
+            // .Include(t => t.Offer).ThenInclude(o => o.ScheduleProposals)
             .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();

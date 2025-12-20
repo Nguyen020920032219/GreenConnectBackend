@@ -47,7 +47,7 @@ public class ScrapPostService : IScrapPostService
 
     public async Task<PaginatedResult<ScrapPostOverralModel>> SearchPostsAsync(
         string roleName,
-        int pageNumber, int pageSize, int? categoryId, PostStatus? status,
+        int pageNumber, int pageSize, Guid? categoryId, PostStatus? status,
         bool sortByLocation, bool sortByCreateAt, Guid currentUserId)
     {
         Point? userLocation = null;
@@ -108,9 +108,9 @@ public class ScrapPostService : IScrapPostService
                     ScrapCategoryId = detail.ScrapCategoryId,
                     ScrapCategory = new ScrapCategoryModel
                     {
-                        ScrapCategoryId = detail.ScrapCategory.ScrapCategoryId,
-                        CategoryName = detail.ScrapCategory.CategoryName,
-                        Description = detail.ScrapCategory.Description
+                        Id = detail.ScrapCategory.Id,
+                        Name = detail.ScrapCategory.Name,
+                        ImageUrl = detail.ScrapCategory.ImageUrl
                     },
                     AmountDescription = detail.AmountDescription,
                     ImageUrl = detailImageUrl,
@@ -120,11 +120,10 @@ public class ScrapPostService : IScrapPostService
 
         var postModel = new ScrapPostModel
         {
-            ScrapPostId = post.ScrapPostId,
+            Id = post.Id,
             Title = post.Title,
             Description = post.Description,
             Address = post.Address,
-            AvailableTimeRange = post.AvailableTimeRange,
             Status = post.Status,
             CreatedAt = post.CreatedAt,
             UpdatedAt = post.UpdatedAt,
@@ -156,7 +155,7 @@ public class ScrapPostService : IScrapPostService
                     $"Loại ve chai ID {catId} không hợp lệ.");
 
         var post = _mapper.Map<ScrapPost>(request);
-        post.ScrapPostId = Guid.NewGuid();
+        post.Id = Guid.NewGuid();
         post.HouseholdId = householdId;
         post.Status = PostStatus.Open;
         post.CreatedAt = DateTime.UtcNow;
@@ -169,7 +168,7 @@ public class ScrapPostService : IScrapPostService
 
         await _postRepository.AddAsync(post);
 
-        return await GetByIdAsync(post.ScrapPostId);
+        return await GetByIdAsync(post.Id);
     }
 
     public async Task<ScrapPostModel> UpdateAsync(Guid householdId, Guid postId, ScrapPostUpdateModel request)
@@ -191,7 +190,7 @@ public class ScrapPostService : IScrapPostService
             post.Location =
                 _geometryFactory.CreatePoint(new Coordinate(request.Location.Longitude.Value,
                     request.Location.Latitude.Value));
-
+        
         await _postRepository.UpdateAsync(post);
         return _mapper.Map<ScrapPostModel>(post);
     }
@@ -236,7 +235,7 @@ public class ScrapPostService : IScrapPostService
         await _postRepository.UpdateAsync(post);
     }
 
-    public async Task UpdateDetailAsync(Guid householdId, Guid postId, int categoryId,
+    public async Task UpdateDetailAsync(Guid householdId, Guid postId, Guid categoryId,
         ScrapPostDetailUpdateModel detailRequest)
     {
         var post = await _postRepository.GetByIdWithDetailsAsync(postId);
@@ -251,12 +250,13 @@ public class ScrapPostService : IScrapPostService
         if (detail.Status != PostDetailStatus.Available)
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Không thể sửa món hàng đã được đặt/thu gom.");
-
+        if(detailRequest.Type != null)
+            detail.Type = detailRequest.Type.Value;
         _mapper.Map(detailRequest, detail);
         await _postRepository.UpdateAsync(post);
     }
 
-    public async Task DeleteDetailAsync(Guid userId, Guid postId, int categoryId, string userRole)
+    public async Task DeleteDetailAsync(Guid userId, Guid postId, Guid categoryId, string userRole)
     {
         var post = await _postRepository.GetByIdWithDetailsAsync(postId);
         if (post == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Bài đăng không tồn tại.");
@@ -276,3 +276,4 @@ public class ScrapPostService : IScrapPostService
         await _postRepository.UpdateAsync(post);
     }
 }
+

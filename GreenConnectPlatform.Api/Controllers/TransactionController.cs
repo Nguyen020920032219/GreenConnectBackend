@@ -93,7 +93,7 @@ public class TransactionController : ControllerBase
     [Authorize(Roles = "Household")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Process([FromRoute] Guid id, [FromQuery] bool isAccepted, 
+    public async Task<IActionResult> Process([FromRoute] Guid id, [FromQuery] bool isAccepted,
         [FromQuery] TransactionPaymentMethod paymentMethod)
     {
         var userId = GetCurrentUserId();

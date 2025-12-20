@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.SignalR;
 
 namespace GreenConnectPlatform.Business.Hubs;
+
 [Authorize]
 public class ChatHub : Hub
 {

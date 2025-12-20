@@ -20,16 +20,16 @@ namespace GreenConnectPlatform.Business.Services.CollectionOffers;
 
 public class CollectionOfferService : ICollectionOfferService
 {
+    private readonly ICreditTransactionHistoryRepository _creditTransactionHistoryRepository;
     private readonly IFileStorageService _fileStorageService;
     private readonly IMapper _mapper;
     private readonly INotificationService _notificationService;
     private readonly ICollectionOfferRepository _offerRepository;
     private readonly IScrapPostRepository _postRepository;
+    private readonly IProfileRepository _profileRepository;
     private readonly IChatRoomRepository _roomRepository;
     private readonly IScrapCategoryRepository _scrapCategoryRepository;
     private readonly ITransactionRepository _transactionRepository;
-    private readonly IProfileRepository _profileRepository;
-    private readonly ICreditTransactionHistoryRepository _creditTransactionHistoryRepository;
 
     public CollectionOfferService(
         ICollectionOfferRepository offerRepository,
@@ -131,13 +131,14 @@ public class CollectionOfferService : ICollectionOfferService
         if (unavailableItems.Any())
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Có mục trong đề nghị không còn sẵn sàng để thu gom.");
-        
+
         var profile = await _profileRepository.GetByUserIdWithRankAsync(collectorId);
         if (profile == null)
             throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Hồ sơ người thu gom không tìm thấy.");
-        if(profile.CreditBalance < 10)
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Bạn cần có ít nhất 10 điểm tín dụng để tạo đề nghị thu gom.");
-        
+        if (profile.CreditBalance < 10)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "Bạn cần có ít nhất 10 điểm tín dụng để tạo đề nghị thu gom.");
+
         var offer = _mapper.Map<CollectionOffer>(request);
         offer.CollectionOfferId = Guid.NewGuid();
         offer.ScrapPostId = postId;
@@ -145,20 +146,30 @@ public class CollectionOfferService : ICollectionOfferService
         offer.Status = OfferStatus.Pending;
         offer.CreatedAt = DateTime.UtcNow;
 
-        if (request.ScheduleProposal != null)
+        foreach (var detail in offer.OfferDetails)
         {
-            var proposal = _mapper.Map<ScheduleProposal>(request.ScheduleProposal);
-            proposal.CollectionOfferId = offer.CollectionOfferId;
-            proposal.ScheduleProposalId = Guid.NewGuid();
-            proposal.ProposerId = collectorId;
-            proposal.Status = ProposalStatus.Pending;
-            proposal.CreatedAt = DateTime.UtcNow;
-            offer.ScheduleProposals.Add(proposal);
+            detail.OfferDetailId = Guid.NewGuid();
+            detail.CollectionOfferId = offer.CollectionOfferId;
+            var matchingPostDetail = post.ScrapPostDetails
+                .FirstOrDefault(d => d.ScrapCategoryId == detail.ScrapCategoryId);
+            if(matchingPostDetail != null)
+                detail.Type = matchingPostDetail.Type;
         }
-        else
-        {
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Lịch hẹn đề xuất bắt buộc phải có.");
-        }
+        
+        // if (request.ScheduleProposal != null)
+        // {
+        //     var proposal = _mapper.Map<ScheduleProposal>(request.ScheduleProposal);
+        //     proposal.CollectionOfferId = offer.CollectionOfferId;
+        //     proposal.ScheduleProposalId = Guid.NewGuid();
+        //     proposal.ProposerId = collectorId;
+        //     proposal.Status = ProposalStatus.Pending;
+        //     proposal.CreatedAt = DateTime.UtcNow;
+        //     offer.ScheduleProposals.Add(proposal);
+        // }
+        // else
+        // {
+        //     throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Lịch hẹn đề xuất bắt buộc phải có.");
+        // }
 
         var scrapPostDetailToUpdate = post.ScrapPostDetails
             .Where(d => offerCategoryIds.Contains(d.ScrapCategoryId))
@@ -187,14 +198,14 @@ public class CollectionOfferService : ICollectionOfferService
             Description = $"Tạo đề nghị thu gom cho bài đăng '{post.Title}'."
         };
         await _creditTransactionHistoryRepository.AddAsync(creditHistory);
-        
+
         var notiTitle = "Đề nghị thu gom mới!";
         var notiBody = $"Có người vừa báo giá cho bài đăng '{post.Title}' của bạn.";
         var notiData = new Dictionary<string, string>
         {
             { "type", "Offer" },
             { "id", offer.CollectionOfferId.ToString() },
-            { "postId", post.ScrapPostId.ToString() }
+            { "postId", post.Id.ToString() }
         };
         await _notificationService.SendNotificationAsync(post.HouseholdId, notiTitle, notiBody, notiData);
 
@@ -217,8 +228,8 @@ public class CollectionOfferService : ICollectionOfferService
         if (isAccepted)
         {
             offer.Status = OfferStatus.Accepted;
-            var pendingProposal = offer.ScheduleProposals.FirstOrDefault(p => p.Status == ProposalStatus.Pending);
-            if (pendingProposal != null) pendingProposal.Status = ProposalStatus.Accepted;
+            // var pendingProposal = offer.ScheduleProposals.FirstOrDefault(p => p.Status == ProposalStatus.Pending);
+            // if (pendingProposal != null) pendingProposal.Status = ProposalStatus.Accepted;
 
             var transaction = new Transaction
             {
@@ -227,7 +238,7 @@ public class CollectionOfferService : ICollectionOfferService
                 ScrapCollectorId = offer.ScrapCollectorId,
                 OfferId = offerId,
                 Status = TransactionStatus.Scheduled,
-                ScheduledTime = pendingProposal?.ProposedTime,
+                // ScheduledTime = pendingProposal?.ProposedTime,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -278,9 +289,9 @@ public class CollectionOfferService : ICollectionOfferService
         else
         {
             offer.Status = OfferStatus.Rejected;
-            var schedule = offer.ScheduleProposals.Where(s => s.Status == ProposalStatus.Pending).ToList();
-            foreach (var s in schedule)
-                s.Status = ProposalStatus.Rejected;
+            // var schedule = offer.ScheduleProposals.Where(s => s.Status == ProposalStatus.Pending).ToList();
+            // foreach (var s in schedule)
+                // s.Status = ProposalStatus.Rejected;
             var offerCategoryIds = offer.OfferDetails.Select(d => d.ScrapCategoryId).ToList();
             var post = offer.ScrapPost.ScrapPostDetails
                 .Where(d => offerCategoryIds.Contains(d.ScrapCategoryId)).ToList();
@@ -343,9 +354,11 @@ public class CollectionOfferService : ICollectionOfferService
             offer.Status = OfferStatus.Pending;
             var profile = await _profileRepository.GetByUserIdWithRankAsync(collectorId);
             if (profile == null)
-                throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Hồ sơ người thu gom không tìm thấy.");
-            if(profile.CreditBalance < 10)
-                throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Bạn cần có ít nhất 10 điểm tín dụng để mở lại đề nghị thu gom.");
+                throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404",
+                    "Hồ sơ người thu gom không tìm thấy.");
+            if (profile.CreditBalance < 10)
+                throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                    "Bạn cần có ít nhất 10 điểm tín dụng để mở lại đề nghị thu gom.");
             profile.CreditBalance -= 10;
             await _profileRepository.UpdateAsync(profile);
             var creditHistory = new CreditTransactionHistory
@@ -364,7 +377,7 @@ public class CollectionOfferService : ICollectionOfferService
             {
                 if (detail.Status == PostDetailStatus.Booked || detail.Status == PostDetailStatus.Collected)
                     throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
-                        $"Không thể mở lại đề nghị thu gom cho {detail.ScrapCategory.CategoryName} vì đang có trạng thái là {detail.Status}.");
+                        $"Không thể mở lại đề nghị thu gom cho {detail.ScrapCategory.Name} vì đang có trạng thái là {detail.Status}.");
                 detail.Status = PostDetailStatus.Booked;
             }
 
@@ -458,3 +471,4 @@ public class CollectionOfferService : ICollectionOfferService
         await _postRepository.UpdateAsync(post);
     }
 }
+

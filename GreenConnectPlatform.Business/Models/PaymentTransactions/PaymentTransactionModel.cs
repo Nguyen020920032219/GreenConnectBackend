@@ -8,7 +8,7 @@ public class PaymentTransactionModel
 {
     public Guid PaymentId { get; set; }
     public Guid UserId { get; set; }
-    public UserViewModel User { get; set; } = new ();
+    public UserViewModel User { get; set; } = new();
     public Guid? PackageId { get; set; }
     public PaymentPackageModel Package { get; set; } = new();
     public decimal Amount { get; set; }

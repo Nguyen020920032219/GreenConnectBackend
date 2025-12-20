@@ -20,13 +20,13 @@ public class ScrapCategoryRepository : BaseRepository<GreenConnectDbContext, Scr
         if (!string.IsNullOrWhiteSpace(keyword))
         {
             var term = keyword.Trim().ToLower();
-            query = query.Where(x => x.CategoryName.ToLower().Contains(term));
+            query = query.Where(x => x.Name.ToLower().Contains(term));
         }
 
         var totalCount = await query.CountAsync();
 
         var items = await query
-            .OrderBy(x => x.CategoryName)
+            .OrderBy(x => x.Name)
             .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
@@ -34,8 +34,8 @@ public class ScrapCategoryRepository : BaseRepository<GreenConnectDbContext, Scr
         return (items, totalCount);
     }
 
-    public async Task<int> GetCategoryIdMax()
+    public async Task<ScrapCategory?> GetByIdAsync(Guid id)
     {
-        return await _dbSet.MaxAsync(c => c.ScrapCategoryId);
+        return await _dbSet.FirstOrDefaultAsync(x => x.Id == id);
     }
 }

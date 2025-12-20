@@ -42,26 +42,26 @@ public class MappingProfile : Profile
 
         #endregion
 
-        #region CollectionOffer, OfferDetail
+        // #region CollectionOffer, OfferDetail
+        //
+        // CreateMap<CollectionOffer, CollectionOfferModel>();
+        // CreateMap<CollectionOffer, CollectionOfferOveralForCollectorModel>();
+        // CreateMap<CollectionOffer, CollectionOfferOveralForHouseModel>();
+        // CreateMap<CollectionOfferCreateModel, CollectionOffer>()
+        //     .ForMember(dest => dest.ScheduleProposals, opt => opt.Ignore());
+        // CreateMap<OfferDetailCreateModel, OfferDetail>();
+        // CreateMap<OfferDetail, OfferDetailModel>();
+        // CreateMap<OfferDetailUpdateModel, OfferDetail>()
+        //     .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
+        //
+        // #endregion
 
-        CreateMap<CollectionOffer, CollectionOfferModel>();
-        CreateMap<CollectionOffer, CollectionOfferOveralForCollectorModel>();
-        CreateMap<CollectionOffer, CollectionOfferOveralForHouseModel>();
-        CreateMap<CollectionOfferCreateModel, CollectionOffer>()
-            .ForMember(dest => dest.ScheduleProposals, opt => opt.Ignore());
-        CreateMap<OfferDetailCreateModel, OfferDetail>();
-        CreateMap<OfferDetail, OfferDetailModel>();
-        CreateMap<OfferDetailUpdateModel, OfferDetail>()
-            .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
-
-        #endregion
-
-        #region ScheduleProposal
-
-        CreateMap<ScheduleProposalCreateModel, ScheduleProposal>();
-        CreateMap<ScheduleProposal, ScheduleProposalModel>();
-
-        #endregion
+        // #region ScheduleProposal
+        //
+        // CreateMap<ScheduleProposalCreateModel, ScheduleProposal>();
+        // CreateMap<ScheduleProposal, ScheduleProposalModel>();
+        //
+        // #endregion
 
         #region ScrapCategory
 

@@ -6,7 +6,7 @@ public class CreditTransactionHistoryModel
 {
     public Guid Id { get; set; }
     public Guid UserId { get; set; }
-    public UserViewModel User { get; set; } = new UserViewModel();
+    public UserViewModel User { get; set; } = new();
     public int Amount { get; set; } // Số lượng thay đổi (VD: +50, -1)
     public int BalanceAfter { get; set; } // Số dư sau khi thay đổi
 

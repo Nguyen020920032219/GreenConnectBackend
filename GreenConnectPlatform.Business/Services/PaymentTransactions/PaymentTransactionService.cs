@@ -8,16 +8,17 @@ namespace GreenConnectPlatform.Business.Services.PaymentTransactions;
 
 public class PaymentTransactionService : IPaymentTransactionService
 {
-    private readonly IPaymentTransactionRepository _paymentTransactionRepository;
     private readonly IMapper _mapper;
+    private readonly IPaymentTransactionRepository _paymentTransactionRepository;
 
     public PaymentTransactionService(IPaymentTransactionRepository paymentTransactionRepository, IMapper mapper)
     {
         _paymentTransactionRepository = paymentTransactionRepository;
         _mapper = mapper;
     }
-    
-    public async Task<PaginatedResult<PaymentTransactionModel>> GetPaymentTransactionsByUserAsync(int pageIndex, int pageSize, Guid userId, bool sortByCreatedAt,
+
+    public async Task<PaginatedResult<PaymentTransactionModel>> GetPaymentTransactionsByUserAsync(int pageIndex,
+        int pageSize, Guid userId, bool sortByCreatedAt,
         PaymentStatus? status = null)
     {
         var (items, totalCount) = await _paymentTransactionRepository
@@ -26,11 +27,12 @@ public class PaymentTransactionService : IPaymentTransactionService
         return new PaginatedResult<PaymentTransactionModel>
         {
             Data = models,
-            Pagination = new  PaginationModel(totalCount, pageIndex, pageSize)
+            Pagination = new PaginationModel(totalCount, pageIndex, pageSize)
         };
     }
 
-    public async Task<PaginatedResult<PaymentTransactionModel>> GetPaymentTransactionsAsync(int pageIndex, int pageSize, bool sortByCreatedAt, PaymentStatus? status,
+    public async Task<PaginatedResult<PaymentTransactionModel>> GetPaymentTransactionsAsync(int pageIndex, int pageSize,
+        bool sortByCreatedAt, PaymentStatus? status,
         DateTime startDate, DateTime endDate)
     {
         var (items, totalCount) = await _paymentTransactionRepository
@@ -39,7 +41,7 @@ public class PaymentTransactionService : IPaymentTransactionService
         return new PaginatedResult<PaymentTransactionModel>
         {
             Data = models,
-            Pagination = new  PaginationModel(totalCount, pageIndex, pageSize)
+            Pagination = new PaginationModel(totalCount, pageIndex, pageSize)
         };
     }
 }

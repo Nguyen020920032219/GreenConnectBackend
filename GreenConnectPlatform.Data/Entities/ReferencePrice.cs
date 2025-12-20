@@ -5,7 +5,7 @@ namespace GreenConnectPlatform.Data.Entities;
 public class ReferencePrice
 {
     public Guid ReferencePriceId { get; set; }
-    public int ScrapCategoryId { get; set; }
+    public Guid ScrapCategoryId { get; set; }
     [Column(TypeName = "decimal(18, 2)")] public decimal PricePerKg { get; set; }
     public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
     public Guid UpdatedByAdminId { get; set; }

@@ -36,7 +36,7 @@ public class GeminiScrapRecognitionService : IScrapRecognitionService
 
         // 1. Lấy danh sách Category
         var categories = await _categoryRepository.GetAllAsync();
-        var categoryNames = string.Join(", ", categories.Select(c => $"'{c.CategoryName}'"));
+        var categoryNames = string.Join(", ", categories.Select(c => $"'{c.Name}'"));
 
         // 2. Chuyển ảnh sang Base64
         string base64Image;

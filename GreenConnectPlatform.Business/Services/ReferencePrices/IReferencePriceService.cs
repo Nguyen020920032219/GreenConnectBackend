@@ -9,7 +9,7 @@ public interface IReferencePriceService
         string? scrapCategoryName, bool? sortByPrice, bool sortByUpdateAt);
 
     Task<ReferencePriceModel> GetReferencePrice(Guid referencePriceId);
-    Task<ReferencePriceModel> CreateReferencePrice(int scrapCategoryId, decimal pricePerKg, Guid userId);
+    Task<ReferencePriceModel> CreateReferencePrice(Guid scrapCategoryId, decimal pricePerKg, Guid userId);
     Task<ReferencePriceModel> UpdateReferencePrice(Guid referencePriceId, decimal? pricePerKg, Guid userId);
     Task DeleteReferencePrice(Guid referencePriceId);
 }

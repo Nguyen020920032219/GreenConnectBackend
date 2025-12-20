@@ -39,7 +39,7 @@ public class ScrapCategoryService : IScrapCategoryService
         };
     }
 
-    public async Task<ScrapCategoryModel> GetByIdAsync(int id)
+    public async Task<ScrapCategoryModel> GetByIdAsync(Guid id)
     {
         var entity = await _repository.GetByIdAsync(id);
         if (entity == null)
@@ -48,32 +48,30 @@ public class ScrapCategoryService : IScrapCategoryService
         return _mapper.Map<ScrapCategoryModel>(entity);
     }
 
-    public async Task<ScrapCategoryModel> CreateAsync(string categoryName, string description)
+    public async Task<ScrapCategoryModel> CreateAsync(string categoryName, string imageUrl)
     {
         var exists =
-            (await _repository.FindAsync(c => c.CategoryName.ToLower() == categoryName.ToLower())).Any();
+            (await _repository.FindAsync(c => c.Name.ToLower() == categoryName.ToLower())).Any();
         if (exists)
             throw new ApiExceptionModel(StatusCodes.Status409Conflict, "409",
                 $"Danh mục '{categoryName}' đã tồn tại.");
         if (string.IsNullOrWhiteSpace(categoryName))
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Tên của loại ve chai không thể để trống");
-        if (string.IsNullOrWhiteSpace(description))
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
-                "Mô tả dành cho loại ve chai không thể để trống");
-        var maxCategoryId = await _repository.GetCategoryIdMax();
         var entity = new ScrapCategory
         {
-            ScrapCategoryId = maxCategoryId + 1,
-            CategoryName = categoryName,
-            Description = description
+            Id = Guid.NewGuid(),
+            Name = categoryName,
+            ImageUrl = imageUrl
         };
 
         await _repository.AddAsync(entity);
         return _mapper.Map<ScrapCategoryModel>(entity);
     }
 
-    public async Task<ScrapCategoryModel> UpdateAsync(int id, string? categoryName, string? description)
+
+
+    public async Task<ScrapCategoryModel> UpdateAsync(Guid id, string? categoryName, string? imageUrl)
     {
         var entity = await _repository.GetByIdAsync(id);
         if (entity == null)
@@ -81,24 +79,24 @@ public class ScrapCategoryService : IScrapCategoryService
 
         if (!string.IsNullOrWhiteSpace(categoryName))
         {
-            if (!string.Equals(entity.CategoryName, categoryName, StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(entity.Name, categoryName, StringComparison.OrdinalIgnoreCase))
             {
-                var exists = (await _repository.FindAsync(c => c.CategoryName.ToLower() == categoryName.ToLower()))
+                var exists = (await _repository.FindAsync(c => c.Name.ToLower() == categoryName.ToLower()))
                     .Any();
                 if (exists)
                     throw new ApiExceptionModel(StatusCodes.Status409Conflict, "409",
                         $"Danh mục '{categoryName}' đã tồn tại.");
             }
 
-            entity.CategoryName = categoryName;
+            entity.Name = categoryName;
         }
 
-        if (!string.IsNullOrWhiteSpace(description)) entity.Description = description;
+        if (!string.IsNullOrWhiteSpace(imageUrl)) entity.ImageUrl = imageUrl;
         await _repository.UpdateAsync(entity);
         return _mapper.Map<ScrapCategoryModel>(entity);
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(Guid id)
     {
         var entity = await _repository.GetByIdAsync(id);
         if (entity == null)
@@ -112,3 +110,4 @@ public class ScrapCategoryService : IScrapCategoryService
         await _repository.DeleteAsync(entity);
     }
 }
+

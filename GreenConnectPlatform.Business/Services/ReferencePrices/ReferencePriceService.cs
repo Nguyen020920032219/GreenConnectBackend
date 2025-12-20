@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using GreenConnectPlatform.Business.Models.Exceptions;
 using GreenConnectPlatform.Business.Models.Paging;
 using GreenConnectPlatform.Business.Models.ReferencePrices;
@@ -47,7 +47,7 @@ public class ReferencePriceService : IReferencePriceService
         return _mapper.Map<ReferencePriceModel>(referencePrice);
     }
 
-    public async Task<ReferencePriceModel> CreateReferencePrice(int scrapCategoryId, decimal pricePerKg, Guid userId)
+    public async Task<ReferencePriceModel> CreateReferencePrice(Guid scrapCategoryId, decimal pricePerKg, Guid userId)
     {
         var scrapCategory = await _scrapCategoryRepository.GetByIdAsync(scrapCategoryId);
         if (scrapCategory == null)

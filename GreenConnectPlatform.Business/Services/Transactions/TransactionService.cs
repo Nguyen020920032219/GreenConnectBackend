@@ -146,8 +146,7 @@ public class TransactionService : ITransactionService
             if (!string.IsNullOrEmpty(p.ImageUrl))
                 p.ImageUrl = await _fileStorageService.GetReadSignedUrlAsync(p.ImageUrl);
 
-        
-        
+
         return new PaginatedResult<TransactionOveralModel>
             { Data = data, Pagination = new PaginationModel(total, pageNumber, pageSize) };
     }
@@ -195,7 +194,8 @@ public class TransactionService : ITransactionService
         return _mapper.Map<List<TransactionDetailModel>>(transaction.TransactionDetails);
     }
 
-    public async Task ProcessTransactionAsync(Guid transactionId, Guid householdId, bool isAccepted, TransactionPaymentMethod paymentMethod)
+    public async Task ProcessTransactionAsync(Guid transactionId, Guid householdId, bool isAccepted,
+        TransactionPaymentMethod paymentMethod)
     {
         var transaction = await _transactionRepository.GetByIdWithDetailsAsync(transactionId);
         if (transaction == null)
@@ -231,12 +231,9 @@ public class TransactionService : ITransactionService
                 .Select(td => td.ScrapCategoryId)
                 .ToList();
             foreach (var detail in transaction.Offer.ScrapPost.ScrapPostDetails)
-            {
-                if (transactedCategoryIds.Contains(detail.ScrapCategoryId)) 
-                {
+                if (transactedCategoryIds.Contains(detail.ScrapCategoryId))
                     detail.Status = PostDetailStatus.Collected;
-                }
-            }
+
             var scrapPosts = transaction.Offer.ScrapPost.ScrapPostDetails
                 .Where(s => s.Status == PostDetailStatus.Available || s.Status == PostDetailStatus.Booked)
                 .ToList();
@@ -353,3 +350,4 @@ public class TransactionService : ITransactionService
         return qrUrl;
     }
 }
+

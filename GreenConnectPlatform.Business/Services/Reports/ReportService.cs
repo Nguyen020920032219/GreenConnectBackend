@@ -105,7 +105,7 @@ public class ReportService : IReportService
         {
             TotalEarning = earning?.Sum(t => t.TotalAmount) ?? 0,
             TotalFeedbacks = feedbacks.Count,
-            TotalRating = feedbacks.Any() ? (float)feedbacks.Average(f => f.Rate): 0,
+            TotalRating = feedbacks.Any() ? (float)feedbacks.Average(f => f.Rate) : 0,
             TotalComplaints = complaints.Count,
             Complaints = complaintModel,
             TotalAccused = accused.Count,
@@ -127,22 +127,22 @@ public class ReportService : IReportService
         var postCompleted = posts.Where(p => p.Status == PostStatus.Completed).ToList();
         var postModel = new List<PostModel>
         {
-            new PostModel
+            new()
             {
                 PostStatus = PostStatus.Open,
                 TotalPosts = postOpen.Count
             },
-            new PostModel
+            new()
             {
                 PostStatus = PostStatus.PartiallyBooked,
                 TotalPosts = postPartiallyBooked.Count
             },
-            new PostModel
+            new()
             {
                 PostStatus = PostStatus.FullyBooked,
                 TotalPosts = postFullyBooked.Count
             },
-            new PostModel
+            new()
             {
                 PostStatus = PostStatus.Completed,
                 TotalPosts = postCompleted.Count

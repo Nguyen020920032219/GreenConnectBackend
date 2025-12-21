@@ -1,5 +1,4 @@
 ﻿using GreenConnectPlatform.Business.Models.CollectionOffers.OfferDetails;
-using GreenConnectPlatform.Business.Models.ScheduleProposals;
 using GreenConnectPlatform.Business.Models.ScrapPosts;
 using GreenConnectPlatform.Data.Enums;
 
@@ -18,5 +17,4 @@ public class CollectionOfferModel
 
     public List<OfferDetailModel> OfferDetails { get; set; } = new();
 
-    public List<ScheduleProposalModel> ScheduleProposals { get; set; } = new();
 }

@@ -10,6 +10,7 @@ using GreenConnectPlatform.Business.Models.RewardItems;
 using GreenConnectPlatform.Business.Models.ScrapCategories;
 using GreenConnectPlatform.Business.Models.ScrapPosts;
 using GreenConnectPlatform.Business.Models.ScrapPosts.ScrapPostDetails;
+using GreenConnectPlatform.Business.Models.ScrapPostTimeSlots;
 using GreenConnectPlatform.Business.Models.Transactions;
 using GreenConnectPlatform.Business.Models.Transactions.TransactionDetails;
 using GreenConnectPlatform.Business.Models.Users;
@@ -26,8 +27,9 @@ public class MappingProfile : Profile
         #region ScrapPost, ScrapPostDetail
 
         CreateMap<ScrapPost, ScrapPostModel>();
-        CreateMap<ScrapPostCreateModel, ScrapPost>().ForMember(dest => dest.Location, opt => opt.Ignore());
-        ;
+        CreateMap<ScrapPostCreateModel, ScrapPost>()
+            .ForMember(dest => dest.Location, opt => opt.Ignore())
+            .ForMember(dest => dest.TimeSlots, opt => opt.MapFrom(src => src.ScrapPostTimeSlots));;
         CreateMap<ScrapPost, ScrapPostOverralModel>();
         CreateMap<ScrapPostDetailCreateModel, ScrapPostDetail>();
         CreateMap<ScrapPostDetail, ScrapPostDetailModel>();
@@ -39,26 +41,25 @@ public class MappingProfile : Profile
 
         #endregion
 
-        // #region CollectionOffer, OfferDetail
-        //
-        // CreateMap<CollectionOffer, CollectionOfferModel>();
-        // CreateMap<CollectionOffer, CollectionOfferOveralForCollectorModel>();
-        // CreateMap<CollectionOffer, CollectionOfferOveralForHouseModel>();
-        // CreateMap<CollectionOfferCreateModel, CollectionOffer>()
-        //     .ForMember(dest => dest.ScheduleProposals, opt => opt.Ignore());
-        // CreateMap<OfferDetailCreateModel, OfferDetail>();
-        // CreateMap<OfferDetail, OfferDetailModel>();
-        // CreateMap<OfferDetailUpdateModel, OfferDetail>()
-        //     .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
-        //
-        // #endregion
+        #region ScrapPostTimeSlot
 
-        // #region ScheduleProposal
-        //
-        // CreateMap<ScheduleProposalCreateModel, ScheduleProposal>();
-        // CreateMap<ScheduleProposal, ScheduleProposalModel>();
-        //
-        // #endregion
+        CreateMap<ScrapPostTimeSlot, ScrapPostTimeSlotModel>();
+        CreateMap<ScrapPostTimeSlotCreateModel, ScrapPostTimeSlot>();
+
+        #endregion
+
+        #region CollectionOffer, OfferDetail
+        
+        CreateMap<CollectionOffer, CollectionOfferModel>();
+        CreateMap<CollectionOffer, CollectionOfferOveralForCollectorModel>();
+        CreateMap<CollectionOffer, CollectionOfferOveralForHouseModel>();
+        CreateMap<CollectionOfferCreateModel, CollectionOffer>();
+        CreateMap<OfferDetailCreateModel, OfferDetail>();
+        CreateMap<OfferDetail, OfferDetailModel>();
+        CreateMap<OfferDetailUpdateModel, OfferDetail>()
+            .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
+        
+        #endregion
 
         #region ScrapCategory
 

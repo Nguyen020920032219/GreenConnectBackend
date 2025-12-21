@@ -272,6 +272,7 @@ public class ScrapPostController : ControllerBase
     ///     Chỉ tạo đề nghị thu gom nếu bài đăng đang ở trạng thái Open hoặc PartiallyBooked
     /// </remarks>
     /// <param name="id"></param>
+    /// <param name="slotTimeId"></param>
     /// <param name="request"></param>
     /// <response code="200">Thêm offer dành cho bài đăng(trả về đề nghị dành cho bài đăng)</response>
     /// <response code="400">Không thể thêm lời đề nghị vì bài đăng đã hoàn thành.....</response>
@@ -283,10 +284,10 @@ public class ScrapPostController : ControllerBase
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> AddOffer(Guid id, [FromBody] CollectionOfferCreateModel request)
+    public async Task<IActionResult> AddOffer(Guid id,[FromQuery]Guid slotTimeId ,[FromBody] CollectionOfferCreateModel request)
     {
         var userId = GetCurrentUserId();
-        var result = await _collectionOfferService.CreateAsync(userId, id, request);
+        var result = await _collectionOfferService.CreateAsync(userId, id,slotTimeId ,request);
         return Ok(await _collectionOfferService.GetByIdAsync(result.CollectionOfferId));
     }
 

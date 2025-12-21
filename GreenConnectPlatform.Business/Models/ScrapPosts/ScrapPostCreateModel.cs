@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using GreenConnectPlatform.Business.Models.ScrapPosts.ScrapPostDetails;
+using GreenConnectPlatform.Business.Models.ScrapPostTimeSlots;
 using GreenConnectPlatform.Data.Enums;
 
 namespace GreenConnectPlatform.Business.Models.ScrapPosts;
@@ -33,4 +34,6 @@ public class ScrapPostCreateModel
     public bool MustTakeAll { get; set; }
 
     public List<ScrapPostDetailCreateModel> ScrapPostDetails { get; set; } = new();
+    
+    public List<ScrapPostTimeSlotCreateModel> ScrapPostTimeSlots { get; set; } = new();
 }

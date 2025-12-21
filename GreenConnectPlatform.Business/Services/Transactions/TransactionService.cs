@@ -152,46 +152,59 @@ public class TransactionService : ITransactionService
     }
 
     public async Task<List<TransactionDetailModel>> SubmitDetailsAsync(
-        Guid transactionId, Guid collectorId, List<TransactionDetailCreateModel> details)
+        Guid scrapPostId, Guid collectorId, List<TransactionDetailCreateModel> details)
     {
-        var transaction = await _transactionRepository.GetByIdWithDetailsAsync(transactionId);
-        if (transaction == null)
-            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Giao dịch không tìm thấy.");
+        var transactions = await _transactionRepository.GetAllAsync();
+        transactions = transactions.Where(t => t.ScrapCollectorId == collectorId && t.Offer.ScrapPostId == scrapPostId && 
+                                             t.Status == TransactionStatus.InProgress);
+        if (!transactions.Any())
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Không tìm thấy giao dịch nào.");
 
-        if (transaction.ScrapCollectorId != collectorId)
-            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Bạn không có quyền.");
-
-        if (transaction.Status != TransactionStatus.InProgress)
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
-                "Phải check-in trước khi gửi chi tiết thu gom.");
-
-        var offerCategoryIds = transaction.Offer.OfferDetails.Select(d => d.ScrapCategoryId).ToList();
+        var offerCategoryIds = transactions
+            .Where(t => t.Offer != null)
+            .SelectMany(t => t.Offer.OfferDetails)
+            .Select(o => o.ScrapCategoryId)
+            .ToList();
+        var categoryIds = details.Select(d => d.ScrapCategoryId).Distinct().ToList();
         var inputCategoryIds = details.Select(d => d.ScrapCategoryId).ToList();
-
-        if (inputCategoryIds.Except(offerCategoryIds).Any())
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Contains item not in original Offer.");
-
-        transaction.TransactionDetails.Clear();
-
-        var newDetails = _mapper.Map<List<TransactionDetail>>(details);
-        foreach (var d in newDetails)
+        
+        if(categoryIds.Count != inputCategoryIds.Count)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Danh mục vật phẩm bị trùng lặp.");
+        if(inputCategoryIds.Count != offerCategoryIds.Count)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Số lượng danh mục vật phẩm không khớp với đề xuất.");
+        if(!inputCategoryIds.All(id => offerCategoryIds.Contains(id)))
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Danh mục vật phẩm không khớp với đề xuất.");
+        
+        var updateDetails = new List<TransactionDetail>();
+        foreach (var transaction in transactions)
         {
-            d.TransactionId = transactionId;
-            d.FinalPrice = d.PricePerUnit * (decimal)d.Quantity;
-            transaction.TransactionDetails.Add(d);
+            foreach (var detail in transaction.TransactionDetails)
+            {
+                var matchingRequest = details.FirstOrDefault(d => d.ScrapCategoryId == detail.ScrapCategoryId);
+
+                if (matchingRequest != null)
+                {
+                    detail.TransactionId = transaction.TransactionId;
+                    detail.PricePerUnit = matchingRequest.PricePerUnit;
+                    detail.Unit = matchingRequest.Unit;
+                    detail.FinalPrice = detail.PricePerUnit * (decimal)detail.Quantity;
+                    updateDetails.Add(detail);
+                    transaction.TransactionDetails.Add(detail);
+                }
+            }
+            transaction.TotalAmount = transaction.TransactionDetails.Sum(t => t.FinalPrice);
+            transaction.UpdatedAt = DateTime.UtcNow;
+            
+            await _transactionRepository.UpdateAsync(transaction);
         }
-
-        transaction.UpdatedAt = DateTime.UtcNow;
-
-        await _transactionRepository.UpdateAsync(transaction);
-
-        var householdId = transaction.HouseholdId;
+        
+        var householdId = transactions.First().HouseholdId;
         var title = "Xác nhận số lượng!";
         var body = "Người thu gom đã cập nhật số lượng và giá. Vui lòng kiểm tra và chốt đơn.";
-        var data = new Dictionary<string, string> { { "type", "Transaction" }, { "id", transactionId.ToString() } };
+        var data = new Dictionary<string, string> { { "type", "ScrapPost" }, { "id", scrapPostId.ToString() } };
         await _notificationService.SendNotificationAsync(householdId, title, body, data);
 
-        return _mapper.Map<List<TransactionDetailModel>>(transaction.TransactionDetails);
+        return _mapper.Map<List<TransactionDetailModel>>(updateDetails);
     }
 
     public async Task ProcessTransactionAsync(Guid transactionId, Guid householdId, bool isAccepted,

@@ -13,6 +13,6 @@ public class ScrapPostDetailModel
     public string? ImageUrl { get; set; }
 
     public PostDetailStatus Status { get; set; } = PostDetailStatus.Available;
-    
+
     public ItemTransactionType Type { get; set; }
 }

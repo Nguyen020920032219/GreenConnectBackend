@@ -16,6 +16,7 @@ public class ScrapPostDetailCreateModel
 
     [Required(ErrorMessage = "ImageUrl là bắt buộc.")]
     public string? ImageUrl { get; set; }
+
     [Required(ErrorMessage = "Type là bắt buộc.")]
     public ItemTransactionType Type { get; set; }
 

@@ -190,7 +190,7 @@ public class ScrapPostService : IScrapPostService
             post.Location =
                 _geometryFactory.CreatePoint(new Coordinate(request.Location.Longitude.Value,
                     request.Location.Latitude.Value));
-        
+
         await _postRepository.UpdateAsync(post);
         return _mapper.Map<ScrapPostModel>(post);
     }
@@ -250,7 +250,7 @@ public class ScrapPostService : IScrapPostService
         if (detail.Status != PostDetailStatus.Available)
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Không thể sửa món hàng đã được đặt/thu gom.");
-        if(detailRequest.Type != null)
+        if (detailRequest.Type != null)
             detail.Type = detailRequest.Type.Value;
         _mapper.Map(detailRequest, detail);
         await _postRepository.UpdateAsync(post);
@@ -276,4 +276,3 @@ public class ScrapPostService : IScrapPostService
         await _postRepository.UpdateAsync(post);
     }
 }
-

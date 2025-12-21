@@ -721,14 +721,17 @@ namespace GreenConnectPlatform.Data.Migrations
                     HouseholdId = table.Column<Guid>(type: "uuid", nullable: false),
                     ScrapCollectorId = table.Column<Guid>(type: "uuid", nullable: false),
                     OfferId = table.Column<Guid>(type: "uuid", nullable: false),
+                    TimeSlotId = table.Column<Guid>(type: "uuid", nullable: true),
                     Status = table.Column<string>(type: "text", nullable: false),
                     PaymentMethod = table.Column<string>(type: "text", nullable: true),
-                    TotalAmount = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
+                    TotalAmount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
                     ScheduledTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     CheckInTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
-                    CheckInLocation = table.Column<Point>(type: "geometry(Point,4326)", nullable: true),
+                    CheckInLocation = table.Column<Point>(type: "geometry(Point, 4326)", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: true),
+                    UserId1 = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -746,11 +749,27 @@ namespace GreenConnectPlatform.Data.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
+                        name: "FK_Transactions_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Transactions_AspNetUsers_UserId1",
+                        column: x => x.UserId1,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
                         name: "FK_Transactions_CollectionOffers_OfferId",
                         column: x => x.OfferId,
                         principalTable: "CollectionOffers",
                         principalColumn: "CollectionOfferId",
                         onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Transactions_ScrapPostTimeSlots_TimeSlotId",
+                        column: x => x.TimeSlotId,
+                        principalTable: "ScrapPostTimeSlots",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -1189,6 +1208,21 @@ namespace GreenConnectPlatform.Data.Migrations
                 name: "IX_Transactions_ScrapCollectorId",
                 table: "Transactions",
                 column: "ScrapCollectorId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Transactions_TimeSlotId",
+                table: "Transactions",
+                column: "TimeSlotId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Transactions_UserId",
+                table: "Transactions",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Transactions_UserId1",
+                table: "Transactions",
+                column: "UserId1");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserDevices_FcmToken",

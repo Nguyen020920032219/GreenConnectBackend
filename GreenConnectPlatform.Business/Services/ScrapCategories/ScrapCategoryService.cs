@@ -70,7 +70,6 @@ public class ScrapCategoryService : IScrapCategoryService
     }
 
 
-
     public async Task<ScrapCategoryModel> UpdateAsync(Guid id, string? categoryName, string? imageUrl)
     {
         var entity = await _repository.GetByIdAsync(id);
@@ -110,4 +109,3 @@ public class ScrapCategoryService : IScrapCategoryService
         await _repository.DeleteAsync(entity);
     }
 }
-

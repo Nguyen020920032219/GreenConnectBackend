@@ -1,5 +1,3 @@
-using GreenConnectPlatform.Business.Models.CollectionOffers;
-using GreenConnectPlatform.Business.Models.CollectionOffers.OfferDetails;
 using GreenConnectPlatform.Business.Models.Complaints;
 using GreenConnectPlatform.Business.Models.CreditTransactionHistories;
 using GreenConnectPlatform.Business.Models.Feedbacks;
@@ -9,7 +7,6 @@ using GreenConnectPlatform.Business.Models.PaymentTransactions;
 using GreenConnectPlatform.Business.Models.PointHistories;
 using GreenConnectPlatform.Business.Models.ReferencePrices;
 using GreenConnectPlatform.Business.Models.RewardItems;
-using GreenConnectPlatform.Business.Models.ScheduleProposals;
 using GreenConnectPlatform.Business.Models.ScrapCategories;
 using GreenConnectPlatform.Business.Models.ScrapPosts;
 using GreenConnectPlatform.Business.Models.ScrapPosts.ScrapPostDetails;

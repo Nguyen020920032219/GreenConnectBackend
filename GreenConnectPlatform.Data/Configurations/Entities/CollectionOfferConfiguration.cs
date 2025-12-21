@@ -15,7 +15,7 @@ public class CollectionOfferConfiguration : IEntityTypeConfiguration<CollectionO
         builder.HasOne(x => x.TimeSlot)
             .WithMany()
             .HasForeignKey(x => x.TimeSlotId)
-            .OnDelete(DeleteBehavior.SetNull); 
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasOne(d => d.ScrapPost)
             .WithMany(p => p.CollectionOffers)

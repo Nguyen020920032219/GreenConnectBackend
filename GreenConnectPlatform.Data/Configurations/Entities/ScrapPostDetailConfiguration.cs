@@ -18,7 +18,7 @@ public class ScrapPostDetailConfiguration : IEntityTypeConfiguration<ScrapPostDe
 
         builder.Property(x => x.AmountDescription).HasMaxLength(200);
         builder.Property(x => x.ImageUrl).HasMaxLength(500);
-        
+
         builder.Property(x => x.Unit).HasMaxLength(50).HasDefaultValue("kg").IsRequired();
         builder.Property(x => x.Quantity).IsRequired();
 

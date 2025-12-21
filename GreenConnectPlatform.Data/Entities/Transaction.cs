@@ -9,6 +9,7 @@ public class Transaction
     public Guid HouseholdId { get; set; }
     public Guid ScrapCollectorId { get; set; }
     public Guid OfferId { get; set; }
+    public Guid? TimeSlotId { get; set; }
     public TransactionStatus Status { get; set; }
     public TransactionPaymentMethod? PaymentMethod { get; set; }
     public decimal TotalAmount { get; set; }
@@ -25,4 +26,5 @@ public class Transaction
     public virtual ChatRoom? ChatRoom { get; set; }
     public virtual ICollection<Complaint>? Complaints { get; set; }
     public virtual ICollection<Feedback>? Feedbacks { get; set; }
+    public virtual ScrapPostTimeSlot? TimeSlot { get; set; }
 }

@@ -350,4 +350,3 @@ public class TransactionService : ITransactionService
         return qrUrl;
     }
 }
-

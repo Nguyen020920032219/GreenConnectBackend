@@ -152,10 +152,10 @@ public class CollectionOfferService : ICollectionOfferService
             detail.CollectionOfferId = offer.CollectionOfferId;
             var matchingPostDetail = post.ScrapPostDetails
                 .FirstOrDefault(d => d.ScrapCategoryId == detail.ScrapCategoryId);
-            if(matchingPostDetail != null)
+            if (matchingPostDetail != null)
                 detail.Type = matchingPostDetail.Type;
         }
-        
+
         // if (request.ScheduleProposal != null)
         // {
         //     var proposal = _mapper.Map<ScheduleProposal>(request.ScheduleProposal);
@@ -291,7 +291,7 @@ public class CollectionOfferService : ICollectionOfferService
             offer.Status = OfferStatus.Rejected;
             // var schedule = offer.ScheduleProposals.Where(s => s.Status == ProposalStatus.Pending).ToList();
             // foreach (var s in schedule)
-                // s.Status = ProposalStatus.Rejected;
+            // s.Status = ProposalStatus.Rejected;
             var offerCategoryIds = offer.OfferDetails.Select(d => d.ScrapCategoryId).ToList();
             var post = offer.ScrapPost.ScrapPostDetails
                 .Where(d => offerCategoryIds.Contains(d.ScrapCategoryId)).ToList();
@@ -471,4 +471,3 @@ public class CollectionOfferService : ICollectionOfferService
         await _postRepository.UpdateAsync(post);
     }
 }
-

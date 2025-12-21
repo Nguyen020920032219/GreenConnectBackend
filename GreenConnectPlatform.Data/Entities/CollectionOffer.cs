@@ -7,7 +7,7 @@ public class CollectionOffer
     public Guid CollectionOfferId { get; set; }
     public Guid ScrapPostId { get; set; }
     public Guid ScrapCollectorId { get; set; }
-    public Guid? TimeSlotId { get; set; } 
+    public Guid? TimeSlotId { get; set; }
     public virtual ScrapPostTimeSlot? TimeSlot { get; set; }
     public OfferStatus Status { get; set; } = OfferStatus.Pending;
     public DateTime CreatedAt { get; set; }

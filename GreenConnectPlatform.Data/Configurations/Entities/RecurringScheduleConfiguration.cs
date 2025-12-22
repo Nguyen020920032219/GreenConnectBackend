@@ -16,7 +16,8 @@ public class RecurringScheduleConfiguration : IEntityTypeConfiguration<Recurring
 
         builder.Property(x => x.Location).HasColumnType("geometry(Point, 4326)");
 
-        builder.Property(x => x.PreferredTime).HasColumnType("time").IsRequired();
+        builder.Property(x => x.StartTime).HasColumnType("time").IsRequired();
+        builder.Property(x => x.EndTime).HasColumnType("time").IsRequired();
 
         builder.Property(x => x.MustTakeAll).HasDefaultValue(false);
         builder.Property(x => x.IsActive).HasDefaultValue(true);

@@ -30,10 +30,10 @@ namespace GreenConnectPlatform.Data.Migrations
                 columns: new[] { "Id", "AccessFailedCount", "BuyerType", "ConcurrencyStamp", "CreatedAt", "Email", "EmailConfirmed", "FullName", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "OtpCode", "OtpExpiredAt", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "SecurityStamp", "Status", "TwoFactorEnabled", "UpdatedAt", "UserName" },
                 values: new object[,]
                 {
-                    { new Guid("a1b2c3d4-e5f6-7788-9900-aabbccddeeff"), 0, null, "786bf9d9-51c3-4fb6-a8f8-c4dd84b12563", new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), "admin@gc.com", true, "Admin System", false, null, "ADMIN@GC.COM", "0900000000", null, null, "AQAAAAIAAYagAAAAELSd8S1/ERD0+I4lEAStNTTw/VOGuVVH8vE3SL92wYldv4i4XV78koh+GJ3GpdR05A==", "0900000000", true, "02824a24-a664-444d-9a44-e92ceb8ee21a", "Active", false, null, "0900000000" },
-                    { new Guid("b2c3d4e5-f6a1-8899-0011-bbccddeeff00"), 0, "Individual", "4ada4827-d9d7-4c69-8546-559f74cd2c82", new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), "anhba@gc.com", true, "Anh Ba Ve Chai", false, null, "ANHBA@GC.COM", "0933333333", null, null, "AQAAAAIAAYagAAAAELSd8S1/ERD0+I4lEAStNTTw/VOGuVVH8vE3SL92wYldv4i4XV78koh+GJ3GpdR05A==", "0933333333", true, "9673f2c8-53bb-4cd6-acc0-1059bd3c2f4e", "Active", false, null, "0933333333" },
-                    { new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"), 0, null, "30271cf5-639b-486a-b924-1a4557eee666", new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), "chitu@gc.com", true, "Chị Tư Nội Trợ", false, null, "CHITU@GC.COM", "0922222222", null, null, "AQAAAAIAAYagAAAAELSd8S1/ERD0+I4lEAStNTTw/VOGuVVH8vE3SL92wYldv4i4XV78koh+GJ3GpdR05A==", "0922222222", true, "183eb312-9ef5-40eb-8be2-b8e7d9175395", "Active", false, null, "0922222222" },
-                    { new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"), 0, "Business", "d5949604-86a6-42e8-a1ea-6d8e47b5bfd5", new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), "vuaabc@gc.com", true, "Vựa Tái Chế ABC", false, null, "VUAABC@GC.COM", "0988888888", null, null, "AQAAAAIAAYagAAAAELSd8S1/ERD0+I4lEAStNTTw/VOGuVVH8vE3SL92wYldv4i4XV78koh+GJ3GpdR05A==", "0988888888", true, "43f8e0b9-dece-450f-b2cc-6e6e6ed9b11b", "Active", false, null, "0988888888" }
+                    { new Guid("a1b2c3d4-e5f6-7788-9900-aabbccddeeff"), 0, null, "839027df-33ef-464a-b708-a75ba24a5ef1", new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), "admin@gc.com", true, "Admin System", false, null, "ADMIN@GC.COM", "0900000000", null, null, "AQAAAAIAAYagAAAAELSd8S1/ERD0+I4lEAStNTTw/VOGuVVH8vE3SL92wYldv4i4XV78koh+GJ3GpdR05A==", "0900000000", true, "de9a548f-a291-4b3b-ab37-8f49cd3d9f14", "Active", false, null, "0900000000" },
+                    { new Guid("b2c3d4e5-f6a1-8899-0011-bbccddeeff00"), 0, "Individual", "5258a843-36d7-4d6e-b7f3-ecbf2be5797f", new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), "anhba@gc.com", true, "Anh Ba Ve Chai", false, null, "ANHBA@GC.COM", "0933333333", null, null, "AQAAAAIAAYagAAAAELSd8S1/ERD0+I4lEAStNTTw/VOGuVVH8vE3SL92wYldv4i4XV78koh+GJ3GpdR05A==", "0933333333", true, "07534427-1c97-4c49-a117-bbf27460c8f7", "Active", false, null, "0933333333" },
+                    { new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"), 0, null, "3eafac5a-41cb-4ce3-a8fa-388f3cc41dda", new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), "chitu@gc.com", true, "Chị Tư Nội Trợ", false, null, "CHITU@GC.COM", "0922222222", null, null, "AQAAAAIAAYagAAAAELSd8S1/ERD0+I4lEAStNTTw/VOGuVVH8vE3SL92wYldv4i4XV78koh+GJ3GpdR05A==", "0922222222", true, "7f76c5e9-c799-4d07-b12a-07feef8ae03d", "Active", false, null, "0922222222" },
+                    { new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"), 0, "Business", "a11c2d30-bf0a-4124-b7ef-5e3ddd6ebdc4", new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), "vuaabc@gc.com", true, "Vựa Tái Chế ABC", false, null, "VUAABC@GC.COM", "0988888888", null, null, "AQAAAAIAAYagAAAAELSd8S1/ERD0+I4lEAStNTTw/VOGuVVH8vE3SL92wYldv4i4XV78koh+GJ3GpdR05A==", "0988888888", true, "0f4ca026-db30-4872-8648-18506013847a", "Active", false, null, "0988888888" }
                 });
 
             migrationBuilder.InsertData(
@@ -99,20 +99,20 @@ namespace GreenConnectPlatform.Data.Migrations
             migrationBuilder.InsertData(
                 table: "Notifications",
                 columns: new[] { "NotificationId", "Content", "CreatedAt", "EntityId", "EntityType", "RecipientId" },
-                values: new object[] { new Guid("23bae82a-a7d5-4a28-a15e-787f65955a96"), "Vựa ABC đã hoàn thành đơn hàng.", new DateTime(2025, 10, 10, 13, 0, 0, 0, DateTimeKind.Utc), new Guid("70000001-0000-0000-0000-000000000001"), "Transaction", new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011") });
+                values: new object[] { new Guid("680c50ef-558e-40d2-bb72-22b8e9208f52"), "Vựa ABC đã hoàn thành đơn hàng.", new DateTime(2025, 10, 10, 13, 0, 0, 0, DateTimeKind.Utc), new Guid("70000001-0000-0000-0000-000000000001"), "Transaction", new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011") });
 
             migrationBuilder.InsertData(
                 table: "PaymentTransactions",
                 columns: new[] { "PaymentId", "Amount", "BankCode", "ClientIpAddress", "CreatedAt", "OrderInfo", "PackageId", "PaymentGateway", "ResponseCode", "Status", "TransactionRef", "UserId", "VnpTransactionNo" },
-                values: new object[] { new Guid("46e40dba-f734-4161-8c7d-9f73a09cc39f"), 200000m, "NCB", null, new DateTime(2025, 10, 5, 10, 0, 0, 0, DateTimeKind.Utc), "Mua Goi Pro", new Guid("a2222222-0000-0000-0000-000000000001"), "VNPay", "00", "Success", "ORD001", new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"), "VNP001" });
+                values: new object[] { new Guid("abba1710-ac99-40e2-a692-d877912d21a7"), 200000m, "NCB", null, new DateTime(2025, 10, 5, 10, 0, 0, 0, DateTimeKind.Utc), "Mua Goi Pro", new Guid("a2222222-0000-0000-0000-000000000001"), "VNPay", "00", "Success", "ORD001", new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"), "VNP001" });
 
             migrationBuilder.InsertData(
                 table: "PointHistories",
                 columns: new[] { "PointHistoryId", "CreatedAt", "PointChange", "Reason", "UserId" },
                 values: new object[,]
                 {
-                    { new Guid("534d0017-bd7a-420a-8ac5-5a988821c571"), new DateTime(2025, 10, 10, 13, 0, 0, 0, DateTimeKind.Utc), 10, "Hoàn thành đơn", new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011") },
-                    { new Guid("5da6d760-60a9-4a45-8e1e-c27f3012ac83"), new DateTime(2025, 10, 5, 10, 0, 0, 0, DateTimeKind.Utc), -20, "Khiếu nại", new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011") }
+                    { new Guid("72aab8db-09c6-4501-aa09-a0fd9b95cb48"), new DateTime(2025, 10, 5, 10, 0, 0, 0, DateTimeKind.Utc), -20, "Khiếu nại", new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011") },
+                    { new Guid("a7f0bbd6-b228-4bea-8975-99a7e9c22875"), new DateTime(2025, 10, 10, 13, 0, 0, 0, DateTimeKind.Utc), 10, "Hoàn thành đơn", new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011") }
                 });
 
             migrationBuilder.InsertData(
@@ -120,10 +120,10 @@ namespace GreenConnectPlatform.Data.Migrations
                 columns: new[] { "ProfileId", "Address", "AvatarUrl", "BankAccountName", "BankAccountNumber", "BankCode", "DateOfBirth", "Gender", "Location", "PointBalance", "RankId", "UserId" },
                 values: new object[,]
                 {
-                    { new Guid("25833e81-5d0a-4d79-a477-bfe71aa3a8ea"), "123 CMT8, Q3, HCM", null, "NGUYEN THI TU", "0922222222", "970422", null, "Female", (NetTopologySuite.Geometries.Point)new NetTopologySuite.IO.WKTReader().Read("SRID=4326;POINT (106.69 10.777)"), 50, 1, new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011") },
-                    { new Guid("3a52da4b-9465-420c-9865-9061a77c8651"), "Kho Quận 7, HCM", null, "CTY ABC", "0988888888", "970436", null, null, (NetTopologySuite.Geometries.Point)new NetTopologySuite.IO.WKTReader().Read("SRID=4326;POINT (106.72 10.75)"), 5000, 2, new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef") },
-                    { new Guid("6d44205f-7c2c-4297-b0d2-0b6e73c44808"), "Headquarter", null, null, null, null, null, null, null, 9999, 3, new Guid("a1b2c3d4-e5f6-7788-9900-aabbccddeeff") },
-                    { new Guid("ab384c63-d28b-4315-95c5-c2f55909b60e"), "Hẻm 456 Lê Văn Sỹ, Q3, HCM", null, null, null, null, null, "Male", (NetTopologySuite.Geometries.Point)new NetTopologySuite.IO.WKTReader().Read("SRID=4326;POINT (106.68 10.78)"), 120, 1, new Guid("b2c3d4e5-f6a1-8899-0011-bbccddeeff00") }
+                    { new Guid("550d2c27-c277-4920-8c5b-e0da1f5d167d"), "123 CMT8, Q3, HCM", null, "NGUYEN THI TU", "0922222222", "970422", null, "Female", (NetTopologySuite.Geometries.Point)new NetTopologySuite.IO.WKTReader().Read("SRID=4326;POINT (106.69 10.777)"), 50, 1, new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011") },
+                    { new Guid("90a83697-1313-424b-8fa1-e35174514399"), "Hẻm 456 Lê Văn Sỹ, Q3, HCM", null, null, null, null, null, "Male", (NetTopologySuite.Geometries.Point)new NetTopologySuite.IO.WKTReader().Read("SRID=4326;POINT (106.68 10.78)"), 120, 1, new Guid("b2c3d4e5-f6a1-8899-0011-bbccddeeff00") },
+                    { new Guid("b7d13da9-1a4c-406f-81dc-46c22bb60bb2"), "Kho Quận 7, HCM", null, "CTY ABC", "0988888888", "970436", null, null, (NetTopologySuite.Geometries.Point)new NetTopologySuite.IO.WKTReader().Read("SRID=4326;POINT (106.72 10.75)"), 5000, 2, new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef") },
+                    { new Guid("de2d1bb5-553e-498d-8e12-dedd154d43f8"), "Headquarter", null, null, null, null, null, null, null, 9999, 3, new Guid("a1b2c3d4-e5f6-7788-9900-aabbccddeeff") }
                 });
 
             migrationBuilder.InsertData(
@@ -131,9 +131,9 @@ namespace GreenConnectPlatform.Data.Migrations
                 columns: new[] { "ReferencePriceId", "LastUpdated", "PricePerKg", "ScrapCategoryId", "UpdatedByAdminId" },
                 values: new object[,]
                 {
-                    { new Guid("00d13a5d-451a-40c3-8747-c6102fea8256"), new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), 1000m, new Guid("33333333-3333-3333-3333-333333333333"), new Guid("a1b2c3d4-e5f6-7788-9900-aabbccddeeff") },
-                    { new Guid("a28081b5-59cf-43eb-9795-600b493c507f"), new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), 3000m, new Guid("11111111-1111-1111-1111-111111111111"), new Guid("a1b2c3d4-e5f6-7788-9900-aabbccddeeff") },
-                    { new Guid("db88dcc1-be3e-4a1e-a0f1-bf55b0665ada"), new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), 5000m, new Guid("22222222-2222-2222-2222-222222222222"), new Guid("a1b2c3d4-e5f6-7788-9900-aabbccddeeff") }
+                    { new Guid("27557888-1cf7-4cd3-a9d1-e915c912f89c"), new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), 3000m, new Guid("11111111-1111-1111-1111-111111111111"), new Guid("a1b2c3d4-e5f6-7788-9900-aabbccddeeff") },
+                    { new Guid("69efd35d-363d-4c38-8b2f-29d47f771f7d"), new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), 1000m, new Guid("33333333-3333-3333-3333-333333333333"), new Guid("a1b2c3d4-e5f6-7788-9900-aabbccddeeff") },
+                    { new Guid("b9d68c6c-3f4c-439e-86ed-935f209be96d"), new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), 5000m, new Guid("22222222-2222-2222-2222-222222222222"), new Guid("a1b2c3d4-e5f6-7788-9900-aabbccddeeff") }
                 });
 
             migrationBuilder.InsertData(
@@ -151,8 +151,8 @@ namespace GreenConnectPlatform.Data.Migrations
                 columns: new[] { "UserPackageId", "ActivationDate", "ExpirationDate", "PackageId", "RemainingConnections", "UserId" },
                 values: new object[,]
                 {
-                    { new Guid("67b31caf-52cb-46c8-9a6a-a9318026edc1"), new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), null, new Guid("a1111111-0000-0000-0000-000000000001"), 5, new Guid("b2c3d4e5-f6a1-8899-0011-bbccddeeff00") },
-                    { new Guid("84e3cc1b-ad93-4010-a0f0-900de45254a4"), new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), new DateTime(2025, 11, 9, 10, 0, 0, 0, DateTimeKind.Utc), new Guid("a2222222-0000-0000-0000-000000000001"), 499, new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef") }
+                    { new Guid("1dc69010-2df0-47be-8a3b-8ccda4454ba0"), new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), null, new Guid("a1111111-0000-0000-0000-000000000001"), 5, new Guid("b2c3d4e5-f6a1-8899-0011-bbccddeeff00") },
+                    { new Guid("3544049d-5e90-421c-bf33-9a875e94ba2a"), new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc), new DateTime(2025, 11, 9, 10, 0, 0, 0, DateTimeKind.Utc), new Guid("a2222222-0000-0000-0000-000000000001"), 499, new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef") }
                 });
 
             migrationBuilder.InsertData(
@@ -184,8 +184,8 @@ namespace GreenConnectPlatform.Data.Migrations
                 columns: new[] { "OfferDetailId", "CollectionOfferId", "PricePerUnit", "ScrapCategoryId", "Unit" },
                 values: new object[,]
                 {
-                    { new Guid("7ca8d261-9d92-4220-8d92-ece3b628e9d7"), new Guid("f0000001-0000-0000-0000-000000000001"), 3000m, new Guid("11111111-1111-1111-1111-111111111111"), "kg" },
-                    { new Guid("8671d90c-1910-4c02-b16c-1b36777d0258"), new Guid("f0000001-0000-0000-0000-000000000001"), 5000m, new Guid("22222222-2222-2222-2222-222222222222"), "kg" }
+                    { new Guid("71bafdb4-ba3f-4712-a7b2-d8d9ec858409"), new Guid("f0000001-0000-0000-0000-000000000001"), 3000m, new Guid("11111111-1111-1111-1111-111111111111"), "kg" },
+                    { new Guid("ee8fdc41-93e0-43d6-ad51-4f56f8dd2723"), new Guid("f0000001-0000-0000-0000-000000000001"), 5000m, new Guid("22222222-2222-2222-2222-222222222222"), "kg" }
                 });
 
             migrationBuilder.InsertData(
@@ -193,24 +193,24 @@ namespace GreenConnectPlatform.Data.Migrations
                 columns: new[] { "TransactionId", "CheckInLocation", "CheckInTime", "CreatedAt", "HouseholdId", "OfferId", "PaymentMethod", "ScheduledTime", "ScrapCollectorId", "Status", "TimeSlotId", "TotalAmount", "UpdatedAt", "UserId", "UserId1" },
                 values: new object[,]
                 {
-                    { new Guid("70000001-0000-0000-0000-000000000001"), (NetTopologySuite.Geometries.Point)new NetTopologySuite.IO.WKTReader().Read("SRID=4326;POINT (106.69 10.777)"), new DateTime(2025, 10, 10, 12, 0, 0, 0, DateTimeKind.Utc), new DateTime(2025, 12, 21, 15, 21, 12, 871, DateTimeKind.Utc).AddTicks(199), new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"), new Guid("f0000001-0000-0000-0000-000000000001"), "Cash", new DateTime(2025, 10, 10, 12, 0, 0, 0, DateTimeKind.Utc), new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"), "Completed", null, 100000m, null, null, null },
+                    { new Guid("70000001-0000-0000-0000-000000000001"), (NetTopologySuite.Geometries.Point)new NetTopologySuite.IO.WKTReader().Read("SRID=4326;POINT (106.69 10.777)"), new DateTime(2025, 10, 10, 12, 0, 0, 0, DateTimeKind.Utc), new DateTime(2025, 12, 22, 8, 40, 7, 549, DateTimeKind.Utc).AddTicks(9287), new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"), new Guid("f0000001-0000-0000-0000-000000000001"), "Cash", new DateTime(2025, 10, 10, 12, 0, 0, 0, DateTimeKind.Utc), new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"), "Completed", null, 100000m, null, null, null },
                     { new Guid("70000002-0000-0000-0000-000000000002"), null, null, new DateTime(2025, 10, 5, 10, 0, 0, 0, DateTimeKind.Utc), new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"), new Guid("f0000001-0000-0000-0000-000000000001"), null, null, new Guid("b2c3d4e5-f6a1-8899-0011-bbccddeeff00"), "CanceledByUser", null, 0m, null, null, null }
                 });
 
             migrationBuilder.InsertData(
                 table: "ChatRooms",
                 columns: new[] { "ChatRoomId", "CreatedAt", "TransactionId" },
-                values: new object[] { new Guid("3af52111-7fa3-454a-b555-167cda22afdb"), new DateTime(2025, 10, 9, 10, 0, 0, 0, DateTimeKind.Utc), new Guid("70000001-0000-0000-0000-000000000001") });
+                values: new object[] { new Guid("e676660c-df2d-4545-aa31-b037590bfdc9"), new DateTime(2025, 10, 9, 10, 0, 0, 0, DateTimeKind.Utc), new Guid("70000001-0000-0000-0000-000000000001") });
 
             migrationBuilder.InsertData(
                 table: "Complaints",
                 columns: new[] { "ComplaintId", "AccusedId", "ComplainantId", "CreatedAt", "EvidenceUrl", "Reason", "Status", "TransactionId" },
-                values: new object[] { new Guid("b3779725-f849-4982-882d-a76eb1e93feb"), new Guid("b2c3d4e5-f6a1-8899-0011-bbccddeeff00"), new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"), new DateTime(2025, 10, 5, 10, 0, 0, 0, DateTimeKind.Utc), null, "Hẹn không đến.", "Submitted", new Guid("70000002-0000-0000-0000-000000000002") });
+                values: new object[] { new Guid("1da5f8ee-4604-4422-b181-c73eda49e96a"), new Guid("b2c3d4e5-f6a1-8899-0011-bbccddeeff00"), new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"), new DateTime(2025, 10, 5, 10, 0, 0, 0, DateTimeKind.Utc), null, "Hẹn không đến.", "Submitted", new Guid("70000002-0000-0000-0000-000000000002") });
 
             migrationBuilder.InsertData(
                 table: "Feedbacks",
                 columns: new[] { "FeedbackId", "Comment", "CreatedAt", "Rate", "RevieweeId", "ReviewerId", "TransactionId" },
-                values: new object[] { new Guid("f4e4dafc-89e9-458c-a472-c28c7d5b278f"), "Nhanh gọn lẹ.", new DateTime(2025, 10, 10, 13, 0, 0, 0, DateTimeKind.Utc), 5, new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"), new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"), new Guid("70000001-0000-0000-0000-000000000001") });
+                values: new object[] { new Guid("fbc25471-a526-4c04-a060-ea93068643a1"), "Nhanh gọn lẹ.", new DateTime(2025, 10, 10, 13, 0, 0, 0, DateTimeKind.Utc), 5, new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"), new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"), new Guid("70000001-0000-0000-0000-000000000001") });
 
             migrationBuilder.InsertData(
                 table: "TransactionDetails",
@@ -226,8 +226,8 @@ namespace GreenConnectPlatform.Data.Migrations
                 columns: new[] { "ChatRoomId", "UserId", "JoinedAt" },
                 values: new object[,]
                 {
-                    { new Guid("3af52111-7fa3-454a-b555-167cda22afdb"), new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"), new DateTime(2025, 10, 9, 10, 0, 0, 0, DateTimeKind.Utc) },
-                    { new Guid("3af52111-7fa3-454a-b555-167cda22afdb"), new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"), new DateTime(2025, 10, 9, 10, 0, 0, 0, DateTimeKind.Utc) }
+                    { new Guid("e676660c-df2d-4545-aa31-b037590bfdc9"), new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"), new DateTime(2025, 10, 9, 10, 0, 0, 0, DateTimeKind.Utc) },
+                    { new Guid("e676660c-df2d-4545-aa31-b037590bfdc9"), new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"), new DateTime(2025, 10, 9, 10, 0, 0, 0, DateTimeKind.Utc) }
                 });
 
             migrationBuilder.InsertData(
@@ -235,8 +235,8 @@ namespace GreenConnectPlatform.Data.Migrations
                 columns: new[] { "MessageId", "ChatRoomId", "Content", "IsRead", "SenderId", "Timestamp" },
                 values: new object[,]
                 {
-                    { new Guid("07a5bf16-97d5-4a99-bde4-607c61e57279"), new Guid("3af52111-7fa3-454a-b555-167cda22afdb"), "Ok em.", true, new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"), new DateTime(2025, 10, 10, 12, 1, 0, 0, DateTimeKind.Utc) },
-                    { new Guid("fdad2164-ad4b-4a8c-8fa0-2d746ed5bb70"), new Guid("3af52111-7fa3-454a-b555-167cda22afdb"), "Chào chị, em tới rồi.", true, new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"), new DateTime(2025, 10, 10, 12, 0, 0, 0, DateTimeKind.Utc) }
+                    { new Guid("85c725e6-8ff3-45c6-ba0a-54a0a3b05d89"), new Guid("e676660c-df2d-4545-aa31-b037590bfdc9"), "Ok em.", true, new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011"), new DateTime(2025, 10, 10, 12, 1, 0, 0, DateTimeKind.Utc) },
+                    { new Guid("e9bd1d7d-775b-4ba7-8691-f04182f54c31"), new Guid("e676660c-df2d-4545-aa31-b037590bfdc9"), "Chào chị, em tới rồi.", true, new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef"), new DateTime(2025, 10, 10, 12, 0, 0, 0, DateTimeKind.Utc) }
                 });
         }
 
@@ -266,12 +266,12 @@ namespace GreenConnectPlatform.Data.Migrations
             migrationBuilder.DeleteData(
                 table: "ChatParticipants",
                 keyColumns: new[] { "ChatRoomId", "UserId" },
-                keyValues: new object[] { new Guid("3af52111-7fa3-454a-b555-167cda22afdb"), new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011") });
+                keyValues: new object[] { new Guid("e676660c-df2d-4545-aa31-b037590bfdc9"), new Guid("c3d4e5f6-a1b2-9900-1122-ccddeeff0011") });
 
             migrationBuilder.DeleteData(
                 table: "ChatParticipants",
                 keyColumns: new[] { "ChatRoomId", "UserId" },
-                keyValues: new object[] { new Guid("3af52111-7fa3-454a-b555-167cda22afdb"), new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef") });
+                keyValues: new object[] { new Guid("e676660c-df2d-4545-aa31-b037590bfdc9"), new Guid("e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef") });
 
             migrationBuilder.DeleteData(
                 table: "CollectorVerificationInfos",
@@ -286,87 +286,87 @@ namespace GreenConnectPlatform.Data.Migrations
             migrationBuilder.DeleteData(
                 table: "Complaints",
                 keyColumn: "ComplaintId",
-                keyValue: new Guid("b3779725-f849-4982-882d-a76eb1e93feb"));
+                keyValue: new Guid("1da5f8ee-4604-4422-b181-c73eda49e96a"));
 
             migrationBuilder.DeleteData(
                 table: "Feedbacks",
                 keyColumn: "FeedbackId",
-                keyValue: new Guid("f4e4dafc-89e9-458c-a472-c28c7d5b278f"));
+                keyValue: new Guid("fbc25471-a526-4c04-a060-ea93068643a1"));
 
             migrationBuilder.DeleteData(
                 table: "Messages",
                 keyColumn: "MessageId",
-                keyValue: new Guid("07a5bf16-97d5-4a99-bde4-607c61e57279"));
+                keyValue: new Guid("85c725e6-8ff3-45c6-ba0a-54a0a3b05d89"));
 
             migrationBuilder.DeleteData(
                 table: "Messages",
                 keyColumn: "MessageId",
-                keyValue: new Guid("fdad2164-ad4b-4a8c-8fa0-2d746ed5bb70"));
+                keyValue: new Guid("e9bd1d7d-775b-4ba7-8691-f04182f54c31"));
 
             migrationBuilder.DeleteData(
                 table: "Notifications",
                 keyColumn: "NotificationId",
-                keyValue: new Guid("23bae82a-a7d5-4a28-a15e-787f65955a96"));
+                keyValue: new Guid("680c50ef-558e-40d2-bb72-22b8e9208f52"));
 
             migrationBuilder.DeleteData(
                 table: "OfferDetail",
                 keyColumn: "OfferDetailId",
-                keyValue: new Guid("7ca8d261-9d92-4220-8d92-ece3b628e9d7"));
+                keyValue: new Guid("71bafdb4-ba3f-4712-a7b2-d8d9ec858409"));
 
             migrationBuilder.DeleteData(
                 table: "OfferDetail",
                 keyColumn: "OfferDetailId",
-                keyValue: new Guid("8671d90c-1910-4c02-b16c-1b36777d0258"));
+                keyValue: new Guid("ee8fdc41-93e0-43d6-ad51-4f56f8dd2723"));
 
             migrationBuilder.DeleteData(
                 table: "PaymentTransactions",
                 keyColumn: "PaymentId",
-                keyValue: new Guid("46e40dba-f734-4161-8c7d-9f73a09cc39f"));
+                keyValue: new Guid("abba1710-ac99-40e2-a692-d877912d21a7"));
 
             migrationBuilder.DeleteData(
                 table: "PointHistories",
                 keyColumn: "PointHistoryId",
-                keyValue: new Guid("534d0017-bd7a-420a-8ac5-5a988821c571"));
+                keyValue: new Guid("72aab8db-09c6-4501-aa09-a0fd9b95cb48"));
 
             migrationBuilder.DeleteData(
                 table: "PointHistories",
                 keyColumn: "PointHistoryId",
-                keyValue: new Guid("5da6d760-60a9-4a45-8e1e-c27f3012ac83"));
+                keyValue: new Guid("a7f0bbd6-b228-4bea-8975-99a7e9c22875"));
 
             migrationBuilder.DeleteData(
                 table: "Profiles",
                 keyColumn: "ProfileId",
-                keyValue: new Guid("25833e81-5d0a-4d79-a477-bfe71aa3a8ea"));
+                keyValue: new Guid("550d2c27-c277-4920-8c5b-e0da1f5d167d"));
 
             migrationBuilder.DeleteData(
                 table: "Profiles",
                 keyColumn: "ProfileId",
-                keyValue: new Guid("3a52da4b-9465-420c-9865-9061a77c8651"));
+                keyValue: new Guid("90a83697-1313-424b-8fa1-e35174514399"));
 
             migrationBuilder.DeleteData(
                 table: "Profiles",
                 keyColumn: "ProfileId",
-                keyValue: new Guid("6d44205f-7c2c-4297-b0d2-0b6e73c44808"));
+                keyValue: new Guid("b7d13da9-1a4c-406f-81dc-46c22bb60bb2"));
 
             migrationBuilder.DeleteData(
                 table: "Profiles",
                 keyColumn: "ProfileId",
-                keyValue: new Guid("ab384c63-d28b-4315-95c5-c2f55909b60e"));
+                keyValue: new Guid("de2d1bb5-553e-498d-8e12-dedd154d43f8"));
 
             migrationBuilder.DeleteData(
                 table: "ReferencePrices",
                 keyColumn: "ReferencePriceId",
-                keyValue: new Guid("00d13a5d-451a-40c3-8747-c6102fea8256"));
+                keyValue: new Guid("27557888-1cf7-4cd3-a9d1-e915c912f89c"));
 
             migrationBuilder.DeleteData(
                 table: "ReferencePrices",
                 keyColumn: "ReferencePriceId",
-                keyValue: new Guid("a28081b5-59cf-43eb-9795-600b493c507f"));
+                keyValue: new Guid("69efd35d-363d-4c38-8b2f-29d47f771f7d"));
 
             migrationBuilder.DeleteData(
                 table: "ReferencePrices",
                 keyColumn: "ReferencePriceId",
-                keyValue: new Guid("db88dcc1-be3e-4a1e-a0f1-bf55b0665ada"));
+                keyValue: new Guid("b9d68c6c-3f4c-439e-86ed-935f209be96d"));
 
             migrationBuilder.DeleteData(
                 table: "RewardItems",
@@ -411,12 +411,12 @@ namespace GreenConnectPlatform.Data.Migrations
             migrationBuilder.DeleteData(
                 table: "UserPackages",
                 keyColumn: "UserPackageId",
-                keyValue: new Guid("67b31caf-52cb-46c8-9a6a-a9318026edc1"));
+                keyValue: new Guid("1dc69010-2df0-47be-8a3b-8ccda4454ba0"));
 
             migrationBuilder.DeleteData(
                 table: "UserPackages",
                 keyColumn: "UserPackageId",
-                keyValue: new Guid("84e3cc1b-ad93-4010-a0f0-900de45254a4"));
+                keyValue: new Guid("3544049d-5e90-421c-bf33-9a875e94ba2a"));
 
             migrationBuilder.DeleteData(
                 table: "UserRewardRedemptions",
@@ -451,7 +451,7 @@ namespace GreenConnectPlatform.Data.Migrations
             migrationBuilder.DeleteData(
                 table: "ChatRooms",
                 keyColumn: "ChatRoomId",
-                keyValue: new Guid("3af52111-7fa3-454a-b555-167cda22afdb"));
+                keyValue: new Guid("e676660c-df2d-4545-aa31-b037590bfdc9"));
 
             migrationBuilder.DeleteData(
                 table: "PaymentPackages",

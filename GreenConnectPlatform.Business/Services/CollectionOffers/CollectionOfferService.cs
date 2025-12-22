@@ -112,11 +112,9 @@ public class CollectionOfferService : ICollectionOfferService
         if (post.HouseholdId == collectorId)
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Không thể tự tạo đề nghị thu gom cho bài đăng của chính mình.");
-        var timslot = post.TimeSlots.FirstOrDefault(t => t.Id == timeSlotId);
-        if (timslot == null)
+        var timeslot = post.TimeSlots.FirstOrDefault(t => t.Id == timeSlotId);
+        if (timeslot == null)
             throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Khung thời gian không tồn tại trong bài đăng này.");
-        if(timslot.IsBooked)
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Khung thời gian đã được đặt.");
         
         var offerCategoryIds = request.OfferDetails.Select(d => d.ScrapCategoryId).Distinct().ToList();
         var allCategoryId = request.OfferDetails.Select(d => d.ScrapCategoryId).ToList();
@@ -155,6 +153,7 @@ public class CollectionOfferService : ICollectionOfferService
         offer.ScrapCollectorId = collectorId;
         offer.Status = OfferStatus.Pending;
         offer.CreatedAt = DateTime.UtcNow;
+        offer.TimeSlotId = timeSlotId;
 
         foreach (var detail in offer.OfferDetails)
         {
@@ -175,7 +174,7 @@ public class CollectionOfferService : ICollectionOfferService
             foreach (var detail in scrapPostDetailToUpdate) detail.Status = PostDetailStatus.Booked;
             var isFullOffer = offerCategoryIds.Count == postCategoryIds.Count;
             post.Status = isFullOffer ? PostStatus.FullyBooked : PostStatus.PartiallyBooked;
-            timslot.IsBooked = true;
+            timeslot.IsBooked = true;
             await _postRepository.UpdateAsync(post);
         }
         await _offerRepository.AddAsync(offer);
@@ -232,7 +231,8 @@ public class CollectionOfferService : ICollectionOfferService
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Không thể có mục trùng lặp trong đề nghị.");
         var existOffer = post.CollectionOffers.FirstOrDefault(o => o.ScrapPostId == postId && o.ScrapCollectorId == collectorId);
-        var existTransaction = existOffer.Transactions.FirstOrDefault(t => t.ScrapCollectorId == collectorId && t.Status == TransactionStatus.InProgress);
+        var existTransaction = existOffer.Transactions.FirstOrDefault(t => t.ScrapCollectorId == collectorId && 
+                                                                           t.Status == TransactionStatus.InProgress);
         
         var offer = _mapper.Map<CollectionOffer>(request);
         offer.CollectionOfferId = Guid.NewGuid();
@@ -273,7 +273,8 @@ public class CollectionOfferService : ICollectionOfferService
             ScrapCollectorId = existTransaction.ScrapCollectorId,
             ScheduledTime = existTransaction.ScheduledTime,
             OfferId = offer.CollectionOfferId,
-            Status = TransactionStatus.InProgress
+            Status = TransactionStatus.InProgress,
+            TimeSlotId = existTransaction.TimeSlotId
         };
         await _transactionRepository.AddAsync(transaction);
         
@@ -304,7 +305,7 @@ public class CollectionOfferService : ICollectionOfferService
         if (offer.Status != OfferStatus.Pending)
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Chỉ có thể xử lý đề nghị ở trạng thái Pending.");
-
+        var slotTime = offer.ScrapPost.TimeSlots.FirstOrDefault(s => s.Id == offer.TimeSlotId);
         if (isAccepted)
         {
             offer.Status = OfferStatus.Accepted;
@@ -316,9 +317,9 @@ public class CollectionOfferService : ICollectionOfferService
                 ScrapCollectorId = offer.ScrapCollectorId,
                 OfferId = offerId,
                 Status = TransactionStatus.Scheduled,
-                // ScheduledTime = offer.ScrapPost.TimeSlots.FirstOrDefault(t => t.IsBooked)?.StartTime
-                //                 ?? DateTime.UtcNow.AddDays(1),
-                CreatedAt = DateTime.UtcNow
+                ScheduledTime = slotTime.SpecificDate.ToDateTime(slotTime.StartTime),
+                CreatedAt = DateTime.UtcNow,
+                TimeSlotId = offer.TimeSlotId
             };
 
             transaction.TransactionDetails = offer.OfferDetails.Select(od => new TransactionDetail

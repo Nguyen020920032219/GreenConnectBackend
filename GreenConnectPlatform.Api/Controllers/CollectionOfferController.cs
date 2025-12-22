@@ -233,6 +233,20 @@ public class CollectionOfferController : ControllerBase
             pageNumber, pageSize));
     }
 
+    [HttpPost("supplementary-offers")]
+    [Authorize(Roles = "IndividualCollector, BusinessCollector")]
+    [ProducesResponseType(typeof(TransactionModel), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> SupplementaryOffers([FromQuery] Guid postId,
+        [FromBody] CollectionOfferCreateModel request)
+    {
+        var userId = GetCurrentUserId();
+        var result = await _service.SupplementaryOffers(postId, userId, request);
+        return CreatedAtAction(nameof(GetById), new { id = result.CollectionOfferId }, result);
+    }
+    
     private Guid GetCurrentUserId()
     {
         var idStr = User.FindFirstValue(ClaimTypes.NameIdentifier);

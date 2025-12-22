@@ -1,3 +1,5 @@
+using GreenConnectPlatform.Business.Models.CollectionOffers;
+using GreenConnectPlatform.Business.Models.CollectionOffers.OfferDetails;
 using GreenConnectPlatform.Business.Models.Complaints;
 using GreenConnectPlatform.Business.Models.CreditTransactionHistories;
 using GreenConnectPlatform.Business.Models.Feedbacks;
@@ -5,6 +7,8 @@ using GreenConnectPlatform.Business.Models.Notifications;
 using GreenConnectPlatform.Business.Models.PaymentPackages;
 using GreenConnectPlatform.Business.Models.PaymentTransactions;
 using GreenConnectPlatform.Business.Models.PointHistories;
+using GreenConnectPlatform.Business.Models.RecurringScheduleDetails;
+using GreenConnectPlatform.Business.Models.RecurringSchedules;
 using GreenConnectPlatform.Business.Models.ReferencePrices;
 using GreenConnectPlatform.Business.Models.RewardItems;
 using GreenConnectPlatform.Business.Models.ScrapCategories;
@@ -149,6 +153,20 @@ public class MappingProfile : Profile
         #region PaymentTransaction
 
         CreateMap<PaymentTransaction, PaymentTransactionModel>();
+
+        #endregion
+
+        #region RecurringSchedule, RecurringScheduleDetail
+
+        CreateMap<RecurringSchedule, RecurringScheduleModel>();
+        CreateMap<RecurringSchedule, RecurringScheduleOverallModel>();
+        CreateMap<RecurringScheduleCreateModel, RecurringSchedule>()
+            .ForMember(dest => dest.Location, opt => opt.Ignore());
+        CreateMap<RecurringScheduleUpdateModel, RecurringSchedule>()
+            .ForMember(dest => dest.Location, opt => opt.Ignore())
+            .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
+        CreateMap<RecurringScheduleDetail, RecurringScheduleDetailModel>();
+        CreateMap<RecurringScheduleDetailCreateModel, RecurringScheduleDetail>();
 
         #endregion
     }

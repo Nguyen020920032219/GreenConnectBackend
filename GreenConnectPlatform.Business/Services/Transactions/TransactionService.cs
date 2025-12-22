@@ -152,14 +152,16 @@ public class TransactionService : ITransactionService
     }
 
     public async Task<List<TransactionDetailModel>> SubmitDetailsAsync(
-        Guid scrapPostId, Guid collectorId, List<TransactionDetailCreateModel> details)
+        Guid scrapPostId, Guid collectorId,Guid slotId, List<TransactionDetailCreateModel> details)
     {
-        var transactions = await _transactionRepository.GetAllAsync();
-        transactions = transactions.Where(t => t.ScrapCollectorId == collectorId && t.Offer.ScrapPostId == scrapPostId && 
-                                             t.Status == TransactionStatus.InProgress);
+        var transactions = await _transactionRepository.GetTransactionByIdsAsync(collectorId, scrapPostId, slotId);
         if (!transactions.Any())
             throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Không tìm thấy giao dịch nào.");
-
+        foreach (var transaction in transactions)
+        {
+            if(transaction.CheckInLocation == null || transaction.CheckInTime == null)
+                throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Người thu gom chưa check-in.");
+        }
         var offerCategoryIds = transactions
             .Where(t => t.Offer != null)
             .SelectMany(t => t.Offer.OfferDetails)
@@ -187,6 +189,7 @@ public class TransactionService : ITransactionService
                     detail.TransactionId = transaction.TransactionId;
                     detail.PricePerUnit = matchingRequest.PricePerUnit;
                     detail.Unit = matchingRequest.Unit;
+                    detail.Quantity = matchingRequest.Quantity;
                     detail.FinalPrice = detail.PricePerUnit * (decimal)detail.Quantity;
                     updateDetails.Add(detail);
                     transaction.TransactionDetails.Add(detail);
@@ -207,81 +210,103 @@ public class TransactionService : ITransactionService
         return _mapper.Map<List<TransactionDetailModel>>(updateDetails);
     }
 
-    public async Task ProcessTransactionAsync(Guid transactionId, Guid householdId, bool isAccepted,
+    public async Task ProcessTransactionAsync(Guid scrapPostId, Guid collectorId,Guid slotId, Guid householdId, bool isAccepted,
         TransactionPaymentMethod paymentMethod)
     {
-        var transaction = await _transactionRepository.GetByIdWithDetailsAsync(transactionId);
-        if (transaction == null)
-            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Giao dịch không tìm thấy.");
+        var transactions = await _transactionRepository.GetTransactionByIdsAsync(collectorId, scrapPostId, slotId);
+        if (!transactions.Any())
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Không có giao dịch nào.");
 
-        if (transaction.HouseholdId != householdId)
+        if (transactions.Any(t => t.HouseholdId != householdId))
             throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Bạn không có quyền.");
 
-        if (transaction.Status != TransactionStatus.InProgress)
+        if (transactions.Any(t => t.Status != TransactionStatus.InProgress))
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Trạng thái giao dịch không phải là progress.");
 
-        if (isAccepted && !transaction.TransactionDetails.Any())
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
-                "Người thu gom vẫn chưa gửi bất kỳ vật phẩm nào.");
-
         if (isAccepted)
         {
-            transaction.Status = TransactionStatus.Completed;
-            transaction.TotalAmount = transaction.TransactionDetails.Sum(d => d.FinalPrice);
-            transaction.PaymentMethod = paymentMethod;
-            transaction.ScrapCollector.Profile.PointBalance += 10;
+            if (transactions.Any(t => !t.TransactionDetails.Any()))
+                throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Người thu gom chưa cập nhật vật phẩm cho một số đơn hàng.");
+            
+            var pointHistoryList = new List<PointHistory>();
+            foreach (var transaction in transactions)
+            {
+                transaction.Status = TransactionStatus.Completed;
+                transaction.TotalAmount = transaction.TransactionDetails.Sum(d => d.FinalPrice);
+                transaction.PaymentMethod = paymentMethod;
+                transaction.UpdatedAt = DateTime.UtcNow;
+            }
+           
+            var collectorProfile = transactions.First().ScrapCollector.Profile;
+            collectorProfile.PointBalance += 10;
             var pointCollectorHistory = new PointHistory
             {
                 PointHistoryId = Guid.NewGuid(),
-                UserId = transaction.ScrapCollectorId,
+                UserId = collectorId,
                 PointChange = 10,
                 Reason = "Hoàn thành thu gom vật phẩm.",
                 CreatedAt = DateTime.UtcNow
             };
             await _pointHistoryRepository.AddAsync(pointCollectorHistory);
-            var transactedCategoryIds = transaction.TransactionDetails
+            var scrapPost = transactions.First().Offer.ScrapPost;
+            var collectedCategoryIds = transactions
+                .SelectMany(t => t.TransactionDetails)
                 .Select(td => td.ScrapCategoryId)
+                .Distinct()
                 .ToList();
-            foreach (var detail in transaction.Offer.ScrapPost.ScrapPostDetails)
-                if (transactedCategoryIds.Contains(detail.ScrapCategoryId))
-                    detail.Status = PostDetailStatus.Collected;
-
-            var scrapPosts = transaction.Offer.ScrapPost.ScrapPostDetails
-                .Where(s => s.Status == PostDetailStatus.Available || s.Status == PostDetailStatus.Booked)
-                .ToList();
-            if (!scrapPosts.Any())
+            foreach (var detail in scrapPost.ScrapPostDetails)
             {
-                transaction.Offer.ScrapPost.Status = PostStatus.Completed;
-                transaction.Household.Profile.PointBalance += 10;
-                var pointHistory = new PointHistory
+                if (collectedCategoryIds.Contains(detail.ScrapCategoryId))
+                {
+                    detail.Status = PostDetailStatus.Collected;
+                }
+            }
+            bool isPostFullyCollected = !scrapPost.ScrapPostDetails
+                .Any(s => s.Status == PostDetailStatus.Available || s.Status == PostDetailStatus.Booked);
+            if (isPostFullyCollected)
+            {
+                scrapPost.Status = PostStatus.Completed;
+            
+                var householdProfile = transactions.First().Household.Profile;
+                householdProfile.PointBalance += 10;
+
+                pointHistoryList.Add(new PointHistory
                 {
                     PointHistoryId = Guid.NewGuid(),
-                    UserId = transaction.HouseholdId,
+                    UserId = householdId,
                     PointChange = 10,
                     Reason = "Hoàn thành thu gom tất cả vật phẩm trong bài đăng.",
                     CreatedAt = DateTime.UtcNow
-                };
-                await _pointHistoryRepository.AddAsync(pointHistory);
+                });
             }
-
+            await _pointHistoryRepository.AddRangeAsync(pointHistoryList);
             var title = "Giao dịch thành công!";
-            var body = "Chúc mừng! Đơn hàng đã hoàn tất. Bạn nhận được +10 điểm thưởng.";
-            var data = new Dictionary<string, string> { { "type", "Transaction" }, { "id", transactionId.ToString() } };
-            await _notificationService.SendNotificationAsync(transaction.ScrapCollectorId, title, body, data);
+            var body = $"Đã hoàn tất thu gom. Bạn nhận được +10 điểm.";
+            var data = new Dictionary<string, string> { 
+                { "type", "Transaction" }, 
+                { "id", transactions.First().TransactionId.ToString() } 
+            };
+            await _notificationService.SendNotificationAsync(collectorId, title, body, data);
         }
         else
         {
-            transaction.Status = TransactionStatus.CanceledByUser;
+            foreach (var trans in transactions)
+            {
+                trans.Status = TransactionStatus.CanceledByUser;
+                trans.UpdatedAt = DateTime.UtcNow;
+            }
 
             var title = "Giao dịch bị hủy";
             var body = "Hộ gia đình đã từ chối kết quả cân đo và hủy giao dịch.";
-            var data = new Dictionary<string, string> { { "type", "Transaction" }, { "id", transactionId.ToString() } };
-            await _notificationService.SendNotificationAsync(transaction.ScrapCollectorId, title, body, data);
+            var data = new Dictionary<string, string> { 
+                { "type", "Transaction" }, 
+                { "id", transactions.First().TransactionId.ToString() } 
+            };
+            await _notificationService.SendNotificationAsync(collectorId, title, body, data);
         }
 
-        transaction.UpdatedAt = DateTime.UtcNow;
-        await _transactionRepository.UpdateAsync(transaction);
+        await _transactionRepository.UpdateRangeAsync(transactions);
     }
 
     public async Task ToggleCancelAsync(Guid transactionId, Guid collectorId)
@@ -289,7 +314,7 @@ public class TransactionService : ITransactionService
         var transaction =
             await _transactionRepository
                 .GetByIdWithDetailsAsync(
-                    transactionId); // Fix: Dùng GetByIdWithDetailsAsync để lấy HouseholdId cho noti
+                    transactionId);
         if (transaction == null)
             throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Giao dịch không tìm thấy.");
 

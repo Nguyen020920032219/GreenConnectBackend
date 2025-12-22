@@ -123,6 +123,7 @@ public class ScrapPostController : ControllerBase
     ///     - `MustTakeAll = true`: Nếu bật, Collector bắt buộc phải thu gom **TẤT CẢ** các mục trong danh sách (Full-lot
     ///     purchase). <br />
     ///     - `ScrapPostDetails`: Danh sách các loại rác và ảnh minh họa.
+    ///     - `Type`: Chỉ được chọn `Sale` (Bán), hỗ trợ `Donation` (Tặng) hoặc dịch vụ `Service` trong bài đăng thu gom.
     /// </remarks>
     /// <param name="request">Thông tin bài đăng mới.</param>
     /// <response code="201">Tạo thành công (Trả về chi tiết bài vừa tạo).</response>
@@ -195,6 +196,7 @@ public class ScrapPostController : ControllerBase
     /// <remarks>
     ///     Ví dụ: Đã đăng bán "Giấy", giờ muốn bán thêm "Vỏ lon" vào cùng bài đó. <br />
     ///     Không thể thêm nếu bài đăng đã hoàn thành.
+    ///     `Type`: Chỉ được chọn `Sale` (Bán), hỗ trợ `Donation` (Tặng) hoặc dịch vụ `Service` trong bài đăng thu gom.
     /// </remarks>
     /// <param name="id">ID bài đăng.</param>
     /// <param name="request">Thông tin loại rác mới.</param>

@@ -1,4 +1,5 @@
 ﻿using GreenConnectPlatform.Business.Models.CollectionOffers;
+using GreenConnectPlatform.Business.Models.ScrapPostTimeSlots;
 using GreenConnectPlatform.Business.Models.Users;
 using GreenConnectPlatform.Data.Enums;
 
@@ -26,4 +27,6 @@ public class TransactionOveralModel
     public DateTime CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
+    public Guid? TimeSlotId { get; set; }
+    public ScrapPostTimeSlotModel? TimeSlot { get; set; }
 }

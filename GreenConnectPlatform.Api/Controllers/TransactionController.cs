@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using GreenConnectPlatform.Business.Models.CollectionOffers;
 using GreenConnectPlatform.Business.Models.Exceptions;
 using GreenConnectPlatform.Business.Models.Feedbacks;
 using GreenConnectPlatform.Business.Models.Paging;
@@ -59,19 +60,21 @@ public class TransactionController : ControllerBase
     ///     Hệ thống sẽ cập nhật danh sách chi tiết (`TransactionDetails`) và tính lại **Tổng tiền**. <br />
     ///     **Lưu ý:** Hành động này sẽ **ghi đè** toàn bộ danh sách chi tiết cũ (nếu đã nhập trước đó).
     /// </remarks>
-    /// <param name="id">ID Giao dịch.</param>
+    /// <param name="scrapPostId">ID Giao dịch.</param>
+    /// <param name="slotId"></param>
     /// <param name="details">Danh sách hàng hóa và số lượng thực tế.</param>
     /// <response code="200">Cập nhật thành công. Trả về danh sách chi tiết mới.</response>
     /// <response code="400">Chưa Check-in hoặc dữ liệu không hợp lệ (Sai loại ve chai).</response>
-    [HttpPost("{id:guid}/details")]
+    [HttpPost("details")]
     [Authorize(Roles = "IndividualCollector, BusinessCollector")]
     [ProducesResponseType(typeof(List<TransactionDetailModel>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> SubmitDetails([FromRoute] Guid id,
+    public async Task<IActionResult> SubmitDetails([FromQuery] Guid scrapPostId,
+        [FromQuery] Guid slotId,
         [FromBody] List<TransactionDetailCreateModel> details)
     {
         var userId = GetCurrentUserId();
-        var result = await _service.SubmitDetailsAsync(id, userId, details);
+        var result = await _service.SubmitDetailsAsync(scrapPostId, userId, slotId, details);
         return Ok(result);
     }
 
@@ -83,21 +86,22 @@ public class TransactionController : ControllerBase
     ///     - **Accept (true):** Household đồng ý với số lượng và số tiền -> Giao dịch `Completed` -> Cộng điểm thưởng. <br />
     ///     - **Reject (false):** Household không đồng ý -> Giao dịch `Canceled`.
     /// </remarks>
-    /// <param name="id">ID Giao dịch.</param>
+    /// <param name="scrapPostId">ID bài đăng.</param>
+    /// <param name="collectorId"></param>
+    /// <param name="slotId"></param>
     /// <param name="isAccepted">`true` = Chốt đơn, `false` = Hủy.</param>
     /// <param name="paymentMethod">Thanh toán bằng hình thức gì</param>
-    /// <param name="amount">Tổng số tiền đã thanh toán</param>
     /// <response code="200">Thành công.</response>
     /// <response code="400">Collector chưa nhập số liệu (Không thể chốt đơn trống).</response>
-    [HttpPatch("{id:guid}/process")]
+    [HttpPatch("process")]
     [Authorize(Roles = "Household")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Process([FromRoute] Guid id, [FromQuery] bool isAccepted,
+    public async Task<IActionResult> Process([FromQuery] Guid scrapPostId,[FromQuery] Guid collectorId,[FromQuery] Guid slotId, [FromQuery] bool isAccepted,
         [FromQuery] TransactionPaymentMethod paymentMethod)
     {
         var userId = GetCurrentUserId();
-        await _service.ProcessTransactionAsync(id, userId, isAccepted, paymentMethod);
+        await _service.ProcessTransactionAsync(scrapPostId,collectorId, slotId, userId, isAccepted, paymentMethod);
         return Ok(new { Message = isAccepted ? "Giao dịch thành công!" : "Giao dịch đã hủy." });
     }
 

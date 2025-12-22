@@ -15,6 +15,7 @@ using GreenConnectPlatform.Business.Services.PaymentPackages;
 using GreenConnectPlatform.Business.Services.PaymentTransactions;
 using GreenConnectPlatform.Business.Services.PointHistories;
 using GreenConnectPlatform.Business.Services.Profile;
+using GreenConnectPlatform.Business.Services.RecurringSchedules;
 using GreenConnectPlatform.Business.Services.ReferencePrices;
 using GreenConnectPlatform.Business.Services.Reports;
 using GreenConnectPlatform.Business.Services.RewardItems;
@@ -36,6 +37,8 @@ using GreenConnectPlatform.Data.Repositories.PaymentPackages;
 using GreenConnectPlatform.Data.Repositories.PaymentTransactions;
 using GreenConnectPlatform.Data.Repositories.PointHistories;
 using GreenConnectPlatform.Data.Repositories.Profiles;
+using GreenConnectPlatform.Data.Repositories.RecurringScheduleDetails;
+using GreenConnectPlatform.Data.Repositories.RecurringSchedules;
 using GreenConnectPlatform.Data.Repositories.ReferencePrices;
 using GreenConnectPlatform.Data.Repositories.RewardItems;
 using GreenConnectPlatform.Data.Repositories.ScrapCategories;
@@ -75,6 +78,7 @@ public static class ServiceConfiguration
         services.AddScoped<IPointHistoryService, PointHistoryService>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddHostedService<TransactionAutoCancelBackGroundService>();
+        services.AddHostedService<ScrapPostAuToCreateBackGround>();
         services.AddScoped<IVnPayService, VnPayService>();
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IVietQrService, VietQrService>();
@@ -82,6 +86,7 @@ public static class ServiceConfiguration
         services.AddHttpClient<IEkycService, FptAiService>();
         services.AddScoped<ICreditTransactionHistoryService, CreditTransactionHistoryService>();
         services.AddScoped<IPaymentTransactionService, PaymentTransactionService>();
+        services.AddScoped<IRecurringScheduleService, RecurringScheduleService>();
     }
 
     public static void ConfigureRepositories(this IServiceCollection services)
@@ -109,5 +114,7 @@ public static class ServiceConfiguration
         services.AddScoped<ICreditTransactionHistoryRepository, CreditTransactionHistoryRepository>();
         services.AddScoped<IPaymentTransactionRepository, PaymentTransactionRepository>();
         services.AddScoped<IUserRewardRedemptionRepository, UserRewardRedemptionRepository>();
+        services.AddScoped<IRecurringScheduleRepository, RecurringScheduleRepository>();
+        services.AddScoped<IRecurringScheduleDetailRepository, RecurringScheduleDetailRepository>();
     }
 }

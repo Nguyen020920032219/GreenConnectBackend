@@ -29,4 +29,8 @@ public interface ITransactionRepository : IBaseRepository<Transaction, Guid>
     Task<List<Transaction>> GetEarningForCollectorReport(Guid userId, DateTime startDate, DateTime endDate);
 
     Task<List<Transaction>> GetTransactionsForCollectorReport(Guid userId, DateTime startDate, DateTime endDate);
+    
+    Task<List<Transaction>> GetTransactionByIdsAsync(Guid collectorId, Guid postId, Guid timeSlotId);
+    
+    Task UpdateRangeAsync(List<Transaction> transactions);
 }

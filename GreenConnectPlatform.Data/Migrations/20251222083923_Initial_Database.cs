@@ -346,7 +346,8 @@ namespace GreenConnectPlatform.Data.Migrations
                     Location = table.Column<Point>(type: "geometry(Point, 4326)", nullable: true),
                     MustTakeAll = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     DayOfWeek = table.Column<int>(type: "integer", nullable: false),
-                    PreferredTime = table.Column<TimeOnly>(type: "time", nullable: false),
+                    StartTime = table.Column<TimeOnly>(type: "time", nullable: false),
+                    EndTime = table.Column<TimeOnly>(type: "time", nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
                     LastRunDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false)

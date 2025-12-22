@@ -209,18 +209,19 @@ CREATE TABLE "PointHistories"
 
 CREATE TABLE "RecurringSchedules"
 (
-    "Id"            uuid                   NOT NULL,
-    "HouseholdId"   uuid                   NOT NULL,
-    "Title"         character varying(200) NOT NULL,
-    "Description"   character varying(1000),
-    "Address"       character varying(500) NOT NULL,
-    "Location"      geometry(Point, 4326),
-    "MustTakeAll"   boolean                NOT NULL DEFAULT FALSE,
-    "DayOfWeek"     integer                NOT NULL,
-    "PreferredTime" time                   NOT NULL,
-    "IsActive"      boolean                NOT NULL DEFAULT TRUE,
-    "LastRunDate"   timestamp without time zone NOT NULL,
-    "CreatedAt"     timestamp without time zone NOT NULL,
+    "Id"          uuid                   NOT NULL,
+    "HouseholdId" uuid                   NOT NULL,
+    "Title"       character varying(200) NOT NULL,
+    "Description" character varying(1000),
+    "Address"     character varying(500) NOT NULL,
+    "Location"    geometry(Point, 4326),
+    "MustTakeAll" boolean                NOT NULL DEFAULT FALSE,
+    "DayOfWeek"   integer                NOT NULL,
+    "StartTime"   time                   NOT NULL,
+    "EndTime"     time                   NOT NULL,
+    "IsActive"    boolean                NOT NULL DEFAULT TRUE,
+    "LastRunDate" timestamp without time zone NOT NULL,
+    "CreatedAt"   timestamp without time zone NOT NULL,
     CONSTRAINT "PK_RecurringSchedules" PRIMARY KEY ("Id"),
     CONSTRAINT "FK_RecurringSchedules_AspNetUsers_HouseholdId" FOREIGN KEY ("HouseholdId") REFERENCES "AspNetUsers" ("Id") ON DELETE CASCADE
 );
@@ -621,7 +622,7 @@ CREATE INDEX "IX_UserPackages_UserId" ON "UserPackages" ("UserId");
 CREATE INDEX "IX_UserRewardRedemptions_RewardItemId" ON "UserRewardRedemptions" ("RewardItemId");
 
 INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-VALUES ('20251221151744_Initial_Database', '9.0.9');
+VALUES ('20251222083923_Initial_Database', '9.0.9');
 
 COMMIT;
 

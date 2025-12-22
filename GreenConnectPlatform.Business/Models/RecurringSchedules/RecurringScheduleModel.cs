@@ -12,7 +12,8 @@ public class RecurringScheduleModel
     public bool MustTakeAll { get; set; } = false;
 
     public int DayOfWeek { get; set; }
-    public TimeOnly PreferredTime { get; set; }
+    public TimeOnly StartTime { get; set; }
+    public TimeOnly EndTime { get; set; }
     public bool IsActive { get; set; } = true;
     public DateTime LastRunDate { get; set; }
     public DateTime CreatedAt { get; set; }

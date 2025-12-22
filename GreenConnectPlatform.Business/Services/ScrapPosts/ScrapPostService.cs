@@ -186,11 +186,28 @@ public class ScrapPostService : IScrapPostService
         post.UpdatedAt = DateTime.UtcNow;
 
         if (request.Location != null && request.Location.Latitude.HasValue && request.Location.Longitude.HasValue)
+        {
+            if (request.Location.Latitude < -90 || request.Location.Latitude > 90)
+            {
+                throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", 
+                    $"Vĩ độ (Latitude) không hợp lệ. Phải nằm trong khoảng từ -90 đến 90.");
+            }
+
+            if (request.Location.Longitude < -180 || request.Location.Longitude > 180)
+            {
+                throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", 
+                    $"Kinh độ (Longitude) không hợp lệ. Phải nằm trong khoảng từ -180 đến 180.");
+            }
             post.Location =
                 _geometryFactory.CreatePoint(new Coordinate(request.Location.Longitude.Value,
                     request.Location.Latitude.Value));
+        }
+            
         foreach (var slots in post.TimeSlots)
         {
+            if(slots.StartTime >= slots.EndTime)
+                throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                    "Thời gian bắt đầu phải trước thời gian kết thúc trong khung thời gian.");
             slots.Id = Guid.NewGuid();
             slots.ScrapPostId = post.Id;
             slots.IsBooked = false;
@@ -216,10 +233,25 @@ public class ScrapPostService : IScrapPostService
         post.UpdatedAt = DateTime.UtcNow;
 
         if (request.Location != null && request.Location.Latitude.HasValue && request.Location.Longitude.HasValue)
+        {
+            if (request.Location.Latitude < -90 || request.Location.Latitude > 90)
+            {
+                throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", 
+                    $"Vĩ độ (Latitude) không hợp lệ. Phải nằm trong khoảng từ -90 đến 90.");
+            }
+
+            if (request.Location.Longitude < -180 || request.Location.Longitude > 180)
+            {
+                throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", 
+                    $"Kinh độ (Longitude) không hợp lệ. Phải nằm trong khoảng từ -180 đến 180.");
+            }
             post.Location =
                 _geometryFactory.CreatePoint(new Coordinate(request.Location.Longitude.Value,
                     request.Location.Latitude.Value));
-        
+            post.Location =
+                _geometryFactory.CreatePoint(new Coordinate(request.Location.Longitude.Value,
+                    request.Location.Latitude.Value));
+        }
         await _postRepository.UpdateAsync(post);
         return _mapper.Map<ScrapPostModel>(post);
     }

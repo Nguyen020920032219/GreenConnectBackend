@@ -11,9 +11,9 @@ public class RecurringSchedule
     public string Address { get; set; } = null!;
     public Point? Location { get; set; }
     public bool MustTakeAll { get; set; } = false;
-
     public int DayOfWeek { get; set; }
-    public TimeOnly PreferredTime { get; set; }
+    public TimeOnly StartTime { get; set; }
+    public TimeOnly EndTime { get; set; }
     public bool IsActive { get; set; } = true;
     public DateTime LastRunDate { get; set; }
     public DateTime CreatedAt { get; set; }

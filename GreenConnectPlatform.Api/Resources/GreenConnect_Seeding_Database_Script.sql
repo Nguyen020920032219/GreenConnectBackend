@@ -13,41 +13,41 @@ INSERT INTO "AspNetUsers" ("Id", "AccessFailedCount", "BuyerType", "ConcurrencyS
                            "NormalizedUserName", "OtpCode", "OtpExpiredAt", "PasswordHash", "PhoneNumber",
                            "PhoneNumberConfirmed", "SecurityStamp", "Status", "TwoFactorEnabled", "UpdatedAt",
                            "UserName")
-VALUES ('a1b2c3d4-e5f6-7788-9900-aabbccddeeff', 0, NULL, '786bf9d9-51c3-4fb6-a8f8-c4dd84b12563',
+VALUES ('a1b2c3d4-e5f6-7788-9900-aabbccddeeff', 0, NULL, '839027df-33ef-464a-b708-a75ba24a5ef1',
         TIMESTAMP '2025-10-10T10:00:00', 'admin@gc.com', TRUE, 'Admin System', FALSE, NULL, 'ADMIN@GC.COM',
         '0900000000', NULL, NULL,
         'AQAAAAIAAYagAAAAELSd8S1/ERD0+I4lEAStNTTw/VOGuVVH8vE3SL92wYldv4i4XV78koh+GJ3GpdR05A==', '0900000000', TRUE,
-        '02824a24-a664-444d-9a44-e92ceb8ee21a', 'Active', FALSE, NULL, '0900000000');
+        'de9a548f-a291-4b3b-ab37-8f49cd3d9f14', 'Active', FALSE, NULL, '0900000000');
 INSERT INTO "AspNetUsers" ("Id", "AccessFailedCount", "BuyerType", "ConcurrencyStamp", "CreatedAt", "Email",
                            "EmailConfirmed", "FullName", "LockoutEnabled", "LockoutEnd", "NormalizedEmail",
                            "NormalizedUserName", "OtpCode", "OtpExpiredAt", "PasswordHash", "PhoneNumber",
                            "PhoneNumberConfirmed", "SecurityStamp", "Status", "TwoFactorEnabled", "UpdatedAt",
                            "UserName")
-VALUES ('b2c3d4e5-f6a1-8899-0011-bbccddeeff00', 0, 'Individual', '4ada4827-d9d7-4c69-8546-559f74cd2c82',
+VALUES ('b2c3d4e5-f6a1-8899-0011-bbccddeeff00', 0, 'Individual', '5258a843-36d7-4d6e-b7f3-ecbf2be5797f',
         TIMESTAMP '2025-10-10T10:00:00', 'anhba@gc.com', TRUE, 'Anh Ba Ve Chai', FALSE, NULL, 'ANHBA@GC.COM',
         '0933333333', NULL, NULL,
         'AQAAAAIAAYagAAAAELSd8S1/ERD0+I4lEAStNTTw/VOGuVVH8vE3SL92wYldv4i4XV78koh+GJ3GpdR05A==', '0933333333', TRUE,
-        '9673f2c8-53bb-4cd6-acc0-1059bd3c2f4e', 'Active', FALSE, NULL, '0933333333');
+        '07534427-1c97-4c49-a117-bbf27460c8f7', 'Active', FALSE, NULL, '0933333333');
 INSERT INTO "AspNetUsers" ("Id", "AccessFailedCount", "BuyerType", "ConcurrencyStamp", "CreatedAt", "Email",
                            "EmailConfirmed", "FullName", "LockoutEnabled", "LockoutEnd", "NormalizedEmail",
                            "NormalizedUserName", "OtpCode", "OtpExpiredAt", "PasswordHash", "PhoneNumber",
                            "PhoneNumberConfirmed", "SecurityStamp", "Status", "TwoFactorEnabled", "UpdatedAt",
                            "UserName")
-VALUES ('c3d4e5f6-a1b2-9900-1122-ccddeeff0011', 0, NULL, '30271cf5-639b-486a-b924-1a4557eee666',
+VALUES ('c3d4e5f6-a1b2-9900-1122-ccddeeff0011', 0, NULL, '3eafac5a-41cb-4ce3-a8fa-388f3cc41dda',
         TIMESTAMP '2025-10-10T10:00:00', 'chitu@gc.com', TRUE, 'Chị Tư Nội Trợ', FALSE, NULL, 'CHITU@GC.COM',
         '0922222222', NULL, NULL,
         'AQAAAAIAAYagAAAAELSd8S1/ERD0+I4lEAStNTTw/VOGuVVH8vE3SL92wYldv4i4XV78koh+GJ3GpdR05A==', '0922222222', TRUE,
-        '183eb312-9ef5-40eb-8be2-b8e7d9175395', 'Active', FALSE, NULL, '0922222222');
+        '7f76c5e9-c799-4d07-b12a-07feef8ae03d', 'Active', FALSE, NULL, '0922222222');
 INSERT INTO "AspNetUsers" ("Id", "AccessFailedCount", "BuyerType", "ConcurrencyStamp", "CreatedAt", "Email",
                            "EmailConfirmed", "FullName", "LockoutEnabled", "LockoutEnd", "NormalizedEmail",
                            "NormalizedUserName", "OtpCode", "OtpExpiredAt", "PasswordHash", "PhoneNumber",
                            "PhoneNumberConfirmed", "SecurityStamp", "Status", "TwoFactorEnabled", "UpdatedAt",
                            "UserName")
-VALUES ('e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef', 0, 'Business', 'd5949604-86a6-42e8-a1ea-6d8e47b5bfd5',
+VALUES ('e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef', 0, 'Business', 'a11c2d30-bf0a-4124-b7ef-5e3ddd6ebdc4',
         TIMESTAMP '2025-10-10T10:00:00', 'vuaabc@gc.com', TRUE, 'Vựa Tái Chế ABC', FALSE, NULL, 'VUAABC@GC.COM',
         '0988888888', NULL, NULL,
         'AQAAAAIAAYagAAAAELSd8S1/ERD0+I4lEAStNTTw/VOGuVVH8vE3SL92wYldv4i4XV78koh+GJ3GpdR05A==', '0988888888', TRUE,
-        '43f8e0b9-dece-450f-b2cc-6e6e6ed9b11b', 'Active', FALSE, NULL, '0988888888');
+        '0f4ca026-db30-4872-8648-18506013847a', 'Active', FALSE, NULL, '0988888888');
 
 INSERT INTO "PaymentPackages" ("PackageId", "ConnectionAmount", "Description", "IsActive", "Name", "PackageType",
                                "Price")
@@ -108,48 +108,48 @@ VALUES ('e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef', NULL, 'CONG TY TNHH VUA VE CHAI 
         TIMESTAMP '2025-09-30T10:00:00');
 
 INSERT INTO "Notifications" ("NotificationId", "Content", "CreatedAt", "EntityId", "EntityType", "RecipientId")
-VALUES ('23bae82a-a7d5-4a28-a15e-787f65955a96', 'Vựa ABC đã hoàn thành đơn hàng.', TIMESTAMP '2025-10-10T13:00:00',
+VALUES ('680c50ef-558e-40d2-bb72-22b8e9208f52', 'Vựa ABC đã hoàn thành đơn hàng.', TIMESTAMP '2025-10-10T13:00:00',
         '70000001-0000-0000-0000-000000000001', 'Transaction', 'c3d4e5f6-a1b2-9900-1122-ccddeeff0011');
 
 INSERT INTO "PaymentTransactions" ("PaymentId", "Amount", "BankCode", "ClientIpAddress", "CreatedAt", "OrderInfo",
                                    "PackageId", "PaymentGateway", "ResponseCode", "Status", "TransactionRef", "UserId",
                                    "VnpTransactionNo")
-VALUES ('46e40dba-f734-4161-8c7d-9f73a09cc39f', 200000.0, 'NCB', NULL, TIMESTAMP '2025-10-05T10:00:00', 'Mua Goi Pro',
+VALUES ('abba1710-ac99-40e2-a692-d877912d21a7', 200000.0, 'NCB', NULL, TIMESTAMP '2025-10-05T10:00:00', 'Mua Goi Pro',
         'a2222222-0000-0000-0000-000000000001', 'VNPay', '00', 'Success', 'ORD001',
         'e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef', 'VNP001');
 
 INSERT INTO "PointHistories" ("PointHistoryId", "CreatedAt", "PointChange", "Reason", "UserId")
-VALUES ('534d0017-bd7a-420a-8ac5-5a988821c571', TIMESTAMP '2025-10-10T13:00:00', 10, 'Hoàn thành đơn',
+VALUES ('72aab8db-09c6-4501-aa09-a0fd9b95cb48', TIMESTAMP '2025-10-05T10:00:00', -20, 'Khiếu nại',
         'c3d4e5f6-a1b2-9900-1122-ccddeeff0011');
 INSERT INTO "PointHistories" ("PointHistoryId", "CreatedAt", "PointChange", "Reason", "UserId")
-VALUES ('5da6d760-60a9-4a45-8e1e-c27f3012ac83', TIMESTAMP '2025-10-05T10:00:00', -20, 'Khiếu nại',
+VALUES ('a7f0bbd6-b228-4bea-8975-99a7e9c22875', TIMESTAMP '2025-10-10T13:00:00', 10, 'Hoàn thành đơn',
         'c3d4e5f6-a1b2-9900-1122-ccddeeff0011');
 
 INSERT INTO "Profiles" ("ProfileId", "Address", "AvatarUrl", "BankAccountName", "BankAccountNumber", "BankCode",
                         "DateOfBirth", "Gender", "Location", "PointBalance", "RankId", "UserId")
-VALUES ('25833e81-5d0a-4d79-a477-bfe71aa3a8ea', '123 CMT8, Q3, HCM', NULL, 'NGUYEN THI TU', '0922222222', '970422',
+VALUES ('550d2c27-c277-4920-8c5b-e0da1f5d167d', '123 CMT8, Q3, HCM', NULL, 'NGUYEN THI TU', '0922222222', '970422',
         NULL, 'Female', GEOMETRY 'SRID=4326;POINT (106.69 10.777)', 50, 1, 'c3d4e5f6-a1b2-9900-1122-ccddeeff0011');
 INSERT INTO "Profiles" ("ProfileId", "Address", "AvatarUrl", "BankAccountName", "BankAccountNumber", "BankCode",
                         "DateOfBirth", "Gender", "Location", "PointBalance", "RankId", "UserId")
-VALUES ('3a52da4b-9465-420c-9865-9061a77c8651', 'Kho Quận 7, HCM', NULL, 'CTY ABC', '0988888888', '970436', NULL, NULL,
+VALUES ('90a83697-1313-424b-8fa1-e35174514399', 'Hẻm 456 Lê Văn Sỹ, Q3, HCM', NULL, NULL, NULL, NULL, NULL, 'Male',
+        GEOMETRY 'SRID=4326;POINT (106.68 10.78)', 120, 1, 'b2c3d4e5-f6a1-8899-0011-bbccddeeff00');
+INSERT INTO "Profiles" ("ProfileId", "Address", "AvatarUrl", "BankAccountName", "BankAccountNumber", "BankCode",
+                        "DateOfBirth", "Gender", "Location", "PointBalance", "RankId", "UserId")
+VALUES ('b7d13da9-1a4c-406f-81dc-46c22bb60bb2', 'Kho Quận 7, HCM', NULL, 'CTY ABC', '0988888888', '970436', NULL, NULL,
         GEOMETRY 'SRID=4326;POINT (106.72 10.75)', 5000, 2, 'e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef');
 INSERT INTO "Profiles" ("ProfileId", "Address", "AvatarUrl", "BankAccountName", "BankAccountNumber", "BankCode",
                         "DateOfBirth", "Gender", "Location", "PointBalance", "RankId", "UserId")
-VALUES ('6d44205f-7c2c-4297-b0d2-0b6e73c44808', 'Headquarter', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 9999, 3,
+VALUES ('de2d1bb5-553e-498d-8e12-dedd154d43f8', 'Headquarter', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 9999, 3,
         'a1b2c3d4-e5f6-7788-9900-aabbccddeeff');
-INSERT INTO "Profiles" ("ProfileId", "Address", "AvatarUrl", "BankAccountName", "BankAccountNumber", "BankCode",
-                        "DateOfBirth", "Gender", "Location", "PointBalance", "RankId", "UserId")
-VALUES ('ab384c63-d28b-4315-95c5-c2f55909b60e', 'Hẻm 456 Lê Văn Sỹ, Q3, HCM', NULL, NULL, NULL, NULL, NULL, 'Male',
-        GEOMETRY 'SRID=4326;POINT (106.68 10.78)', 120, 1, 'b2c3d4e5-f6a1-8899-0011-bbccddeeff00');
 
 INSERT INTO "ReferencePrices" ("ReferencePriceId", "LastUpdated", "PricePerKg", "ScrapCategoryId", "UpdatedByAdminId")
-VALUES ('00d13a5d-451a-40c3-8747-c6102fea8256', TIMESTAMP '2025-10-10T10:00:00', 1000.0,
-        '33333333-3333-3333-3333-333333333333', 'a1b2c3d4-e5f6-7788-9900-aabbccddeeff');
-INSERT INTO "ReferencePrices" ("ReferencePriceId", "LastUpdated", "PricePerKg", "ScrapCategoryId", "UpdatedByAdminId")
-VALUES ('a28081b5-59cf-43eb-9795-600b493c507f', TIMESTAMP '2025-10-10T10:00:00', 3000.0,
+VALUES ('27557888-1cf7-4cd3-a9d1-e915c912f89c', TIMESTAMP '2025-10-10T10:00:00', 3000.0,
         '11111111-1111-1111-1111-111111111111', 'a1b2c3d4-e5f6-7788-9900-aabbccddeeff');
 INSERT INTO "ReferencePrices" ("ReferencePriceId", "LastUpdated", "PricePerKg", "ScrapCategoryId", "UpdatedByAdminId")
-VALUES ('db88dcc1-be3e-4a1e-a0f1-bf55b0665ada', TIMESTAMP '2025-10-10T10:00:00', 5000.0,
+VALUES ('69efd35d-363d-4c38-8b2f-29d47f771f7d', TIMESTAMP '2025-10-10T10:00:00', 1000.0,
+        '33333333-3333-3333-3333-333333333333', 'a1b2c3d4-e5f6-7788-9900-aabbccddeeff');
+INSERT INTO "ReferencePrices" ("ReferencePriceId", "LastUpdated", "PricePerKg", "ScrapCategoryId", "UpdatedByAdminId")
+VALUES ('b9d68c6c-3f4c-439e-86ed-935f209be96d', TIMESTAMP '2025-10-10T10:00:00', 5000.0,
         '22222222-2222-2222-2222-222222222222', 'a1b2c3d4-e5f6-7788-9900-aabbccddeeff');
 
 INSERT INTO "ScrapPosts" ("Id", "Address", "CreatedAt", "Description", "HouseholdId", "Location", "MustTakeAll",
@@ -166,11 +166,11 @@ VALUES ('b0000002-0000-0000-0000-000000000001', '123 CMT8', TIMESTAMP '2025-10-1
 
 INSERT INTO "UserPackages" ("UserPackageId", "ActivationDate", "ExpirationDate", "PackageId", "RemainingConnections",
                             "UserId")
-VALUES ('67b31caf-52cb-46c8-9a6a-a9318026edc1', TIMESTAMP '2025-10-10T10:00:00', NULL,
+VALUES ('1dc69010-2df0-47be-8a3b-8ccda4454ba0', TIMESTAMP '2025-10-10T10:00:00', NULL,
         'a1111111-0000-0000-0000-000000000001', 5, 'b2c3d4e5-f6a1-8899-0011-bbccddeeff00');
 INSERT INTO "UserPackages" ("UserPackageId", "ActivationDate", "ExpirationDate", "PackageId", "RemainingConnections",
                             "UserId")
-VALUES ('84e3cc1b-ad93-4010-a0f0-900de45254a4', TIMESTAMP '2025-10-10T10:00:00', TIMESTAMP '2025-11-09T10:00:00',
+VALUES ('3544049d-5e90-421c-bf33-9a875e94ba2a', TIMESTAMP '2025-10-10T10:00:00', TIMESTAMP '2025-11-09T10:00:00',
         'a2222222-0000-0000-0000-000000000001', 499, 'e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef');
 
 INSERT INTO "UserRewardRedemptions" ("RedemptionDate", "RewardItemId", "UserId")
@@ -196,17 +196,17 @@ VALUES ('33333333-3333-3333-3333-333333333333', 'b0000002-0000-0000-0000-0000000
         'kg');
 
 INSERT INTO "OfferDetail" ("OfferDetailId", "CollectionOfferId", "PricePerUnit", "ScrapCategoryId", "Unit")
-VALUES ('7ca8d261-9d92-4220-8d92-ece3b628e9d7', 'f0000001-0000-0000-0000-000000000001', 3000.0,
+VALUES ('71bafdb4-ba3f-4712-a7b2-d8d9ec858409', 'f0000001-0000-0000-0000-000000000001', 3000.0,
         '11111111-1111-1111-1111-111111111111', 'kg');
 INSERT INTO "OfferDetail" ("OfferDetailId", "CollectionOfferId", "PricePerUnit", "ScrapCategoryId", "Unit")
-VALUES ('8671d90c-1910-4c02-b16c-1b36777d0258', 'f0000001-0000-0000-0000-000000000001', 5000.0,
+VALUES ('ee8fdc41-93e0-43d6-ad51-4f56f8dd2723', 'f0000001-0000-0000-0000-000000000001', 5000.0,
         '22222222-2222-2222-2222-222222222222', 'kg');
 
 INSERT INTO "Transactions" ("TransactionId", "CheckInLocation", "CheckInTime", "CreatedAt", "HouseholdId", "OfferId",
                             "PaymentMethod", "ScheduledTime", "ScrapCollectorId", "Status", "TimeSlotId", "TotalAmount",
                             "UpdatedAt", "UserId", "UserId1")
 VALUES ('70000001-0000-0000-0000-000000000001', GEOMETRY 'SRID=4326;POINT (106.69 10.777)',
-        TIMESTAMP '2025-10-10T12:00:00', TIMESTAMP '2025-12-21T15:21:12.871019', 'c3d4e5f6-a1b2-9900-1122-ccddeeff0011',
+        TIMESTAMP '2025-10-10T12:00:00', TIMESTAMP '2025-12-22T08:40:07.549928', 'c3d4e5f6-a1b2-9900-1122-ccddeeff0011',
         'f0000001-0000-0000-0000-000000000001', 'Cash', TIMESTAMP '2025-10-10T12:00:00',
         'e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef', 'Completed', NULL, 100000.0, NULL, NULL, NULL);
 INSERT INTO "Transactions" ("TransactionId", "CheckInLocation", "CheckInTime", "CreatedAt", "HouseholdId", "OfferId",
@@ -217,17 +217,17 @@ VALUES ('70000002-0000-0000-0000-000000000002', NULL, NULL, TIMESTAMP '2025-10-0
         'b2c3d4e5-f6a1-8899-0011-bbccddeeff00', 'CanceledByUser', NULL, 0.0, NULL, NULL, NULL);
 
 INSERT INTO "ChatRooms" ("ChatRoomId", "CreatedAt", "TransactionId")
-VALUES ('3af52111-7fa3-454a-b555-167cda22afdb', TIMESTAMP '2025-10-09T10:00:00',
+VALUES ('e676660c-df2d-4545-aa31-b037590bfdc9', TIMESTAMP '2025-10-09T10:00:00',
         '70000001-0000-0000-0000-000000000001');
 
 INSERT INTO "Complaints" ("ComplaintId", "AccusedId", "ComplainantId", "CreatedAt", "EvidenceUrl", "Reason", "Status",
                           "TransactionId")
-VALUES ('b3779725-f849-4982-882d-a76eb1e93feb', 'b2c3d4e5-f6a1-8899-0011-bbccddeeff00',
+VALUES ('1da5f8ee-4604-4422-b181-c73eda49e96a', 'b2c3d4e5-f6a1-8899-0011-bbccddeeff00',
         'c3d4e5f6-a1b2-9900-1122-ccddeeff0011', TIMESTAMP '2025-10-05T10:00:00', NULL, 'Hẹn không đến.', 'Submitted',
         '70000002-0000-0000-0000-000000000002');
 
 INSERT INTO "Feedbacks" ("FeedbackId", "Comment", "CreatedAt", "Rate", "RevieweeId", "ReviewerId", "TransactionId")
-VALUES ('f4e4dafc-89e9-458c-a472-c28c7d5b278f', 'Nhanh gọn lẹ.', TIMESTAMP '2025-10-10T13:00:00', 5,
+VALUES ('fbc25471-a526-4c04-a060-ea93068643a1', 'Nhanh gọn lẹ.', TIMESTAMP '2025-10-10T13:00:00', 5,
         'e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef', 'c3d4e5f6-a1b2-9900-1122-ccddeeff0011',
         '70000001-0000-0000-0000-000000000001');
 
@@ -241,17 +241,17 @@ VALUES ('22222222-2222-2222-2222-222222222222', '70000001-0000-0000-0000-0000000
         'kg');
 
 INSERT INTO "ChatParticipants" ("ChatRoomId", "UserId", "JoinedAt")
-VALUES ('3af52111-7fa3-454a-b555-167cda22afdb', 'c3d4e5f6-a1b2-9900-1122-ccddeeff0011',
+VALUES ('e676660c-df2d-4545-aa31-b037590bfdc9', 'c3d4e5f6-a1b2-9900-1122-ccddeeff0011',
         TIMESTAMP '2025-10-09T10:00:00');
 INSERT INTO "ChatParticipants" ("ChatRoomId", "UserId", "JoinedAt")
-VALUES ('3af52111-7fa3-454a-b555-167cda22afdb', 'e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef',
+VALUES ('e676660c-df2d-4545-aa31-b037590bfdc9', 'e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef',
         TIMESTAMP '2025-10-09T10:00:00');
 
 INSERT INTO "Messages" ("MessageId", "ChatRoomId", "Content", "IsRead", "SenderId", "Timestamp")
-VALUES ('07a5bf16-97d5-4a99-bde4-607c61e57279', '3af52111-7fa3-454a-b555-167cda22afdb', 'Ok em.', TRUE,
+VALUES ('85c725e6-8ff3-45c6-ba0a-54a0a3b05d89', 'e676660c-df2d-4545-aa31-b037590bfdc9', 'Ok em.', TRUE,
         'c3d4e5f6-a1b2-9900-1122-ccddeeff0011', TIMESTAMP '2025-10-10T12:01:00');
 INSERT INTO "Messages" ("MessageId", "ChatRoomId", "Content", "IsRead", "SenderId", "Timestamp")
-VALUES ('fdad2164-ad4b-4a8c-8fa0-2d746ed5bb70', '3af52111-7fa3-454a-b555-167cda22afdb', 'Chào chị, em tới rồi.', TRUE,
+VALUES ('e9bd1d7d-775b-4ba7-8691-f04182f54c31', 'e676660c-df2d-4545-aa31-b037590bfdc9', 'Chào chị, em tới rồi.', TRUE,
         'e6a1b2c3-d4e5-f6a7-8899-0011bbccdeef', TIMESTAMP '2025-10-10T12:00:00');
 
 SELECT setval(
@@ -268,7 +268,7 @@ SELECT setval(
                false);
 
 INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-VALUES ('20251221152113_Seeding_Database', '9.0.9');
+VALUES ('20251222084008_Seeding_Database', '9.0.9');
 
 COMMIT;
 

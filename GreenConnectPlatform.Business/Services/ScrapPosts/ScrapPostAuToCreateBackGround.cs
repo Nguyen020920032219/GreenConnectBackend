@@ -39,7 +39,7 @@ public class ScrapPostAuToCreateBackGround : BackgroundService
                 .Include(s => s.ScheduleDetails)
                 .Where(s => s.IsActive 
                             && s.DayOfWeek == currentDayOfWeek
-                            && s.PreferredTime <= currentTimeOnly
+                            && s.StartTime <= currentTimeOnly
                             && s.LastRunDate.Date < todayDate) 
                 .ToListAsync();
             if (schedules.Any())
@@ -61,15 +61,13 @@ public class ScrapPostAuToCreateBackGround : BackgroundService
                         TimeSlots = new List<ScrapPostTimeSlot>(),
                         ScrapPostDetails = new List<ScrapPostDetail>()
                     };
-                    var slotStart = schedule.PreferredTime;
-                    var slotEnd = schedule.PreferredTime.AddHours(4);
                     newPost.TimeSlots.Add(new ScrapPostTimeSlot
                     {
                         Id = Guid.NewGuid(),
                         ScrapPostId = newPost.Id,
                         SpecificDate = DateOnly.FromDateTime(todayDate),
-                        StartTime = slotStart,
-                        EndTime = slotEnd,
+                        StartTime = schedule.StartTime,
+                        EndTime = schedule.EndTime,
                         IsBooked = false
                     });
                     foreach (var scheduleDetail in schedule.ScheduleDetails)

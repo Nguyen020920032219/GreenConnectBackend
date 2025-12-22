@@ -53,14 +53,39 @@ public class RecurringScheduleService : IRecurringScheduleService
         if (model.DayOfWeek <= 0 || model.DayOfWeek >= 6)
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "DayOfWeek phải nằm trong khoảng từ 0 đến 6 tương với thứ 2 đến chủ nhật và bắt đầu với 0 là chủ nhật và 1 là thứ 2");
+        if(model.StartTime >= model.EndTime)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", 
+                "StartTime phải nhỏ hơn EndTime");
         var recurringSchedule = _mapper.Map<RecurringSchedule>(model);
         recurringSchedule.Id = Guid.NewGuid();
         recurringSchedule.HouseholdId = userId;
         recurringSchedule.IsActive = true;
         recurringSchedule.CreatedAt = DateTime.UtcNow;
-        recurringSchedule.LastRunDate = DateTime.UtcNow;
+        
+        var vnNow = DateTime.UtcNow.AddHours(7);
+        var currentDayOfWeek = (int)vnNow.DayOfWeek;
+        var currentTimeOnly = TimeOnly.FromDateTime(vnNow);
+        if (model.DayOfWeek == currentDayOfWeek && model.StartTime > currentTimeOnly)
+        {
+            recurringSchedule.LastRunDate = vnNow.AddDays(-1); 
+        }
+        else
+        {
+            recurringSchedule.LastRunDate = vnNow;
+        }
         if (model.Location != null && model.Location.Latitude.HasValue && model.Location.Longitude.HasValue)
         {
+            if (model.Location.Latitude < -90 || model.Location.Latitude > 90)
+            {
+                throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", 
+                    $"Vĩ độ (Latitude) không hợp lệ. Phải nằm trong khoảng từ -90 đến 90.");
+            }
+
+            if (model.Location.Longitude < -180 || model.Location.Longitude > 180)
+            {
+                throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", 
+                    $"Kinh độ (Longitude) không hợp lệ. Phải nằm trong khoảng từ -180 đến 180.");
+            }
             recurringSchedule.Location 
                 = _geometryFactory.CreatePoint(new Coordinate(model.Location.Longitude.Value,
                     model.Location.Latitude.Value));
@@ -86,15 +111,37 @@ public class RecurringScheduleService : IRecurringScheduleService
         if (model.DayOfWeek <= 2 || model.DayOfWeek >= 8)
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "DayOfWeek phải nằm trong khoảng từ thứ 2 đến chủ nhật");
+        if (model.StartTime > recurringSchedule.EndTime)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "Ngày bắt đầu mới phải nhỏ ngày kết thúc cũ");
+        if(model.EndTime < recurringSchedule.StartTime)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "Ngày kết thúc mới phải lớn ngày bắt đầu cũ");
+        if(model.StartTime != null && model.EndTime != null && model.StartTime > model.EndTime)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "Ngày bắt đầu mới phải nhỏ ngày kết thúc mới");
         if(model.DayOfWeek == null)
             model.DayOfWeek = recurringSchedule.DayOfWeek;
-        if(model.PreferredTime == null)
-            model.PreferredTime = recurringSchedule.PreferredTime;
+        if(model.StartTime != null)
+            recurringSchedule.StartTime = model.StartTime.Value;
+        if(model.EndTime != null)
+            recurringSchedule.EndTime = model.EndTime.Value;
         if (!string.IsNullOrEmpty(model.Address))
         {
             recurringSchedule.Address = model.Address;
             if (model.Location != null && model.Location.Latitude.HasValue && model.Location.Longitude.HasValue)
             {
+                if (model.Location.Latitude < -90 || model.Location.Latitude > 90)
+                {
+                    throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", 
+                        $"Vĩ độ (Latitude) không hợp lệ. Phải nằm trong khoảng từ -90 đến 90.");
+                }
+
+                if (model.Location.Longitude < -180 || model.Location.Longitude > 180)
+                {
+                    throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", 
+                        $"Kinh độ (Longitude) không hợp lệ. Phải nằm trong khoảng từ -180 đến 180.");
+                }
                 recurringSchedule.Location 
                     = _geometryFactory.CreatePoint(new Coordinate(model.Location.Longitude.Value,
                         model.Location.Latitude.Value));

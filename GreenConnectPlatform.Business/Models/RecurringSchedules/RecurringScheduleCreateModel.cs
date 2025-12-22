@@ -18,7 +18,9 @@ public class RecurringScheduleCreateModel
     public bool MustTakeAll { get; set; } = false;
     [Required(ErrorMessage = "DayOfWeek là bắt buộc.")]
     public int DayOfWeek { get; set; }
-    [Required(ErrorMessage = "PreferredTime là bắt buộc.")]
-    public TimeOnly PreferredTime { get; set; }
+    [Required(ErrorMessage = "StartTime là bắt buộc.")]
+    public TimeOnly StartTime { get; set; }
+    [Required(ErrorMessage = "EndTime là bắt buộc.")]
+    public TimeOnly EndTime { get; set; }
     public List<RecurringScheduleDetailCreateModel> ScheduleDetails { get; set; } = new ();
 }

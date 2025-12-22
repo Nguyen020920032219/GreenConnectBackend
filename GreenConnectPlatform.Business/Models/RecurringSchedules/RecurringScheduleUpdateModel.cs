@@ -10,5 +10,6 @@ public class RecurringScheduleUpdateModel
     public LocationModel? Location { get; set; }
     public bool? MustTakeAll { get; set; } = false;
     public int? DayOfWeek { get; set; }
-    public TimeOnly? PreferredTime { get; set; }
+    public TimeOnly? StartTime { get; set; }
+    public TimeOnly? EndTime { get; set; }
 }

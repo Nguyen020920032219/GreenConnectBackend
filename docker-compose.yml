@@ -1,6 +1,21 @@
 version: '3.8'
 
 services:
+  # 1. DATABASE
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: greenconnect-db-container
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: supercalifragilisticexpialidocious
+      POSTGRES_DB: GreenConnectDb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: always
+
+  # 2. API SERVICE
   greenconnect-api:
     container_name: greenconnect-api-container
     build:
@@ -9,21 +24,32 @@ services:
     ports:
       - "5000:8080"
     environment:
-      DatabaseConnection__DefaultConnection__DbHost: host.docker.internal
-      
-      DatabaseConnection__DefaultConnection__DbUser: postgres
-      DatabaseConnection__DefaultConnection__DbPass: "password"
-      DatabaseConnection__DefaultConnection__Database: GreenConnectDb
+      ASPNETCORE_ENVIRONMENT: Development
+      EnableHttpsRedirect: "false"
+      DatabaseConnection__DefaultConnection__DbHost: db
       DatabaseConnection__DefaultConnection__DbPort: 5432
+      DatabaseConnection__DefaultConnection__DbUser: postgres
+      DatabaseConnection__DefaultConnection__DbPass: "supercalifragilisticexpialidocious"
+      DatabaseConnection__DefaultConnection__Database: GreenConnectDb
+    volumes:
+      - ./GreenConnectPlatform.Api/Configs/firebase-service-account.json:/app/Configs/firebase-service-account.json
+    depends_on:
+      - db
     restart: unless-stopped
   
+  # 3. NGINX PROXY
   nginx:
     image: nginx:alpine
     container_name: greenconnect-nginx-container
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     depends_on:
       - greenconnect-api
     restart: always
+
+volumes:
+  postgres_data:

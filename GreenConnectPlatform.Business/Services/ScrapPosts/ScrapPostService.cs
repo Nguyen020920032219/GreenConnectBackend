@@ -4,6 +4,7 @@ using GreenConnectPlatform.Business.Models.Paging;
 using GreenConnectPlatform.Business.Models.ScrapCategories;
 using GreenConnectPlatform.Business.Models.ScrapPosts;
 using GreenConnectPlatform.Business.Models.ScrapPosts.ScrapPostDetails;
+using GreenConnectPlatform.Business.Models.ScrapPostTimeSlots;
 using GreenConnectPlatform.Business.Models.Users;
 using GreenConnectPlatform.Business.Services.FileStorage;
 using GreenConnectPlatform.Data.Entities;
@@ -117,7 +118,19 @@ public class ScrapPostService : IScrapPostService
                     Status = detail.Status
                 });
             }
-
+        var timeSlots = new List<ScrapPostTimeSlotModel>();
+        foreach (var slot in post.TimeSlots)
+        {
+            timeSlots.Add(new ScrapPostTimeSlotModel
+            {
+                Id = slot.Id,
+                ScrapPostId = post.Id,
+                IsBooked = slot.IsBooked,
+                SpecificDate = slot.SpecificDate,
+                StartTime = slot.StartTime,
+                EndTime = slot.EndTime
+            });
+        }
         var postModel = new ScrapPostModel
         {
             Id = post.Id,
@@ -141,7 +154,8 @@ public class ScrapPostService : IScrapPostService
                 Roles = roles
             },
             MustTakeAll = post.MustTakeAll,
-            ScrapPostDetails = scrapPostDetails
+            ScrapPostDetails = scrapPostDetails,
+            TimeSlots = timeSlots
         };
         return postModel;
     }
@@ -153,7 +167,17 @@ public class ScrapPostService : IScrapPostService
             if (await _categoryRepository.GetByIdAsync(catId) == null)
                 throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                     $"Loại ve chai ID {catId} không hợp lệ.");
-
+        var allCategoryIds = request.ScrapPostDetails.Select(d => d.ScrapCategoryId).ToList();
+        if (allCategoryIds.Count != categoryIds.Count)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "Không được lặp lại loại ve chai trong chi tiết ve chai.");
+        if(!request.ScrapPostDetails.Any())
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "Phải có ít nhất một chi tiết ve chai trong bài đăng.");
+        if(!request.ScrapPostTimeSlots.Any())
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "Phải có ít nhất một khung thời gian trong bài đăng.");
+        
         var post = _mapper.Map<ScrapPost>(request);
         post.Id = Guid.NewGuid();
         post.HouseholdId = householdId;
@@ -162,10 +186,32 @@ public class ScrapPostService : IScrapPostService
         post.UpdatedAt = DateTime.UtcNow;
 
         if (request.Location != null && request.Location.Latitude.HasValue && request.Location.Longitude.HasValue)
+        {
+            if (request.Location.Latitude < -90 || request.Location.Latitude > 90)
+            {
+                throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", 
+                    $"Vĩ độ (Latitude) không hợp lệ. Phải nằm trong khoảng từ -90 đến 90.");
+            }
+
+            if (request.Location.Longitude < -180 || request.Location.Longitude > 180)
+            {
+                throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", 
+                    $"Kinh độ (Longitude) không hợp lệ. Phải nằm trong khoảng từ -180 đến 180.");
+            }
             post.Location =
                 _geometryFactory.CreatePoint(new Coordinate(request.Location.Longitude.Value,
                     request.Location.Latitude.Value));
-
+        }
+            
+        foreach (var slots in post.TimeSlots)
+        {
+            if(slots.StartTime >= slots.EndTime)
+                throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                    "Thời gian bắt đầu phải trước thời gian kết thúc trong khung thời gian.");
+            slots.Id = Guid.NewGuid();
+            slots.ScrapPostId = post.Id;
+            slots.IsBooked = false;
+        }
         await _postRepository.AddAsync(post);
 
         return await GetByIdAsync(post.Id);
@@ -187,10 +233,25 @@ public class ScrapPostService : IScrapPostService
         post.UpdatedAt = DateTime.UtcNow;
 
         if (request.Location != null && request.Location.Latitude.HasValue && request.Location.Longitude.HasValue)
+        {
+            if (request.Location.Latitude < -90 || request.Location.Latitude > 90)
+            {
+                throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", 
+                    $"Vĩ độ (Latitude) không hợp lệ. Phải nằm trong khoảng từ -90 đến 90.");
+            }
+
+            if (request.Location.Longitude < -180 || request.Location.Longitude > 180)
+            {
+                throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", 
+                    $"Kinh độ (Longitude) không hợp lệ. Phải nằm trong khoảng từ -180 đến 180.");
+            }
             post.Location =
                 _geometryFactory.CreatePoint(new Coordinate(request.Location.Longitude.Value,
                     request.Location.Latitude.Value));
-
+            post.Location =
+                _geometryFactory.CreatePoint(new Coordinate(request.Location.Longitude.Value,
+                    request.Location.Latitude.Value));
+        }
         await _postRepository.UpdateAsync(post);
         return _mapper.Map<ScrapPostModel>(post);
     }
@@ -250,7 +311,7 @@ public class ScrapPostService : IScrapPostService
         if (detail.Status != PostDetailStatus.Available)
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Không thể sửa món hàng đã được đặt/thu gom.");
-        if (detailRequest.Type != null)
+        if(detailRequest.Type != null)
             detail.Type = detailRequest.Type.Value;
         _mapper.Map(detailRequest, detail);
         await _postRepository.UpdateAsync(post);
@@ -275,4 +336,55 @@ public class ScrapPostService : IScrapPostService
         post.ScrapPostDetails.Remove(detail);
         await _postRepository.UpdateAsync(post);
     }
+
+    public async Task AddTimeSlotAsync(Guid householdId, Guid postId, ScrapPostTimeSlotCreateModel timeSlotRequest)
+    {
+        var post = await  _postRepository.GetByIdWithDetailsAsync(postId);
+        if (post == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Bài đăng không tồn tại.");
+        if (post.HouseholdId != householdId)
+            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Không có quyền.");
+        if (post.Status == PostStatus.Completed)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                " thể thêm khung thời gian khi bài đăng đã hoàn thành.");
+        var timeSlot = _mapper.Map<ScrapPostTimeSlot>(timeSlotRequest);
+        timeSlot.ScrapPostId = postId;
+        post.TimeSlots.Add(timeSlot);
+        await _postRepository.UpdateAsync(post);
+    }
+
+    public async Task UpdateTimeSlotAsync(Guid householdId, Guid postId, Guid timeSlotId, DateOnly? scpecificDate, TimeOnly? startTime,
+        TimeOnly? endTime)
+    {
+        var post = await _postRepository.GetByIdWithDetailsAsync(postId);
+        if (post == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Bài đăng không tồn tại.");
+        if (post.HouseholdId != householdId)
+            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Không có quyền.");
+        var timeSlot = post.TimeSlots.FirstOrDefault(ts => ts.Id == timeSlotId);
+        if (timeSlot == null)
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Khung thời gian không tồn tại.");
+        if (scpecificDate.HasValue)
+            timeSlot.SpecificDate = scpecificDate.Value;
+        if (startTime.HasValue)
+            timeSlot.StartTime = startTime.Value;
+        if (endTime.HasValue)
+            timeSlot.EndTime = endTime.Value;
+        await _postRepository.UpdateAsync(post);
+    }
+
+    public async Task DeleteTimeSlotAsync(Guid householdId, Guid postId, Guid timeSlotId)
+    {
+        var post = await  _postRepository.GetByIdWithDetailsAsync(postId);
+        if (post == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Bài đăng không tồn tại.");
+        if (post.HouseholdId != householdId)
+            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Không có quyền.");
+        var timeSlot = post.TimeSlots.FirstOrDefault(ts => ts.Id == timeSlotId);
+        if (timeSlot == null)
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Khung thời gian không tồn tại.");
+        if(timeSlot.IsBooked)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "Không thể xóa khung thời gian đã được đặt.");
+        post.TimeSlots.Remove(timeSlot);
+        await _postRepository.UpdateAsync(post);
+    }
 }
+

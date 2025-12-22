@@ -123,6 +123,7 @@ public class ScrapPostController : ControllerBase
     ///     - `MustTakeAll = true`: Nếu bật, Collector bắt buộc phải thu gom **TẤT CẢ** các mục trong danh sách (Full-lot
     ///     purchase). <br />
     ///     - `ScrapPostDetails`: Danh sách các loại rác và ảnh minh họa.
+    ///     - `Type`: Chỉ được chọn `Sale` (Bán), hỗ trợ `Donation` (Tặng) hoặc dịch vụ `Service` trong bài đăng thu gom.
     /// </remarks>
     /// <param name="request">Thông tin bài đăng mới.</param>
     /// <response code="201">Tạo thành công (Trả về chi tiết bài vừa tạo).</response>
@@ -195,6 +196,7 @@ public class ScrapPostController : ControllerBase
     /// <remarks>
     ///     Ví dụ: Đã đăng bán "Giấy", giờ muốn bán thêm "Vỏ lon" vào cùng bài đó. <br />
     ///     Không thể thêm nếu bài đăng đã hoàn thành.
+    ///     `Type`: Chỉ được chọn `Sale` (Bán), hỗ trợ `Donation` (Tặng) hoặc dịch vụ `Service` trong bài đăng thu gom.
     /// </remarks>
     /// <param name="id">ID bài đăng.</param>
     /// <param name="request">Thông tin loại rác mới.</param>
@@ -272,6 +274,7 @@ public class ScrapPostController : ControllerBase
     ///     Chỉ tạo đề nghị thu gom nếu bài đăng đang ở trạng thái Open hoặc PartiallyBooked
     /// </remarks>
     /// <param name="id"></param>
+    /// <param name="slotTimeId"></param>
     /// <param name="request"></param>
     /// <response code="200">Thêm offer dành cho bài đăng(trả về đề nghị dành cho bài đăng)</response>
     /// <response code="400">Không thể thêm lời đề nghị vì bài đăng đã hoàn thành.....</response>
@@ -283,10 +286,10 @@ public class ScrapPostController : ControllerBase
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> AddOffer(Guid id, [FromBody] CollectionOfferCreateModel request)
+    public async Task<IActionResult> AddOffer(Guid id,[FromQuery]Guid slotTimeId ,[FromBody] CollectionOfferCreateModel request)
     {
         var userId = GetCurrentUserId();
-        var result = await _collectionOfferService.CreateAsync(userId, id, request);
+        var result = await _collectionOfferService.CreateAsync(userId, id,slotTimeId ,request);
         return Ok(await _collectionOfferService.GetByIdAsync(result.CollectionOfferId));
     }
 

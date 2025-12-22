@@ -23,9 +23,9 @@ public interface ITransactionService
         Guid userId, string role, int pageNumber, int pageSize, bool sortByCreateAt, bool sortByUpdateAt);
 
     Task<List<TransactionDetailModel>> SubmitDetailsAsync(
-        Guid transactionId, Guid collectorId, List<TransactionDetailCreateModel> details);
+        Guid scrapPostId, Guid collectorId,Guid slotId, List<TransactionDetailCreateModel> details);
 
-    Task ProcessTransactionAsync(Guid transactionId, Guid householdId, bool isAccepted,
+    Task ProcessTransactionAsync(Guid scrapPostId, Guid collectorId,Guid slotId, Guid householdId, bool isAccepted,
         TransactionPaymentMethod paymentMethod);
 
     Task ToggleCancelAsync(Guid transactionId, Guid collectorId);

@@ -20,7 +20,7 @@ public class TransactionRepository : BaseRepository<GreenConnectDbContext, Trans
             .Include(t => t.ScrapCollector).ThenInclude(u => u.Profile)
             .Include(t => t.Offer).ThenInclude(o => o.OfferDetails)
             .Include(t => t.Offer).ThenInclude(o => o.ScrapPost).ThenInclude(s => s.ScrapPostDetails)
-            // .Include(t => t.Offer).ThenInclude(o => o.ScheduleProposals)
+            .Include(t => t.TimeSlot)
             .AsSplitQuery()
             .FirstOrDefaultAsync(t => t.TransactionId == id);
     }
@@ -55,7 +55,7 @@ public class TransactionRepository : BaseRepository<GreenConnectDbContext, Trans
             .Include(t => t.ScrapCollector).ThenInclude(u => u.Profile)
             .Include(t => t.Offer).ThenInclude(o => o.OfferDetails)
             .Include(t => t.Offer).ThenInclude(o => o.ScrapPost).ThenInclude(s => s.ScrapPostDetails)
-            // .Include(t => t.Offer).ThenInclude(o => o.ScheduleProposals)
+            .Include(t => t.TimeSlot)
             .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
@@ -85,7 +85,7 @@ public class TransactionRepository : BaseRepository<GreenConnectDbContext, Trans
             .Include(t => t.ScrapCollector).ThenInclude(u => u.Profile)
             .Include(t => t.Offer).ThenInclude(o => o.OfferDetails)
             .Include(t => t.Offer).ThenInclude(o => o.ScrapPost).ThenInclude(s => s.ScrapPostDetails)
-            // .Include(t => t.Offer).ThenInclude(o => o.ScheduleProposals)
+            .Include(t => t.TimeSlot)
             .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
@@ -116,5 +116,32 @@ public class TransactionRepository : BaseRepository<GreenConnectDbContext, Trans
             .Include(t => t.TransactionDetails)
             .Where(t => t.CreatedAt >= startDate && t.CreatedAt <= endDate && t.ScrapCollectorId == userId)
             .ToListAsync();
+    }
+
+    public async Task<List<Transaction>> GetTransactionByIdsAsync(Guid collectorId, Guid postId, Guid timeSlotId)
+    {
+        return await _dbSet
+            .Include(t => t.TransactionDetails)
+            .Include(t => t.Offer)
+            .ThenInclude(o => o.OfferDetails)
+            .Include(s => s.ScrapCollector)
+            .ThenInclude(s => s.Profile)
+            .Include(t => t.Household)
+            .ThenInclude(u => u.Profile)
+            .Include(t => t.Offer)
+            .ThenInclude(o => o.ScrapPost)
+            .ThenInclude(p => p.ScrapPostDetails)
+            .Include(t => t.TimeSlot)
+            .Where(t => t.ScrapCollectorId == collectorId &&
+                        t.Offer!.ScrapPostId == postId &&
+                        t.TimeSlotId == timeSlotId
+                        && t.Status == TransactionStatus.InProgress)
+            .ToListAsync();
+    }
+
+    public async Task UpdateRangeAsync(List<Transaction> transactions)
+    {
+        _dbSet.UpdateRange(transactions);
+        await _context.SaveChangesAsync();
     }
 }

@@ -18,10 +18,11 @@ public class CollectionOfferRepository : BaseRepository<GreenConnectDbContext, C
         return await _dbSet
             .Include(o => o.ScrapCollector).ThenInclude(u => u.Profile).ThenInclude(p => p!.Rank)
             .Include(o => o.OfferDetails).ThenInclude(od => od.ScrapCategory)
-            // .Include(o => o.ScheduleProposals)
+            .Include(o => o.ScrapPost).ThenInclude(s => s.TimeSlots)
             .Include(o => o.ScrapPost).ThenInclude(p => p.ScrapPostDetails)
             .Include(o => o.ScrapPost).ThenInclude(p => p.Household)
             .Include(o => o.Transactions)
+            .Include(o => o.TimeSlot)
             .AsSplitQuery()
             .FirstOrDefaultAsync(o => o.CollectionOfferId == id);
     }
@@ -47,10 +48,10 @@ public class CollectionOfferRepository : BaseRepository<GreenConnectDbContext, C
             .Include(o => o.ScrapPost).ThenInclude(p => p.Household)
             .Include(o => o.ScrapCollector).ThenInclude(u => u.Profile).ThenInclude(p => p!.Rank)
             .Include(o => o.OfferDetails).ThenInclude(od => od.ScrapCategory)
-            // .Include(o => o.ScheduleProposals)
             .Include(o => o.ScrapPost).ThenInclude(p => p.ScrapPostDetails)
             .Include(o => o.ScrapPost).ThenInclude(p => p.Household)
             .Include(o => o.Transactions)
+            .Include(o => o.TimeSlot)
             .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
@@ -76,7 +77,7 @@ public class CollectionOfferRepository : BaseRepository<GreenConnectDbContext, C
             .Include(o => o.ScrapPost)
             .Include(o => o.OfferDetails)
             .Include(o => o.OfferDetails).ThenInclude(od => od.ScrapCategory)
-            // .Include(o => o.ScheduleProposals)
+            .Include(o => o.TimeSlot)
             .Include(o => o.ScrapPost).ThenInclude(p => p.ScrapPostDetails)
             .Include(o => o.ScrapPost).ThenInclude(p => p.Household)
             .Include(o => o.Transactions)

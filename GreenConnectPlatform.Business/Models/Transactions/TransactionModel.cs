@@ -1,4 +1,5 @@
 ﻿using GreenConnectPlatform.Business.Models.CollectionOffers;
+using GreenConnectPlatform.Business.Models.ScrapPostTimeSlots;
 using GreenConnectPlatform.Business.Models.Transactions.TransactionDetails;
 using GreenConnectPlatform.Business.Models.Users;
 using GreenConnectPlatform.Data.Enums;
@@ -30,5 +31,7 @@ public class TransactionModel
 
     public List<TransactionDetailModel> TransactionDetails { get; set; } = new();
 
+    public Guid? TimeSlotId { get; set; }
+    public ScrapPostTimeSlotModel? TimeSlot { get; set; }
     public decimal TotalPrice { get; set; }
 }

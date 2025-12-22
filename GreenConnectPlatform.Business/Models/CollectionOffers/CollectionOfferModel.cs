@@ -1,6 +1,6 @@
 ﻿using GreenConnectPlatform.Business.Models.CollectionOffers.OfferDetails;
-using GreenConnectPlatform.Business.Models.ScheduleProposals;
 using GreenConnectPlatform.Business.Models.ScrapPosts;
+using GreenConnectPlatform.Business.Models.ScrapPostTimeSlots;
 using GreenConnectPlatform.Data.Enums;
 
 namespace GreenConnectPlatform.Business.Models.CollectionOffers;
@@ -17,6 +17,7 @@ public class CollectionOfferModel
     public DateTime CreatedAt { get; set; }
 
     public List<OfferDetailModel> OfferDetails { get; set; } = new();
+    public Guid TimeSlotId { get; set; }
+    public ScrapPostTimeSlotModel TimeSlot { get; set; }
 
-    public List<ScheduleProposalModel> ScheduleProposals { get; set; } = new();
 }

@@ -16,8 +16,9 @@ public class ScrapPostRepository : BaseRepository<GreenConnectDbContext, ScrapPo
     public async Task<ScrapPost?> GetByIdWithDetailsAsync(Guid id)
     {
         return await _dbSet
-            .Include(p => p.Household).ThenInclude(u => u.Profile).ThenInclude(pr => pr!.Rank)
+            .Include(p => p.Household).ThenInclude(u => u.Profile).ThenInclude(pr => pr.Rank)
             .Include(p => p.ScrapPostDetails).ThenInclude(d => d.ScrapCategory)
+            .Include(p => p.TimeSlots)
             .AsSplitQuery()
             .FirstOrDefaultAsync(p => p.Id == id);
     }
@@ -65,6 +66,7 @@ public class ScrapPostRepository : BaseRepository<GreenConnectDbContext, ScrapPo
         var items = await query
             .Include(p => p.Household).ThenInclude(u => u.Profile).ThenInclude(pr => pr!.Rank)
             .Include(p => p.ScrapPostDetails).ThenInclude(d => d.ScrapCategory)
+            .Include(p => p.TimeSlots)
             .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
@@ -91,6 +93,7 @@ public class ScrapPostRepository : BaseRepository<GreenConnectDbContext, ScrapPo
         var items = await query
             .Include(p => p.Household)
             .Include(p => p.ScrapPostDetails).ThenInclude(d => d.ScrapCategory)
+            .Include(p => p.TimeSlots)
             .OrderByDescending(p => p.CreatedAt)
             .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)

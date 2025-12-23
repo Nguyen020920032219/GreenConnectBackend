@@ -39,7 +39,7 @@ services:
   greenconnect-web:
     container_name: greenconnect-web-container
     build:
-      context: ./GreenConnectWeb 
+      context: ../GreenConnectWeb 
       dockerfile: Dockerfile
     environment:
       - NEXT_PUBLIC_API_URL=https://api.green-connect.business365.vn

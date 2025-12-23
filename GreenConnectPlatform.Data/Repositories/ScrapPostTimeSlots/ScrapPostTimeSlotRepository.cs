@@ -5,7 +5,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GreenConnectPlatform.Data.Repositories.ScrapPostTimeSlots;
 
-public class ScrapPostTimeSlotRepository : BaseRepository<GreenConnectDbContext, ScrapPostTimeSlot, Guid>, IScrapPostTimeSlotRepository
+public class ScrapPostTimeSlotRepository : BaseRepository<GreenConnectDbContext, ScrapPostTimeSlot, Guid>,
+    IScrapPostTimeSlotRepository
 {
     public ScrapPostTimeSlotRepository(GreenConnectDbContext context) : base(context)
     {

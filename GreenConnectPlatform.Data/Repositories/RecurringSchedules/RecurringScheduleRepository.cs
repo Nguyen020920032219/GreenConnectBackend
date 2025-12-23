@@ -5,14 +5,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GreenConnectPlatform.Data.Repositories.RecurringSchedules;
 
-public class RecurringScheduleRepository : BaseRepository<GreenConnectDbContext, RecurringSchedule, Guid>, IRecurringScheduleRepository
+public class RecurringScheduleRepository : BaseRepository<GreenConnectDbContext, RecurringSchedule, Guid>,
+    IRecurringScheduleRepository
 {
     public RecurringScheduleRepository(GreenConnectDbContext dbContext) : base(dbContext)
     {
-        
     }
 
-    public async Task<(List<RecurringSchedule> Items, int TotalCount)> GetPagedRecurringSchedulesAsync(int pageNumber, int pageSize, bool sortByCreatedAt)
+    public async Task<(List<RecurringSchedule> Items, int TotalCount)> GetPagedRecurringSchedulesAsync(int pageNumber,
+        int pageSize, bool sortByCreatedAt)
     {
         var query = _dbSet.AsNoTracking();
         if (sortByCreatedAt)

@@ -8,13 +8,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GreenConnectPlatform.Api.Controllers;
+
 [ApiController]
 [Route("api/v1/recurring-schedules")]
 [Tags("24. Recurring Schedules")]
 public class RecurringScheduleController(IRecurringScheduleService service) : ControllerBase
 {
     /// <summary>
-    ///  Household có thể xem danh sách các lịch trình định kỳ đã tạo với chức năng phân trang và sắp xếp theo ngày tạo.
+    ///     Household có thể xem danh sách các lịch trình định kỳ đã tạo với chức năng phân trang và sắp xếp theo ngày tạo.
     /// </summary>
     /// <param name="pageNumber"></param>
     /// <param name="pageSize"></param>
@@ -25,14 +26,16 @@ public class RecurringScheduleController(IRecurringScheduleService service) : Co
     [ProducesResponseType(typeof(RecurringScheduleOverallModel), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> GetPagedRecurringSchedules([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, 
+    public async Task<IActionResult> GetPagedRecurringSchedules([FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10,
         [FromQuery] bool sortByCreatedAt = true)
     {
         var result = await service.GetPagedRecurringSchedulesAsync(pageNumber, pageSize, sortByCreatedAt);
         return Ok(result);
     }
+
     /// <summary>
-    ///  Household có thể xem chi tiết một lịch trình định kỳ cụ thể bằng cách sử dụng ID của nó.
+    ///     Household có thể xem chi tiết một lịch trình định kỳ cụ thể bằng cách sử dụng ID của nó.
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
@@ -47,12 +50,13 @@ public class RecurringScheduleController(IRecurringScheduleService service) : Co
         var result = await service.GetRecurringScheduleByIdAsync(id);
         return Ok(result);
     }
+
     /// <summary>
-    ///  Household có thể tạo một lịch trình định kỳ mới bằng cách cung cấp các chi tiết cần thiết.
+    ///     Household có thể tạo một lịch trình định kỳ mới bằng cách cung cấp các chi tiết cần thiết.
     /// </summary>
     /// <param name="model"></param>
     /// <remarks>
-    ///  Đối với DayOfWeek sẽ là từ 0 - 6 tương ứng với 0 là Chủ nhật, 1 là thứ 2, 2 là thứ 3.......6 là thứ 7.
+    ///     Đối với DayOfWeek sẽ là từ 0 - 6 tương ứng với 0 là Chủ nhật, 1 là thứ 2, 2 là thứ 3.......6 là thứ 7.
     /// </remarks>
     /// <returns></returns>
     [HttpPost]
@@ -67,8 +71,9 @@ public class RecurringScheduleController(IRecurringScheduleService service) : Co
         var result = await service.CreateRecurringScheduleAsync(householdId, model);
         return CreatedAtAction(nameof(GetRecurringScheduleById), new { id = result.Id }, result);
     }
+
     /// <summary>
-    ///  Household có thể cập nhật các chi tiết của một lịch trình định kỳ hiện có bằng cách sử dụng ID của nó.
+    ///     Household có thể cập nhật các chi tiết của một lịch trình định kỳ hiện có bằng cách sử dụng ID của nó.
     /// </summary>
     /// <param name="id"></param>
     /// <param name="model"></param>
@@ -79,14 +84,16 @@ public class RecurringScheduleController(IRecurringScheduleService service) : Co
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> UpdateRecurringSchedule([FromRoute]Guid id,[FromBody] RecurringScheduleUpdateModel model)
+    public async Task<IActionResult> UpdateRecurringSchedule([FromRoute] Guid id,
+        [FromBody] RecurringScheduleUpdateModel model)
     {
         var householdId = GetCurrentUserId();
         var result = await service.UpdateRecurringScheduleAsync(id, householdId, model);
         return Ok(result);
     }
+
     /// <summary>
-    ///  Household có thể bật hoặc tắt một lịch trình định kỳ cụ thể bằng cách sử dụng ID của nó.
+    ///     Household có thể bật hoặc tắt một lịch trình định kỳ cụ thể bằng cách sử dụng ID của nó.
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
@@ -104,7 +111,7 @@ public class RecurringScheduleController(IRecurringScheduleService service) : Co
     }
 
     /// <summary>
-    ///  Household có thể xem chi tiết một chi tiết lịch trình định kỳ cụ thể bằng cách sử dụng ID của nó.
+    ///     Household có thể xem chi tiết một chi tiết lịch trình định kỳ cụ thể bằng cách sử dụng ID của nó.
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
@@ -118,9 +125,10 @@ public class RecurringScheduleController(IRecurringScheduleService service) : Co
     {
         return Ok(await service.GetRecurringScheduleDetailAsync(id));
     }
-    
+
     /// <summary>
-    ///  Household có thể thêm một chi tiết lịch trình định kỳ mới vào một lịch trình định kỳ cụ thể bằng cách sử dụng ID của nó.
+    ///     Household có thể thêm một chi tiết lịch trình định kỳ mới vào một lịch trình định kỳ cụ thể bằng cách sử dụng ID
+    ///     của nó.
     /// </summary>
     /// <param name="id"></param>
     /// <param name="model"></param>
@@ -131,15 +139,16 @@ public class RecurringScheduleController(IRecurringScheduleService service) : Co
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> AddRecurringScheduleDetail([FromRoute] Guid id, [FromBody] RecurringScheduleDetailCreateModel model)
+    public async Task<IActionResult> AddRecurringScheduleDetail([FromRoute] Guid id,
+        [FromBody] RecurringScheduleDetailCreateModel model)
     {
         var householdId = GetCurrentUserId();
         var result = await service.AddRecurringScheduleDetailAsync(id, householdId, model);
         return CreatedAtAction(nameof(GetRecurringScheduleDetail), new { id = result.Id }, result);
     }
-    
+
     /// <summary>
-    /// Household có thể cập nhật các chi tiết của một chi tiết lịch trình định kỳ cụ thể bằng cách sử dụng ID của nó.
+    ///     Household có thể cập nhật các chi tiết của một chi tiết lịch trình định kỳ cụ thể bằng cách sử dụng ID của nó.
     /// </summary>
     /// <param name="id"></param>
     /// <param name="detailId"></param>
@@ -157,12 +166,14 @@ public class RecurringScheduleController(IRecurringScheduleService service) : Co
         [FromQuery] double? quantity, [FromQuery] string? amountDescription, [FromQuery] ItemTransactionType? type)
     {
         var householdId = GetCurrentUserId();
-        var result = await service.UpdateRecurringScheduleDetailAsync(id, detailId, householdId, quantity, amountDescription, type);
+        var result =
+            await service.UpdateRecurringScheduleDetailAsync(id, detailId, householdId, quantity, amountDescription,
+                type);
         return Ok(result);
     }
 
     /// <summary>
-    ///  Household có thể xóa một chi tiết lịch trình định kỳ cụ thể bằng cách sử dụng ID của nó.
+    ///     Household có thể xóa một chi tiết lịch trình định kỳ cụ thể bằng cách sử dụng ID của nó.
     /// </summary>
     /// <param name="id"></param>
     /// <param name="detailId"></param>
@@ -179,7 +190,7 @@ public class RecurringScheduleController(IRecurringScheduleService service) : Co
         await service.DeleteRecurringScheduleDetailAsync(id, detailId, householdId);
         return NoContent();
     }
-    
+
     private Guid GetCurrentUserId()
     {
         var idStr = User.FindFirstValue(ClaimTypes.NameIdentifier);

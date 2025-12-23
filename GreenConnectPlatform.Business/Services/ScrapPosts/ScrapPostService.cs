@@ -118,9 +118,9 @@ public class ScrapPostService : IScrapPostService
                     Status = detail.Status
                 });
             }
+
         var timeSlots = new List<ScrapPostTimeSlotModel>();
         foreach (var slot in post.TimeSlots)
-        {
             timeSlots.Add(new ScrapPostTimeSlotModel
             {
                 Id = slot.Id,
@@ -130,7 +130,6 @@ public class ScrapPostService : IScrapPostService
                 StartTime = slot.StartTime,
                 EndTime = slot.EndTime
             });
-        }
         var postModel = new ScrapPostModel
         {
             Id = post.Id,
@@ -171,13 +170,13 @@ public class ScrapPostService : IScrapPostService
         if (allCategoryIds.Count != categoryIds.Count)
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Không được lặp lại loại ve chai trong chi tiết ve chai.");
-        if(!request.ScrapPostDetails.Any())
+        if (!request.ScrapPostDetails.Any())
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Phải có ít nhất một chi tiết ve chai trong bài đăng.");
-        if(!request.ScrapPostTimeSlots.Any())
+        if (!request.ScrapPostTimeSlots.Any())
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Phải có ít nhất một khung thời gian trong bài đăng.");
-        
+
         var post = _mapper.Map<ScrapPost>(request);
         post.Id = Guid.NewGuid();
         post.HouseholdId = householdId;
@@ -188,30 +187,27 @@ public class ScrapPostService : IScrapPostService
         if (request.Location != null && request.Location.Latitude.HasValue && request.Location.Longitude.HasValue)
         {
             if (request.Location.Latitude < -90 || request.Location.Latitude > 90)
-            {
-                throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", 
-                    $"Vĩ độ (Latitude) không hợp lệ. Phải nằm trong khoảng từ -90 đến 90.");
-            }
+                throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                    "Vĩ độ (Latitude) không hợp lệ. Phải nằm trong khoảng từ -90 đến 90.");
 
             if (request.Location.Longitude < -180 || request.Location.Longitude > 180)
-            {
-                throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", 
-                    $"Kinh độ (Longitude) không hợp lệ. Phải nằm trong khoảng từ -180 đến 180.");
-            }
+                throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                    "Kinh độ (Longitude) không hợp lệ. Phải nằm trong khoảng từ -180 đến 180.");
             post.Location =
                 _geometryFactory.CreatePoint(new Coordinate(request.Location.Longitude.Value,
                     request.Location.Latitude.Value));
         }
-            
+
         foreach (var slots in post.TimeSlots)
         {
-            if(slots.StartTime >= slots.EndTime)
+            if (slots.StartTime >= slots.EndTime)
                 throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                     "Thời gian bắt đầu phải trước thời gian kết thúc trong khung thời gian.");
             slots.Id = Guid.NewGuid();
             slots.ScrapPostId = post.Id;
             slots.IsBooked = false;
         }
+
         await _postRepository.AddAsync(post);
 
         return await GetByIdAsync(post.Id);
@@ -235,16 +231,12 @@ public class ScrapPostService : IScrapPostService
         if (request.Location != null && request.Location.Latitude.HasValue && request.Location.Longitude.HasValue)
         {
             if (request.Location.Latitude < -90 || request.Location.Latitude > 90)
-            {
-                throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", 
-                    $"Vĩ độ (Latitude) không hợp lệ. Phải nằm trong khoảng từ -90 đến 90.");
-            }
+                throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                    "Vĩ độ (Latitude) không hợp lệ. Phải nằm trong khoảng từ -90 đến 90.");
 
             if (request.Location.Longitude < -180 || request.Location.Longitude > 180)
-            {
-                throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", 
-                    $"Kinh độ (Longitude) không hợp lệ. Phải nằm trong khoảng từ -180 đến 180.");
-            }
+                throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                    "Kinh độ (Longitude) không hợp lệ. Phải nằm trong khoảng từ -180 đến 180.");
             post.Location =
                 _geometryFactory.CreatePoint(new Coordinate(request.Location.Longitude.Value,
                     request.Location.Latitude.Value));
@@ -252,6 +244,7 @@ public class ScrapPostService : IScrapPostService
                 _geometryFactory.CreatePoint(new Coordinate(request.Location.Longitude.Value,
                     request.Location.Latitude.Value));
         }
+
         await _postRepository.UpdateAsync(post);
         return _mapper.Map<ScrapPostModel>(post);
     }
@@ -311,7 +304,7 @@ public class ScrapPostService : IScrapPostService
         if (detail.Status != PostDetailStatus.Available)
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Không thể sửa món hàng đã được đặt/thu gom.");
-        if(detailRequest.Type != null)
+        if (detailRequest.Type != null)
             detail.Type = detailRequest.Type.Value;
         _mapper.Map(detailRequest, detail);
         await _postRepository.UpdateAsync(post);
@@ -339,7 +332,7 @@ public class ScrapPostService : IScrapPostService
 
     public async Task AddTimeSlotAsync(Guid householdId, Guid postId, ScrapPostTimeSlotCreateModel timeSlotRequest)
     {
-        var post = await  _postRepository.GetByIdWithDetailsAsync(postId);
+        var post = await _postRepository.GetByIdWithDetailsAsync(postId);
         if (post == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Bài đăng không tồn tại.");
         if (post.HouseholdId != householdId)
             throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Không có quyền.");
@@ -352,7 +345,8 @@ public class ScrapPostService : IScrapPostService
         await _postRepository.UpdateAsync(post);
     }
 
-    public async Task UpdateTimeSlotAsync(Guid householdId, Guid postId, Guid timeSlotId, DateOnly? scpecificDate, TimeOnly? startTime,
+    public async Task UpdateTimeSlotAsync(Guid householdId, Guid postId, Guid timeSlotId, DateOnly? scpecificDate,
+        TimeOnly? startTime,
         TimeOnly? endTime)
     {
         var post = await _postRepository.GetByIdWithDetailsAsync(postId);
@@ -373,18 +367,17 @@ public class ScrapPostService : IScrapPostService
 
     public async Task DeleteTimeSlotAsync(Guid householdId, Guid postId, Guid timeSlotId)
     {
-        var post = await  _postRepository.GetByIdWithDetailsAsync(postId);
+        var post = await _postRepository.GetByIdWithDetailsAsync(postId);
         if (post == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Bài đăng không tồn tại.");
         if (post.HouseholdId != householdId)
             throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Không có quyền.");
         var timeSlot = post.TimeSlots.FirstOrDefault(ts => ts.Id == timeSlotId);
         if (timeSlot == null)
             throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Khung thời gian không tồn tại.");
-        if(timeSlot.IsBooked)
+        if (timeSlot.IsBooked)
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Không thể xóa khung thời gian đã được đặt.");
         post.TimeSlots.Remove(timeSlot);
         await _postRepository.UpdateAsync(post);
     }
 }
-

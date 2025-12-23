@@ -4,7 +4,6 @@ using GreenConnectPlatform.Data.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace GreenConnectPlatform.Business.Services.Transactions;
 
@@ -21,7 +20,7 @@ public class TransactionAutoCancelBackGroundService : BackgroundService
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-                await ProcessOverdueTransactions();
+            await ProcessOverdueTransactions();
 
             await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
         }
@@ -50,15 +49,15 @@ public class TransactionAutoCancelBackGroundService : BackgroundService
             foreach (var transaction in overdueTransactions)
             {
                 var title = "Giao dịch đã bị hủy tự động";
-                var endTimeStr = transaction.TimeSlot.EndTime.ToString("HH:mm"); 
+                var endTimeStr = transaction.TimeSlot.EndTime.ToString("HH:mm");
                 var dateStr = transaction.TimeSlot.SpecificDate.ToString("dd/MM/yyyy");
-                        
+
                 var body = $"Giao dịch ngày {dateStr} lúc {endTimeStr} đã bị hệ thống hủy do quá hạn check-in.";
-                        
-                var data = new Dictionary<string, string> 
-                { 
-                    { "type", "Transaction" }, 
-                    { "id", transaction.TransactionId.ToString() } 
+
+                var data = new Dictionary<string, string>
+                {
+                    { "type", "Transaction" },
+                    { "id", transaction.TransactionId.ToString() }
                 };
                 await notificationService.SendNotificationAsync(transaction.ScrapCollectorId, title, body, data);
             }

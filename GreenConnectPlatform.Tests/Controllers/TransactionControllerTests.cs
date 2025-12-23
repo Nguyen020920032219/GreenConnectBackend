@@ -86,7 +86,7 @@ public class TransactionControllerTests
     // GROUP 2: SUBMIT DETAILS (TRX-03 -> TRX-06)
     // =================================================================
     // NOTE: Service signature changed to: SubmitDetailsAsync(scrapPostId, collectorId, slotId, details)
-    
+
     [Fact] // TRX-04: Submit Details fail - Negative Price
     public async Task TRX04_SubmitDetails_ThrowsBadRequest_WhenPriceNegative()
     {
@@ -174,7 +174,8 @@ public class TransactionControllerTests
         // Mock Setup: 
         // Household đang login (_testUserId), họ confirm đơn của collectorId
         // Service argument householdId sẽ là _testUserId
-        _mockService.Setup(s => s.ProcessTransactionAsync(scrapPostId, collectorId, slotId, _testUserId, true, paymentMethod))
+        _mockService.Setup(s =>
+                s.ProcessTransactionAsync(scrapPostId, collectorId, slotId, _testUserId, true, paymentMethod))
             .Returns(Task.CompletedTask);
 
         // Act
@@ -200,10 +201,11 @@ public class TransactionControllerTests
         var scrapPostId = Guid.NewGuid();
         var collectorId = Guid.NewGuid();
         var slotId = Guid.NewGuid();
-        var paymentMethod = TransactionPaymentMethod.Cash; 
+        var paymentMethod = TransactionPaymentMethod.Cash;
 
         // Update Mock to match 6 args
-        _mockService.Setup(s => s.ProcessTransactionAsync(scrapPostId, collectorId, slotId, _testUserId, false, paymentMethod))
+        _mockService.Setup(s =>
+                s.ProcessTransactionAsync(scrapPostId, collectorId, slotId, _testUserId, false, paymentMethod))
             .Returns(Task.CompletedTask);
 
         // Act

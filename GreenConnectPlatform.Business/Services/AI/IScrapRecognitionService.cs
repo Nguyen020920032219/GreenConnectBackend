@@ -5,5 +5,5 @@ namespace GreenConnectPlatform.Business.Services.AI;
 
 public interface IScrapRecognitionService
 {
-    Task<ScrapRecognitionResponse> RecognizeScrapImageAsync(IFormFile imageFile);
+    Task<ScrapPostAiSuggestion> AnalyzeImageAsync(IFormFile imageFile, Guid userId);
 }

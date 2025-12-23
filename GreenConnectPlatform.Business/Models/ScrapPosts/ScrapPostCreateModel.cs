@@ -34,6 +34,6 @@ public class ScrapPostCreateModel
     public bool MustTakeAll { get; set; }
 
     public List<ScrapPostDetailCreateModel> ScrapPostDetails { get; set; } = new();
-    
+
     public List<ScrapPostTimeSlotCreateModel> ScrapPostTimeSlots { get; set; } = new();
 }

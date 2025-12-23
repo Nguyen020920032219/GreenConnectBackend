@@ -1,5 +1,4 @@
 ﻿using System.Security.Claims;
-using GreenConnectPlatform.Business.Models.CollectionOffers;
 using GreenConnectPlatform.Business.Models.Exceptions;
 using GreenConnectPlatform.Business.Models.Feedbacks;
 using GreenConnectPlatform.Business.Models.Paging;
@@ -97,11 +96,12 @@ public class TransactionController : ControllerBase
     [Authorize(Roles = "Household")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Process([FromQuery] Guid scrapPostId,[FromQuery] Guid collectorId,[FromQuery] Guid slotId, [FromQuery] bool isAccepted,
+    public async Task<IActionResult> Process([FromQuery] Guid scrapPostId, [FromQuery] Guid collectorId,
+        [FromQuery] Guid slotId, [FromQuery] bool isAccepted,
         [FromQuery] TransactionPaymentMethod paymentMethod)
     {
         var userId = GetCurrentUserId();
-        await _service.ProcessTransactionAsync(scrapPostId,collectorId, slotId, userId, isAccepted, paymentMethod);
+        await _service.ProcessTransactionAsync(scrapPostId, collectorId, slotId, userId, isAccepted, paymentMethod);
         return Ok(new { Message = isAccepted ? "Giao dịch thành công!" : "Giao dịch đã hủy." });
     }
 

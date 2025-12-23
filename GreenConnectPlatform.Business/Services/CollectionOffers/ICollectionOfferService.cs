@@ -14,7 +14,10 @@ public interface ICollectionOfferService
         int pageNumber, int pageSize, OfferStatus? status, Guid postId);
 
     Task<CollectionOfferModel> GetByIdAsync(Guid id);
-    Task<CollectionOfferModel> CreateAsync(Guid collectorId, Guid postId, Guid timeSlotId, CollectionOfferCreateModel request);
+
+    Task<CollectionOfferModel> CreateAsync(Guid collectorId, Guid postId, Guid timeSlotId,
+        CollectionOfferCreateModel request);
+
     Task<CollectionOfferModel> SupplementaryOffers(Guid collectorId, Guid postId, CollectionOfferCreateModel request);
     Task ProcessOfferAsync(Guid householdId, Guid offerId, bool isAccepted);
     Task ToggleCancelAsync(Guid collectorId, Guid offerId);

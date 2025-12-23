@@ -28,6 +28,9 @@ public interface IScrapPostService
     Task UpdateDetailAsync(Guid householdId, Guid postId, Guid categoryId, ScrapPostDetailUpdateModel detailRequest);
     Task DeleteDetailAsync(Guid userId, Guid postId, Guid categoryId, string userRole);
     Task AddTimeSlotAsync(Guid householdId, Guid postId, ScrapPostTimeSlotCreateModel timeSlotRequest);
-    Task UpdateTimeSlotAsync(Guid householdId, Guid postId, Guid timeSlotId, DateOnly? scpecificDate, TimeOnly? startTime, TimeOnly? endTime);
+
+    Task UpdateTimeSlotAsync(Guid householdId, Guid postId, Guid timeSlotId, DateOnly? scpecificDate,
+        TimeOnly? startTime, TimeOnly? endTime);
+
     Task DeleteTimeSlotAsync(Guid householdId, Guid postId, Guid timeSlotId);
 }

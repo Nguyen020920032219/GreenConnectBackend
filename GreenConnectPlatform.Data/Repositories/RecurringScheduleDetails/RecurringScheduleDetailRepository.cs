@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GreenConnectPlatform.Data.Repositories.RecurringScheduleDetails;
 
-public class RecurringScheduleDetailRepository : BaseRepository<GreenConnectDbContext, RecurringScheduleDetail, Guid>, IRecurringScheduleDetailRepository
+public class RecurringScheduleDetailRepository : BaseRepository<GreenConnectDbContext, RecurringScheduleDetail, Guid>,
+    IRecurringScheduleDetailRepository
 {
     public RecurringScheduleDetailRepository(GreenConnectDbContext dbContext) : base(dbContext)
     {
-        
     }
 
     public async Task<RecurringScheduleDetail?> GetByRecurringScheduleIdAsync(Guid id, Guid recurringScheduleId)

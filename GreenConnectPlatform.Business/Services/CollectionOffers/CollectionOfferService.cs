@@ -114,8 +114,9 @@ public class CollectionOfferService : ICollectionOfferService
                 "Không thể tự tạo đề nghị thu gom cho bài đăng của chính mình.");
         var timeslot = post.TimeSlots.FirstOrDefault(t => t.Id == timeSlotId);
         if (timeslot == null)
-            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Khung thời gian không tồn tại trong bài đăng này.");
-        
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404",
+                "Khung thời gian không tồn tại trong bài đăng này.");
+
         var offerCategoryIds = request.OfferDetails.Select(d => d.ScrapCategoryId).Distinct().ToList();
         var allCategoryId = request.OfferDetails.Select(d => d.ScrapCategoryId).ToList();
         var postCategoryIds = post.ScrapPostDetails.Select(d => d.ScrapCategoryId).ToList();
@@ -124,10 +125,10 @@ public class CollectionOfferService : ICollectionOfferService
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Đề nghị không thể bao gồm các mục không có trong bài đăng.");
 
-        if(offerCategoryIds.Count != allCategoryId.Count)
+        if (offerCategoryIds.Count != allCategoryId.Count)
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Không thể có mục trùng lặp trong đề nghị.");
-        
+
         if (post.MustTakeAll && offerCategoryIds.Count != postCategoryIds.Count)
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Bài đăng yêu cầu thu gom toàn bộ lô hàng.");
@@ -161,7 +162,7 @@ public class CollectionOfferService : ICollectionOfferService
             detail.CollectionOfferId = offer.CollectionOfferId;
             var matchingPostDetail = post.ScrapPostDetails
                 .FirstOrDefault(d => d.ScrapCategoryId == detail.ScrapCategoryId);
-            if(matchingPostDetail != null)
+            if (matchingPostDetail != null)
                 detail.Type = matchingPostDetail.Type;
         }
 
@@ -177,6 +178,7 @@ public class CollectionOfferService : ICollectionOfferService
             timeslot.IsBooked = true;
             await _postRepository.UpdateAsync(post);
         }
+
         await _offerRepository.AddAsync(offer);
         profile.CreditBalance -= 10;
         await _profileRepository.UpdateAsync(profile);
@@ -206,7 +208,8 @@ public class CollectionOfferService : ICollectionOfferService
         return await GetByIdAsync(offer.CollectionOfferId);
     }
 
-    public async Task<CollectionOfferModel> SupplementaryOffers(Guid collectorId, Guid postId, CollectionOfferCreateModel request)
+    public async Task<CollectionOfferModel> SupplementaryOffers(Guid collectorId, Guid postId,
+        CollectionOfferCreateModel request)
     {
         var post = await _postRepository.GetByIdAsync(postId);
         if (post == null)
@@ -227,13 +230,14 @@ public class CollectionOfferService : ICollectionOfferService
         if (unavailableItems.Any())
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Có mục trong đề nghị không còn sẵn sàng để thu gom.");
-        if(offerCategoryIds.Count != allCategoryId.Count)
+        if (offerCategoryIds.Count != allCategoryId.Count)
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Không thể có mục trùng lặp trong đề nghị.");
-        var existOffer = post.CollectionOffers.FirstOrDefault(o => o.ScrapPostId == postId && o.ScrapCollectorId == collectorId);
-        var existTransaction = existOffer.Transactions.FirstOrDefault(t => t.ScrapCollectorId == collectorId && 
+        var existOffer =
+            post.CollectionOffers.FirstOrDefault(o => o.ScrapPostId == postId && o.ScrapCollectorId == collectorId);
+        var existTransaction = existOffer.Transactions.FirstOrDefault(t => t.ScrapCollectorId == collectorId &&
                                                                            t.Status == TransactionStatus.InProgress);
-        
+
         var offer = _mapper.Map<CollectionOffer>(request);
         offer.CollectionOfferId = Guid.NewGuid();
         offer.ScrapPostId = postId;
@@ -247,7 +251,7 @@ public class CollectionOfferService : ICollectionOfferService
             detail.CollectionOfferId = offer.CollectionOfferId;
             var matchingPostDetail = post.ScrapPostDetails
                 .FirstOrDefault(d => d.ScrapCategoryId == detail.ScrapCategoryId);
-            if(matchingPostDetail != null)
+            if (matchingPostDetail != null)
                 detail.Type = matchingPostDetail.Type;
         }
 
@@ -262,6 +266,7 @@ public class CollectionOfferService : ICollectionOfferService
             post.Status = isFullOffer ? PostStatus.FullyBooked : PostStatus.PartiallyBooked;
             await _postRepository.UpdateAsync(post);
         }
+
         await _offerRepository.AddAsync(offer);
         var transaction = new Transaction
         {
@@ -277,7 +282,7 @@ public class CollectionOfferService : ICollectionOfferService
             TimeSlotId = existTransaction.TimeSlotId
         };
         await _transactionRepository.AddAsync(transaction);
-        
+
         var profile = await _profileRepository.GetByUserIdWithRankAsync(collectorId);
         if (profile == null)
             throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Hồ sơ người thu gom không tìm thấy.");
@@ -548,4 +553,3 @@ public class CollectionOfferService : ICollectionOfferService
         await _postRepository.UpdateAsync(post);
     }
 }
-

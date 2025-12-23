@@ -15,7 +15,7 @@ public class ScrapPostAuToCreateBackGround : BackgroundService
     {
         _serviceScopeFactory = serviceScopeFactory;
     }
-    
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
@@ -33,14 +33,14 @@ public class ScrapPostAuToCreateBackGround : BackgroundService
             var vnTime = DateTime.UtcNow.AddHours(7);
             var todayDate = vnTime.Date;
             var currentTimeOnly = TimeOnly.FromDateTime(vnTime);
-            
+
             var currentDayOfWeek = (int)vnTime.DayOfWeek;
             var schedules = await context.RecurringSchedules
                 .Include(s => s.ScheduleDetails)
-                .Where(s => s.IsActive 
+                .Where(s => s.IsActive
                             && s.DayOfWeek == currentDayOfWeek
                             && s.StartTime <= currentTimeOnly
-                            && s.LastRunDate.Date < todayDate) 
+                            && s.LastRunDate.Date < todayDate)
                 .ToListAsync();
             if (schedules.Any())
             {
@@ -71,7 +71,6 @@ public class ScrapPostAuToCreateBackGround : BackgroundService
                         IsBooked = false
                     });
                     foreach (var scheduleDetail in schedule.ScheduleDetails)
-                    {
                         newPost.ScrapPostDetails.Add(new ScrapPostDetail
                         {
                             ScrapPostId = newPost.Id,
@@ -82,10 +81,10 @@ public class ScrapPostAuToCreateBackGround : BackgroundService
                             Type = scheduleDetail.Type,
                             Status = PostDetailStatus.Available
                         });
-                    }
                     context.ScrapPosts.Add(newPost);
                     schedule.LastRunDate = vnTime;
                 }
+
                 await context.SaveChangesAsync();
             }
         }

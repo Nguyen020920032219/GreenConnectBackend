@@ -5,6 +5,8 @@ namespace GreenConnectPlatform.Data.Repositories.RecurringSchedules;
 
 public interface IRecurringScheduleRepository : IBaseRepository<RecurringSchedule, Guid>
 {
-    Task<(List<RecurringSchedule>Items, int TotalCount)> GetPagedRecurringSchedulesAsync(int pageNumber, int pageSize, bool sortByCreatedAt);
+    Task<(List<RecurringSchedule>Items, int TotalCount)> GetPagedRecurringSchedulesAsync(int pageNumber, int pageSize,
+        bool sortByCreatedAt);
+
     Task<RecurringSchedule?> GetRecurringScheduleByIdAsync(Guid id);
 }

@@ -1,5 +1,4 @@
-﻿using System.Drawing;
-using GreenConnectPlatform.Business.Models.RecurringScheduleDetails;
+﻿using GreenConnectPlatform.Business.Models.RecurringScheduleDetails;
 
 namespace GreenConnectPlatform.Business.Models.RecurringSchedules;
 
@@ -17,5 +16,5 @@ public class RecurringScheduleModel
     public bool IsActive { get; set; } = true;
     public DateTime LastRunDate { get; set; }
     public DateTime CreatedAt { get; set; }
-    public List<RecurringScheduleDetailModel> ScheduleDetails { get; set; } = new ();   
+    public List<RecurringScheduleDetailModel> ScheduleDetails { get; set; } = new();
 }

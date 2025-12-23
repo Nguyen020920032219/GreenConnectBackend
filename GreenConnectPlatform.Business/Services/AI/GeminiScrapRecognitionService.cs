@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using GreenConnectPlatform.Business.Models.AI;
 using GreenConnectPlatform.Business.Models.Exceptions;
+using GreenConnectPlatform.Business.Services.FileStorage;
 using GreenConnectPlatform.Data.Repositories.ScrapCategories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -12,78 +13,118 @@ namespace GreenConnectPlatform.Business.Services.AI;
 public class GeminiScrapRecognitionService : IScrapRecognitionService
 {
     private readonly string _apiKey;
-    private readonly IScrapCategoryRepository _categoryRepository;
+    private readonly IScrapCategoryRepository _categoryRepo;
     private readonly HttpClient _httpClient;
     private readonly string _modelId;
+    private readonly IFileStorageService _storageService;
 
     public GeminiScrapRecognitionService(
-        HttpClient httpClient,
         IConfiguration configuration,
-        IScrapCategoryRepository categoryRepository)
+        IScrapCategoryRepository categoryRepo,
+        HttpClient httpClient,
+        IFileStorageService storageService)
     {
         _httpClient = httpClient;
-        _categoryRepository = categoryRepository;
-        _apiKey = configuration["GoogleAI:ApiKey"] ?? throw new InvalidOperationException("Thiếu Google AI API Key.");
+        _categoryRepo = categoryRepo;
+        _storageService = storageService;
 
-        // [QUAN TRỌNG] Quay về dùng Flash để lấy tốc độ
-        _modelId = configuration["GoogleAI:ModelId"] ?? "gemini-flash-latest";
+        _apiKey = configuration["Gemini:ApiKey"] ?? throw new InvalidOperationException("Thiếu Gemini API Key.");
+        _modelId = configuration["Gemini:ModelId"] ?? "gemini-1.5-flash";
     }
 
-    public async Task<ScrapRecognitionResponse> RecognizeScrapImageAsync(IFormFile imageFile)
+    public async Task<ScrapPostAiSuggestion> AnalyzeImageAsync(IFormFile imageFile, Guid userId)
     {
         if (imageFile == null || imageFile.Length == 0)
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Vui lòng gửi file ảnh.");
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "FILE_MISSING",
+                "Vui lòng tải lên một hình ảnh.");
 
-        // 1. Lấy danh sách Category
-        var categories = await _categoryRepository.GetAllAsync();
-        var categoryNames = string.Join(", ", categories.Select(c => $"'{c.Name}'"));
+        // --- BƯỚC 1: Upload ảnh & Lấy Link Xem ---
+        using var ms = new MemoryStream();
+        await imageFile.CopyToAsync(ms);
 
-        // 2. Chuyển ảnh sang Base64
-        string base64Image;
-        using (var ms = new MemoryStream())
-        {
-            await imageFile.CopyToAsync(ms);
-            base64Image = Convert.ToBase64String(ms.ToArray());
-        }
+        // Reset stream để đọc
+        ms.Position = 0;
 
-        // 3. Định nghĩa Schema (Giữ nguyên để đảm bảo format)
+        var extension = Path.GetExtension(imageFile.FileName);
+        var fileName = $"ai_scan_{Guid.NewGuid()}{extension}";
+        var objectName = $"scrap-posts/{fileName}"; // Đây là đường dẫn lưu trong Bucket
+
+        // 1. Upload lên Firebase
+        await _storageService.UploadFileStreamAsync(ms, objectName, imageFile.ContentType);
+
+        // 2. [FIX] Gọi hàm lấy URL (Signed URL) để Client xem được ảnh
+        var viewableUrl = await _storageService.GetReadSignedUrlAsync(objectName);
+
+        // --- BƯỚC 2: Chuẩn bị AI ---
+        ms.Position = 0;
+        var imageBytes = ms.ToArray();
+        var base64Image = Convert.ToBase64String(imageBytes);
+
+        var categories = await _categoryRepo.GetAllAsync();
+        var categoryContext = string.Join(", ", categories.Select(c => $"{{Id: '{c.Id}', Name: '{c.Name}'}}"));
+
+        // --- BƯỚC 3: Cấu hình Schema ---
         var responseSchema = new
         {
             type = "OBJECT",
             properties = new Dictionary<string, object>
             {
-                { "itemName", new { type = "STRING" } },
-                { "category", new { type = "STRING" } },
-                { "material", new { type = "STRING" } },
-                { "isRecyclable", new { type = "BOOLEAN" } },
-                { "estimatedAmount", new { type = "STRING" } },
-                { "advice", new { type = "STRING" } },
-                { "confidence", new { type = "NUMBER" } }
+                { "suggestedTitle", new { type = "STRING" } },
+                { "suggestedDescription", new { type = "STRING" } },
+                {
+                    "identifiedItems", new
+                    {
+                        type = "ARRAY",
+                        items = new
+                        {
+                            type = "OBJECT",
+                            properties = new Dictionary<string, object>
+                            {
+                                { "itemName", new { type = "STRING" } },
+                                { "estimatedQuantity", new { type = "NUMBER" } },
+                                { "unit", new { type = "STRING" } },
+                                { "suggestedCategoryId", new { type = "STRING" } },
+                                { "categoryName", new { type = "STRING" } },
+                                { "confidence", new { type = "STRING" } }
+                            },
+                            required = new[] { "itemName", "estimatedQuantity", "unit" }
+                        }
+                    }
+                }
             },
-            required = new[]
-                { "itemName", "category", "material", "isRecyclable", "estimatedAmount", "advice", "confidence" }
+            required = new[] { "suggestedTitle", "suggestedDescription", "identifiedItems" }
         };
 
-        // 4. [TỐI ƯU PROMPT CHO FLASH]
-        // Thêm Persona (Vai trò) + Ví dụ cụ thể để Flash "khôn" hơn
-        var prompt = $@"
-            You are an expert in scrap recycling and waste management in Vietnam. 
-            Analyze this image and identify the scrap item.
+        // --- BƯỚC 4: Prompt "Gom Nhóm Thông Minh" ---
+        var promptText = $@"
+            Bạn là trợ lý phân loại ve chai thông minh. Hãy phân tích ảnh và gom nhóm các vật phẩm hợp lý.
 
-            *** CONSTRAINTS ***
-            1. CATEGORY: Must be exactly one of: [{categoryNames}]. If unclear, return empty string.
-            2. LANGUAGE: Respond entirely in VIETNAMESE.
+            *** DANH MỤC HỆ THỐNG (CONTEXT) ***
+            [{categoryContext}]
 
-            *** INSTRUCTIONS FOR FIELDS ***
-            - ItemName: Specific name (e.g., 'Vỏ lon bia Tiger', 'Thùng carton cũ').
-            - EstimatedAmount: Estimate quantity/weight visually (e.g., 'Khoảng 2kg', 'Một túi lớn đầy', '50 vỏ lon').
-            - Advice: Provide actionable, specific preparation tips to increase scrap value.
-              - BAD Advice: 'Thu gom và tái chế.' (Too generic)
-              - GOOD Advice: 'Nên đổ hết nước thừa, đạp dẹp lon để tiết kiệm diện tích. Nếu là chai nhựa thì tháo nắp riêng.'
+            *** NGUYÊN TẮC GOM NHÓM (QUAN TRỌNG) ***
+            1. **GOM THEO LOẠI & HÌNH DẠNG (TYPE & FORM):** - Gom tất cả vật phẩm có cùng chất liệu và hình dạng tương tự vào một dòng.
+               - **KHÔNG tách lẻ theo màu sắc** (Ví dụ: Đừng ghi 'Chai xanh', 'Chai trắng' -> Hãy ghi chung là **'Vỏ chai nhựa'**).
+               - **KHÔNG tách lẻ theo kích thước nhỏ** (Ví dụ: Đừng ghi 'Hộp tròn', 'Hộp vuông' -> Hãy ghi chung là **'Hộp/Khay nhựa'**).
+            
+            2. **VÍ DỤ GOM NHÓM:**
+               - (1 chai Pepsi + 1 chai Nước suối + 1 chai Dầu ăn) -> Gom thành: **'Vỏ chai nhựa các loại'** (Số lượng: 3).
+               - (3 lon Bia + 2 lon Coca) -> Gom thành: **'Vỏ lon nhôm'** (Số lượng: 5).
+               - (Nhiều bìa carton + Hộp giấy) -> Gom thành: **'Giấy bìa carton'**.
+               - (Chai nhựa + Hộp cơm nhựa) -> Đây là 2 dạng khác nhau, hãy để 2 dòng: 'Vỏ chai nhựa' và 'Hộp nhựa'.
 
-            Return the result in valid JSON matching the schema.
+            3. **BỎ QUA CHI TIẾT THỪA:**
+               - Bỏ qua nắp chai, nhãn mác, ống hút trừ khi chúng chiếm số lượng rất lớn.
+
+            4. **TITLE & DESCRIPTION:**
+               - Tạo tiêu đề hấp dẫn, ngắn gọn bao quát các nhóm chính (VD: 'Thanh lý 5kg Nhựa và Vỏ lon').
+
+            5. **MAPPING:** Chọn Category ID phù hợp nhất cho nhóm đã gom.
+
+            Hãy trả về JSON đúng format.
         ";
 
+        // --- BƯỚC 5: Gọi AI ---
         var requestBody = new
         {
             contents = new[]
@@ -92,28 +133,19 @@ public class GeminiScrapRecognitionService : IScrapRecognitionService
                 {
                     parts = new object[]
                     {
-                        new { text = prompt },
-                        new
-                        {
-                            inline_data = new
-                            {
-                                mime_type = imageFile.ContentType,
-                                data = base64Image
-                            }
-                        }
+                        new { text = promptText },
+                        new { inline_data = new { mime_type = imageFile.ContentType, data = base64Image } }
                     }
                 }
             },
             generationConfig = new
             {
-                temperature = 0.1, // Vẫn giữ thấp để ổn định format JSON
+                temperature = 0.2,
                 response_mime_type = "application/json",
                 response_schema = responseSchema
             }
         };
 
-        // 5. Gọi API
-        // Lưu ý: Đảm bảo URL trỏ đúng modelId (gemini-1.5-flash)
         var url = $"https://generativelanguage.googleapis.com/v1beta/models/{_modelId}:generateContent?key={_apiKey}";
 
         var jsonOptions = new JsonSerializerOptions
@@ -127,38 +159,45 @@ public class GeminiScrapRecognitionService : IScrapRecognitionService
         if (!response.IsSuccessStatusCode)
         {
             var error = await response.Content.ReadAsStringAsync();
-            throw new ApiExceptionModel(StatusCodes.Status500InternalServerError, "AI_ERROR", $"Lỗi AI: {error}");
+            throw new ApiExceptionModel(StatusCodes.Status500InternalServerError, "AI_ERROR",
+                $"Lỗi kết nối AI: {error}");
         }
 
-        // 6. Parse kết quả
-        var jsonResponse = await response.Content.ReadAsStringAsync();
+        // --- BƯỚC 6: Xử lý kết quả ---
+        var resultString = await response.Content.ReadAsStringAsync();
 
         try
         {
-            using var doc = JsonDocument.Parse(jsonResponse);
-            var textResult = doc.RootElement
-                .GetProperty("candidates")[0]
-                .GetProperty("content")
-                .GetProperty("parts")[0]
-                .GetProperty("text")
+            using var doc = JsonDocument.Parse(resultString);
+            var candidates = doc.RootElement.GetProperty("candidates");
+            if (candidates.GetArrayLength() == 0) throw new Exception("No candidates");
+
+            var textResult = candidates[0].GetProperty("content").GetProperty("parts")[0].GetProperty("text")
                 .GetString();
 
-            var result = JsonSerializer.Deserialize<ScrapRecognitionResponse>(textResult!, new JsonSerializerOptions
+            var resultObj = JsonSerializer.Deserialize<ScrapPostAiSuggestion>(textResult!, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
-            });
+            }) ?? new ScrapPostAiSuggestion();
 
-            return result ?? throw new Exception("Kết quả rỗng");
+            // [FIX] Gán đúng giá trị
+            resultObj.SavedImageFilePath = objectName; // Path để lưu vào DB (khi CreatePost)
+            resultObj.SavedImageUrl = viewableUrl; // URL để hiển thị lên App (có token)
+
+            if (resultObj.IdentifiedItems != null)
+                foreach (var item in resultObj.IdentifiedItems)
+                    item.ImageUrl = viewableUrl; // Các item con cũng dùng link xem được này
+
+            return resultObj;
         }
-        catch
+        catch (Exception)
         {
-            return new ScrapRecognitionResponse
+            return new ScrapPostAiSuggestion
             {
-                ItemName = "Không xác định",
-                Category = "",
-                EstimatedAmount = "Không rõ",
-                Advice = "Vui lòng nhập thông tin thủ công.",
-                Confidence = 0
+                SuggestedTitle = "Đã nhận diện ảnh",
+                SuggestedDescription = "Vui lòng kiểm tra lại chi tiết.",
+                SavedImageFilePath = objectName,
+                SavedImageUrl = viewableUrl
             };
         }
     }

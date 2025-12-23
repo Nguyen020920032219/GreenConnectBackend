@@ -33,7 +33,8 @@ public class MappingProfile : Profile
         CreateMap<ScrapPost, ScrapPostModel>();
         CreateMap<ScrapPostCreateModel, ScrapPost>()
             .ForMember(dest => dest.Location, opt => opt.Ignore())
-            .ForMember(dest => dest.TimeSlots, opt => opt.MapFrom(src => src.ScrapPostTimeSlots));;
+            .ForMember(dest => dest.TimeSlots, opt => opt.MapFrom(src => src.ScrapPostTimeSlots));
+        ;
         CreateMap<ScrapPost, ScrapPostOverralModel>();
         CreateMap<ScrapPostDetailCreateModel, ScrapPostDetail>();
         CreateMap<ScrapPostDetail, ScrapPostDetailModel>();
@@ -53,7 +54,7 @@ public class MappingProfile : Profile
         #endregion
 
         #region CollectionOffer, OfferDetail
-        
+
         CreateMap<CollectionOffer, CollectionOfferModel>();
         CreateMap<CollectionOffer, CollectionOfferOveralForCollectorModel>();
         CreateMap<CollectionOffer, CollectionOfferOveralForHouseModel>();
@@ -62,7 +63,7 @@ public class MappingProfile : Profile
         CreateMap<OfferDetail, OfferDetailModel>();
         CreateMap<OfferDetailUpdateModel, OfferDetail>()
             .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
-        
+
         #endregion
 
         #region ScrapCategory

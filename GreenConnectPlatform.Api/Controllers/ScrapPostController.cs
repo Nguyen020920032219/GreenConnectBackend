@@ -286,10 +286,11 @@ public class ScrapPostController : ControllerBase
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> AddOffer(Guid id,[FromQuery]Guid slotTimeId ,[FromBody] CollectionOfferCreateModel request)
+    public async Task<IActionResult> AddOffer(Guid id, [FromQuery] Guid slotTimeId,
+        [FromBody] CollectionOfferCreateModel request)
     {
         var userId = GetCurrentUserId();
-        var result = await _collectionOfferService.CreateAsync(userId, id,slotTimeId ,request);
+        var result = await _collectionOfferService.CreateAsync(userId, id, slotTimeId, request);
         return Ok(await _collectionOfferService.GetByIdAsync(result.CollectionOfferId));
     }
 

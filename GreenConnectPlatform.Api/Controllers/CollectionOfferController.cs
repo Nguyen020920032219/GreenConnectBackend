@@ -246,7 +246,7 @@ public class CollectionOfferController : ControllerBase
         var result = await _service.SupplementaryOffers(postId, userId, request);
         return CreatedAtAction(nameof(GetById), new { id = result.CollectionOfferId }, result);
     }
-    
+
     private Guid GetCurrentUserId()
     {
         var idStr = User.FindFirstValue(ClaimTypes.NameIdentifier);

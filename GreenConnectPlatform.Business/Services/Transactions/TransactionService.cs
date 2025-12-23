@@ -152,16 +152,14 @@ public class TransactionService : ITransactionService
     }
 
     public async Task<List<TransactionDetailModel>> SubmitDetailsAsync(
-        Guid scrapPostId, Guid collectorId,Guid slotId, List<TransactionDetailCreateModel> details)
+        Guid scrapPostId, Guid collectorId, Guid slotId, List<TransactionDetailCreateModel> details)
     {
         var transactions = await _transactionRepository.GetTransactionByIdsAsync(collectorId, scrapPostId, slotId);
         if (!transactions.Any())
             throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Không tìm thấy giao dịch nào.");
         foreach (var transaction in transactions)
-        {
-            if(transaction.CheckInLocation == null || transaction.CheckInTime == null)
+            if (transaction.CheckInLocation == null || transaction.CheckInTime == null)
                 throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Người thu gom chưa check-in.");
-        }
         var offerCategoryIds = transactions
             .Where(t => t.Offer != null)
             .SelectMany(t => t.Offer.OfferDetails)
@@ -169,14 +167,16 @@ public class TransactionService : ITransactionService
             .ToList();
         var categoryIds = details.Select(d => d.ScrapCategoryId).Distinct().ToList();
         var inputCategoryIds = details.Select(d => d.ScrapCategoryId).ToList();
-        
-        if(categoryIds.Count != inputCategoryIds.Count)
+
+        if (categoryIds.Count != inputCategoryIds.Count)
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Danh mục vật phẩm bị trùng lặp.");
-        if(inputCategoryIds.Count != offerCategoryIds.Count)
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Số lượng danh mục vật phẩm không khớp với đề xuất.");
-        if(!inputCategoryIds.All(id => offerCategoryIds.Contains(id)))
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Danh mục vật phẩm không khớp với đề xuất.");
-        
+        if (inputCategoryIds.Count != offerCategoryIds.Count)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "Số lượng danh mục vật phẩm không khớp với đề xuất.");
+        if (!inputCategoryIds.All(id => offerCategoryIds.Contains(id)))
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "Danh mục vật phẩm không khớp với đề xuất.");
+
         var updateDetails = new List<TransactionDetail>();
         foreach (var transaction in transactions)
         {
@@ -195,12 +195,13 @@ public class TransactionService : ITransactionService
                     transaction.TransactionDetails.Add(detail);
                 }
             }
+
             transaction.TotalAmount = transaction.TransactionDetails.Sum(t => t.FinalPrice);
             transaction.UpdatedAt = DateTime.UtcNow;
-            
+
             await _transactionRepository.UpdateAsync(transaction);
         }
-        
+
         var householdId = transactions.First().HouseholdId;
         var title = "Xác nhận số lượng!";
         var body = "Người thu gom đã cập nhật số lượng và giá. Vui lòng kiểm tra và chốt đơn.";
@@ -210,7 +211,8 @@ public class TransactionService : ITransactionService
         return _mapper.Map<List<TransactionDetailModel>>(updateDetails);
     }
 
-    public async Task ProcessTransactionAsync(Guid scrapPostId, Guid collectorId,Guid slotId, Guid householdId, bool isAccepted,
+    public async Task ProcessTransactionAsync(Guid scrapPostId, Guid collectorId, Guid slotId, Guid householdId,
+        bool isAccepted,
         TransactionPaymentMethod paymentMethod)
     {
         var transactions = await _transactionRepository.GetTransactionByIdsAsync(collectorId, scrapPostId, slotId);
@@ -227,8 +229,9 @@ public class TransactionService : ITransactionService
         if (isAccepted)
         {
             if (transactions.Any(t => !t.TransactionDetails.Any()))
-                throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Người thu gom chưa cập nhật vật phẩm cho một số đơn hàng.");
-            
+                throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                    "Người thu gom chưa cập nhật vật phẩm cho một số đơn hàng.");
+
             var pointHistoryList = new List<PointHistory>();
             foreach (var transaction in transactions)
             {
@@ -237,7 +240,7 @@ public class TransactionService : ITransactionService
                 transaction.PaymentMethod = paymentMethod;
                 transaction.UpdatedAt = DateTime.UtcNow;
             }
-           
+
             var collectorProfile = transactions.First().ScrapCollector.Profile;
             collectorProfile.PointBalance += 10;
             var pointCollectorHistory = new PointHistory
@@ -256,18 +259,15 @@ public class TransactionService : ITransactionService
                 .Distinct()
                 .ToList();
             foreach (var detail in scrapPost.ScrapPostDetails)
-            {
                 if (collectedCategoryIds.Contains(detail.ScrapCategoryId))
-                {
                     detail.Status = PostDetailStatus.Collected;
-                }
-            }
-            bool isPostFullyCollected = !scrapPost.ScrapPostDetails
+
+            var isPostFullyCollected = !scrapPost.ScrapPostDetails
                 .Any(s => s.Status == PostDetailStatus.Available || s.Status == PostDetailStatus.Booked);
             if (isPostFullyCollected)
             {
                 scrapPost.Status = PostStatus.Completed;
-            
+
                 var householdProfile = transactions.First().Household.Profile;
                 householdProfile.PointBalance += 10;
 
@@ -280,12 +280,14 @@ public class TransactionService : ITransactionService
                     CreatedAt = DateTime.UtcNow
                 });
             }
+
             await _pointHistoryRepository.AddRangeAsync(pointHistoryList);
             var title = "Giao dịch thành công!";
-            var body = $"Đã hoàn tất thu gom. Bạn nhận được +10 điểm.";
-            var data = new Dictionary<string, string> { 
-                { "type", "Transaction" }, 
-                { "id", transactions.First().TransactionId.ToString() } 
+            var body = "Đã hoàn tất thu gom. Bạn nhận được +10 điểm.";
+            var data = new Dictionary<string, string>
+            {
+                { "type", "Transaction" },
+                { "id", transactions.First().TransactionId.ToString() }
             };
             await _notificationService.SendNotificationAsync(collectorId, title, body, data);
         }
@@ -299,9 +301,10 @@ public class TransactionService : ITransactionService
 
             var title = "Giao dịch bị hủy";
             var body = "Hộ gia đình đã từ chối kết quả cân đo và hủy giao dịch.";
-            var data = new Dictionary<string, string> { 
-                { "type", "Transaction" }, 
-                { "id", transactions.First().TransactionId.ToString() } 
+            var data = new Dictionary<string, string>
+            {
+                { "type", "Transaction" },
+                { "id", transactions.First().TransactionId.ToString() }
             };
             await _notificationService.SendNotificationAsync(collectorId, title, body, data);
         }

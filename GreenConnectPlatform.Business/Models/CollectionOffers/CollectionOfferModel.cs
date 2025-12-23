@@ -19,5 +19,4 @@ public class CollectionOfferModel
     public List<OfferDetailModel> OfferDetails { get; set; } = new();
     public Guid TimeSlotId { get; set; }
     public ScrapPostTimeSlotModel TimeSlot { get; set; }
-
 }

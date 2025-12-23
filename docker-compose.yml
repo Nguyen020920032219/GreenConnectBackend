@@ -21,11 +21,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    ports:
-      - "5000:8080"
     environment:
-      ASPNETCORE_ENVIRONMENT: Development
-      EnableHttpsRedirect: "false"
+      ASPNETCORE_ENVIRONMENT: Production 
+      EnableHttpsRedirect: "false"       
       DatabaseConnection__DefaultConnection__DbHost: db
       DatabaseConnection__DefaultConnection__DbPort: 5432
       DatabaseConnection__DefaultConnection__DbUser: postgres
@@ -36,8 +34,21 @@ services:
     depends_on:
       - db
     restart: unless-stopped
-  
-  # 3. NGINX PROXY
+
+  # 3. WEB SERVICE
+  greenconnect-web:
+    container_name: greenconnect-web-container
+    build:
+      context: ./GreenConnectWeb 
+      dockerfile: Dockerfile
+    environment:
+      - NEXT_PUBLIC_API_URL=https://api.green-connect.business365.vn
+      - PORT=3000
+    depends_on:
+      - greenconnect-api
+    restart: always
+
+  # 4. NGINX PROXY
   nginx:
     image: nginx:alpine
     container_name: greenconnect-nginx-container
@@ -49,6 +60,7 @@ services:
       - /etc/letsencrypt:/etc/letsencrypt:ro
     depends_on:
       - greenconnect-api
+      - greenconnect-web
     restart: always
 
 volumes:

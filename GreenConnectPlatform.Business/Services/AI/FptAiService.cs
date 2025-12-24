@@ -27,17 +27,26 @@ public class FptAiService : IEkycService
             return new IdCardOcrResult { IsValid = false, ErrorMessage = "File ảnh không hợp lệ." };
 
         using var request = new HttpRequestMessage(HttpMethod.Post, _baseUrl);
-        request.Headers.Add("api_key", _apiKey);
+        
+        request.Headers.Add("api-key", _apiKey);
 
         using var content = new MultipartFormDataContent();
 
-        // Convert IFormFile sang Stream để gửi
         using var ms = new MemoryStream();
         await imageFile.CopyToAsync(ms);
         ms.Position = 0;
 
         var fileContent = new StreamContent(ms);
-        fileContent.Headers.ContentType = new MediaTypeHeaderValue("multipart/form-data");
+        
+        try 
+        {
+            fileContent.Headers.ContentType = new MediaTypeHeaderValue(imageFile.ContentType);
+        }
+        catch 
+        {
+            fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+        }
+
         content.Add(fileContent, "image", imageFile.FileName);
 
         request.Content = content;
@@ -45,30 +54,41 @@ public class FptAiService : IEkycService
         var response = await _httpClient.SendAsync(request);
 
         if (!response.IsSuccessStatusCode)
-            throw new ApiExceptionModel(StatusCodes.Status502BadGateway, "AI_ERROR", "Lỗi kết nối đến FPT.AI");
+        {
+            var errorBody = await response.Content.ReadAsStringAsync();
+            throw new ApiExceptionModel(StatusCodes.Status502BadGateway, "AI_ERROR", 
+                $"Lỗi kết nối FPT.AI ({response.StatusCode}): {errorBody}");
+        }
 
         var jsonString = await response.Content.ReadAsStringAsync();
 
-        // Parse JSON
-        var fptResult = JsonSerializer.Deserialize<FptAiResponse>(jsonString);
+        FptAiResponse? fptResult;
+        try 
+        {
+            fptResult = JsonSerializer.Deserialize<FptAiResponse>(jsonString);
+        }
+        catch
+        {
+            return new IdCardOcrResult { IsValid = false, ErrorMessage = "Lỗi đọc dữ liệu phản hồi từ AI." };
+        }
 
         if (fptResult == null || fptResult.ErrorCode != 0 || fptResult.Data == null || !fptResult.Data.Any())
         {
             var msg = string.IsNullOrEmpty(fptResult?.ErrorMessage)
-                ? "Không đọc được thông tin trên thẻ."
+                ? "Không đọc được thông tin trên thẻ (Ảnh mờ, bị cắt hoặc không phải CMND/CCCD)."
                 : fptResult.ErrorMessage;
             return new IdCardOcrResult { IsValid = false, ErrorMessage = msg };
         }
 
         var data = fptResult.Data[0];
 
-        // Validate dữ liệu quan trọng
         if (string.IsNullOrEmpty(data.Id) || string.IsNullOrEmpty(data.Name))
-            return new IdCardOcrResult { IsValid = false, ErrorMessage = "Ảnh mờ hoặc không tìm thấy số CCCD/Họ tên." };
+            return new IdCardOcrResult { IsValid = false, ErrorMessage = "Không tìm thấy số CCCD hoặc Họ tên trong ảnh." };
 
-        // Parse Ngày sinh
         DateTime? dob = null;
-        if (DateTime.TryParseExact(data.Dob, "dd/MM/yyyy", null, DateTimeStyles.None, out var d)) dob = d;
+        string[] formats = { "dd/MM/yyyy", "dd-MM-yyyy", "yyyy/MM/dd" };
+        if (DateTime.TryParseExact(data.Dob, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var d)) 
+            dob = d;
 
         return new IdCardOcrResult
         {

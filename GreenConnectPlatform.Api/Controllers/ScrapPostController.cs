@@ -4,6 +4,7 @@ using GreenConnectPlatform.Business.Models.Exceptions;
 using GreenConnectPlatform.Business.Models.Paging;
 using GreenConnectPlatform.Business.Models.ScrapPosts;
 using GreenConnectPlatform.Business.Models.ScrapPosts.ScrapPostDetails;
+using GreenConnectPlatform.Business.Models.ScrapPostTimeSlots;
 using GreenConnectPlatform.Business.Services.CollectionOffers;
 using GreenConnectPlatform.Business.Services.ScrapPosts;
 using GreenConnectPlatform.Data.Enums;
@@ -313,4 +314,69 @@ public class ScrapPostController : ControllerBase
     {
         return Ok(await _collectionOfferService.GetByPostAsync(pageNumber, pageSize, status, id));
     }
+    
+    /// <summary>
+    ///   (Household) Thêm khung thời gian thu gom cho bài đăng.
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="timeSlotRequest"></param>
+    /// <returns></returns>
+    [HttpPost("{id:Guid}/time-slots")]
+    [Authorize(Roles = "Household")]
+    [ProducesResponseType(typeof(ScrapPostTimeSlotModel), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> AddTimeSlot(Guid id, [FromBody] ScrapPostTimeSlotCreateModel timeSlotRequest)
+    {
+        var userId = GetCurrentUserId();
+        await _service.AddTimeSlotAsync(userId, id, timeSlotRequest);
+        return Ok(await _service.GetByIdAsync(id));
+    }
+    
+    /// <summary>
+    ///  (Household) Cập nhật khung thời gian thu gom cho bài đăng.
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="timeSlotId"></param>
+    /// <param name="specificDate"></param>
+    /// <param name="startTime"></param>
+    /// <param name="endTime"></param>
+    /// <returns></returns>
+    [HttpPatch("{id:Guid}/time-slots/{timeSlotId:Guid}")]
+    [Authorize(Roles = "Household")]
+    [ProducesResponseType(typeof(ScrapPostTimeSlotModel), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> UpdateTimeSlot([FromRoute]Guid id, [FromRoute]Guid timeSlotId,
+        [FromQuery]DateOnly? specificDate,
+        [FromQuery]TimeOnly? startTime, [FromQuery]TimeOnly? endTime)
+    {
+        var userId = GetCurrentUserId();
+        await _service.UpdateTimeSlotAsync(userId, id, timeSlotId, specificDate,
+            startTime, endTime);
+        return Ok(await _service.GetByIdAsync(id));
+    }
+    
+    /// <summary>
+    ///  (Household) Xóa khung thời gian thu gom cho bài đăng.
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="timeSlotId"></param>
+    /// <returns></returns>
+    [HttpDelete("{id:Guid}/time-slots/{timeSlotId:Guid}")]
+    [Authorize(Roles = "Household")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteTimeSlot([FromRoute]Guid id, [FromRoute]Guid timeSlotId)
+    {
+        var userId = GetCurrentUserId();
+        await _service.DeleteTimeSlotAsync(userId, id, timeSlotId);
+        return NoContent();
+    }
+    
 }

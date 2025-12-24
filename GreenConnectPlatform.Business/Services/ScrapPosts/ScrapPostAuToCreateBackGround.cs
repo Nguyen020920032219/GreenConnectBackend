@@ -1,4 +1,5 @@
-﻿using GreenConnectPlatform.Data.Configurations;
+﻿using GreenConnectPlatform.Business.Services.Notifications;
+using GreenConnectPlatform.Data.Configurations;
 using GreenConnectPlatform.Data.Entities;
 using GreenConnectPlatform.Data.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -30,6 +31,7 @@ public class ScrapPostAuToCreateBackGround : BackgroundService
         using (var scope = _serviceScopeFactory.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<GreenConnectDbContext>();
+            var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
             var vnTime = DateTime.UtcNow.AddHours(7);
             var todayDate = vnTime.Date;
             var currentTimeOnly = TimeOnly.FromDateTime(vnTime);
@@ -86,6 +88,17 @@ public class ScrapPostAuToCreateBackGround : BackgroundService
                 }
 
                 await context.SaveChangesAsync();
+                var title = "Bài đăng đã được tạo tự động từ lịch trình";
+                
+
+                var body = $"Bài đăng '{schedules.First().Title}' đã được tạo tự động cho ngày {todayDate:dd/MM/yyyy}.";
+
+                var data = new Dictionary<string, string>
+                {
+                    { "type", "Recurring schedule" },
+                    { "id", schedules.First().Id.ToString() }
+                };
+                await notificationService.SendNotificationAsync(schedules.First().HouseholdId, title, body, data);
             }
         }
     }

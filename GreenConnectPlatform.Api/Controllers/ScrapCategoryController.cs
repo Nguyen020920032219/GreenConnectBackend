@@ -76,7 +76,7 @@ public class ScrapCategoryController : ControllerBase
     ///     lỗi `409 Conflict`.
     /// </remarks>
     /// <param name="categoryName">Tên dành cho danh mục mới</param>
-    /// <param name="description">Mô tả dành cho danh mục mới</param>
+    /// <param name="stringUrl"></param>
     /// <response code="201">Tạo thành công.</response>
     /// <response code="400">Dữ liệu không hợp lệ (Thiếu tên...).</response>
     /// <response code="409">Tên danh mục đã tồn tại.</response>
@@ -87,9 +87,9 @@ public class ScrapCategoryController : ControllerBase
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> Create([FromQuery] string categoryName, [FromQuery] string description)
+    public async Task<IActionResult> Create([FromQuery] string categoryName, [FromQuery] string stringUrl)
     {
-        var result = await _service.CreateAsync(categoryName, description);
+        var result = await _service.CreateAsync(categoryName, stringUrl);
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 

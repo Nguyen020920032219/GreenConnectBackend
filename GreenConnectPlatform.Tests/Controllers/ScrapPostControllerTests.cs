@@ -6,6 +6,7 @@ using GreenConnectPlatform.Business.Models.Paging;
 using GreenConnectPlatform.Business.Models.ScrapPosts;
 using GreenConnectPlatform.Business.Services.CollectionOffers;
 using GreenConnectPlatform.Business.Services.ScrapPosts;
+using GreenConnectPlatform.Business.Services.Transactions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -17,13 +18,15 @@ public class ScrapPostControllerTests
     private readonly ScrapPostController _controller;
     private readonly Mock<ICollectionOfferService> _mockCollectionOfferService;
     private readonly Mock<IScrapPostService> _mockScrapPostService;
+    private readonly Mock<ITransactionService> _mockTransactionService;
     private readonly Guid _testUserId;
 
     public ScrapPostControllerTests()
     {
         _mockScrapPostService = new Mock<IScrapPostService>();
         _mockCollectionOfferService = new Mock<ICollectionOfferService>();
-        _controller = new ScrapPostController(_mockScrapPostService.Object, _mockCollectionOfferService.Object);
+        _mockTransactionService = new Mock<ITransactionService>();
+        _controller = new ScrapPostController(_mockScrapPostService.Object, _mockCollectionOfferService.Object, _mockTransactionService.Object);
 
         _testUserId = Guid.NewGuid();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new[]

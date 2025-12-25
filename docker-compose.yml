@@ -41,8 +41,9 @@ services:
     build:
       context: ../GreenConnectWeb 
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: "https://api.green-connect.business365.vn"
     environment:
-      - NEXT_PUBLIC_API_URL=https://api.green-connect.business365.vn
       - PORT=3000
     depends_on:
       - greenconnect-api

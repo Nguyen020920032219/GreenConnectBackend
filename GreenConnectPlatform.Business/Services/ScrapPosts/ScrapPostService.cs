@@ -115,7 +115,8 @@ public class ScrapPostService : IScrapPostService
                     },
                     AmountDescription = detail.AmountDescription,
                     ImageUrl = detailImageUrl,
-                    Status = detail.Status
+                    Status = detail.Status,
+                    Type = detail.Type
                 });
             }
 

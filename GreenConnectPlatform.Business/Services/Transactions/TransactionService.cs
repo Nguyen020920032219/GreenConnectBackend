@@ -112,6 +112,39 @@ public class TransactionService : ITransactionService
         return transactionModel;
     }
 
+    public async Task<TransactionForPaymentModel> GetTransactionsForPayment(Guid scrapPostId, Guid collectorId, Guid slotId)
+    {
+        var transactions = await _transactionRepository.GetTransactionByIdsAsync(collectorId, scrapPostId, slotId);
+        if (!transactions.Any())
+            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Không tìm thấy giao dịch nào.");
+        float totalSale = 0;
+        float totalService = 0;
+        var transactionModels = _mapper.Map<List<TransactionModel>>(transactions);
+        foreach (var transactionModel in transactionModels)
+        {
+            foreach (var d in transactionModel.Offer.ScrapPost.ScrapPostDetails)
+            {
+                if (!string.IsNullOrEmpty(d.ImageUrl))
+                    d.ImageUrl = await _fileStorageService.GetReadSignedUrlAsync(d.ImageUrl);
+            }
+            var originalEntity = transactions.First(t => t.TransactionId == transactionModel.TransactionId);
+            transactionModel.TotalPrice = originalEntity.TransactionDetails.Sum(d => d.FinalPrice);
+            totalSale += (float)originalEntity.TransactionDetails
+                .Where(d => d.Type == ItemTransactionType.Sale) 
+                .Sum(d => d.FinalPrice);
+            totalService += (float)originalEntity.TransactionDetails
+                .Where(d => d.Type == ItemTransactionType.Service) 
+                .Sum(d => d.FinalPrice);
+        }
+
+        var result = new TransactionForPaymentModel
+        {
+            Transactions = transactionModels,
+            AmountDifference = totalSale - totalService
+        };
+        return result;
+    }
+
     public async Task<PaginatedResult<TransactionOveralModel>> GetByOfferIdAsync(Guid offerId,
         TransactionStatus? status,
         bool sortByCreateAtDesc,

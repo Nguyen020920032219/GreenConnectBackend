@@ -76,6 +76,7 @@ public class MappingProfile : Profile
 
         CreateMap<Transaction, TransactionModel>();
         CreateMap<Transaction, TransactionOveralModel>();
+        CreateMap<Transaction, TransactionForPaymentModel>();
         CreateMap<TransactionDetail, TransactionDetailModel>();
         CreateMap<TransactionDetailCreateModel, TransactionDetail>();
         CreateMap<TransactionDetailUpdateModel, TransactionDetail>()

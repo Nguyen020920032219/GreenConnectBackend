@@ -1,4 +1,5 @@
 ﻿using GreenConnectPlatform.Business.Models.ScrapCategories;
+using GreenConnectPlatform.Data.Enums;
 
 namespace GreenConnectPlatform.Business.Models.Transactions.TransactionDetails;
 
@@ -16,4 +17,6 @@ public class TransactionDetailModel
     public float Quantity { get; set; }
 
     public decimal FinalPrice { get; set; }
+    
+    public ItemTransactionType Type { get; set; }
 }

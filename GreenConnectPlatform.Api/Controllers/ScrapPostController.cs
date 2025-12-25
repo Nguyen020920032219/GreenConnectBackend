@@ -5,8 +5,10 @@ using GreenConnectPlatform.Business.Models.Paging;
 using GreenConnectPlatform.Business.Models.ScrapPosts;
 using GreenConnectPlatform.Business.Models.ScrapPosts.ScrapPostDetails;
 using GreenConnectPlatform.Business.Models.ScrapPostTimeSlots;
+using GreenConnectPlatform.Business.Models.Transactions;
 using GreenConnectPlatform.Business.Services.CollectionOffers;
 using GreenConnectPlatform.Business.Services.ScrapPosts;
+using GreenConnectPlatform.Business.Services.Transactions;
 using GreenConnectPlatform.Data.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -20,11 +22,13 @@ public class ScrapPostController : ControllerBase
 {
     private readonly ICollectionOfferService _collectionOfferService;
     private readonly IScrapPostService _service;
+    private readonly ITransactionService _transactionService;
 
-    public ScrapPostController(IScrapPostService service, ICollectionOfferService collectionOfferService)
+    public ScrapPostController(IScrapPostService service, ICollectionOfferService collectionOfferService, ITransactionService transactionService)
     {
         _service = service;
         _collectionOfferService = collectionOfferService;
+        _transactionService = transactionService;
     }
 
     /// <summary>
@@ -377,6 +381,26 @@ public class ScrapPostController : ControllerBase
         var userId = GetCurrentUserId();
         await _service.DeleteTimeSlotAsync(userId, id, timeSlotId);
         return NoContent();
+    }
+    
+    /// <summary>
+    ///  (IndividualCollector/BusinessCollector/Household) Lấy danh sách giao dịch cần thanh toán cho bài đăng.
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="collectorId"></param>
+    /// <param name="slotId"></param>
+    /// <returns></returns>
+    [HttpGet("{id:Guid}/transactions")]
+    [Authorize(Roles = "Household, IndividualCollector, BusinessCollector")]
+    [ProducesResponseType(typeof(TransactionForPaymentModel), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetTransactionsForPayment([FromRoute]Guid id, [FromQuery] Guid collectorId,
+        [FromQuery]Guid slotId)
+    {
+        var result = await _transactionService.GetTransactionsForPayment(id, collectorId, slotId);
+        return Ok(result);
     }
     
 }

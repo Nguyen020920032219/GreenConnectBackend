@@ -8,6 +8,7 @@ using GreenConnectPlatform.Business.Services.Notifications;
 using GreenConnectPlatform.Data.Entities;
 using GreenConnectPlatform.Data.Enums;
 using GreenConnectPlatform.Data.Repositories.CollectorVerificationInfos;
+using GreenConnectPlatform.Data.Repositories.CreditTransactionHistories;
 using GreenConnectPlatform.Data.Repositories.Profiles;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -27,6 +28,9 @@ public class ProfileService : IProfileService
     private readonly IProfileRepository _profileRepository;
     private readonly UserManager<User> _userManager;
     private readonly IVerificationInfoRepository _verificationInfoRepository;
+    private readonly ICreditTransactionHistoryRepository _creditHistoryRepository;
+
+    private const int WELCOME_BONUS_CREDIT = 50;
 
     public ProfileService(
         UserManager<User> userManager,
@@ -35,7 +39,8 @@ public class ProfileService : IProfileService
         IFileStorageService fileStorageService,
         IEkycService ekycService,
         INotificationService notificationService,
-        IBankService bankService)
+        IBankService bankService,
+        ICreditTransactionHistoryRepository creditHistoryRepository)
     {
         _userManager = userManager;
         _profileRepository = profileRepository;
@@ -44,6 +49,7 @@ public class ProfileService : IProfileService
         _ekycService = ekycService;
         _notificationService = notificationService;
         _bankService = bankService;
+        _creditHistoryRepository = creditHistoryRepository;
         _geometryFactory = NtsGeometryServices.Instance.CreateGeometryFactory(4326);
     }
 
@@ -194,15 +200,55 @@ public class ProfileService : IProfileService
 
         verificationInfo.PlaceOfOrigin = ocrResult.Address;
         verificationInfo.IssuedBy = "FPT.AI Verified";
-
         verificationInfo.Status = VerificationStatus.Approved;
         verificationInfo.SubmittedAt = DateTime.UtcNow;
         verificationInfo.ReviewedAt = DateTime.UtcNow;
         verificationInfo.ReviewerNotes = $"Tự động xác minh qua eKYC. Tên: {ocrResult.FullName}";
 
+        var currentRoles = await _userManager.GetRolesAsync(user);
+        bool isAlreadyCollector = currentRoles.Any(r => r == "IndividualCollector" || r == "BusinessCollector");
+
+        user.Status = UserStatus.Active;
+        user.BuyerType = request.BuyerType;
+        await _userManager.UpdateAsync(user);
+
+        var rolesToRemove = currentRoles.Where(r => r != "Admin").ToList();
+        if (rolesToRemove.Any()) await _userManager.RemoveFromRolesAsync(user, rolesToRemove);
+
+        var newRole = request.BuyerType == BuyerType.Individual ? "IndividualCollector" : "BusinessCollector";
+        await _userManager.AddToRoleAsync(user, newRole);
+
+        string notificationMessage = "Tài khoản của bạn đã được nâng cấp thành công!";
+
         try
         {
             await _verificationInfoRepository.UpdateAsync(verificationInfo);
+
+            if (!isAlreadyCollector)
+            {
+                var profile = await _profileRepository.GetByUserIdWithRankAsync(userId);
+                if (profile == null)
+                {
+                    profile = new Data.Entities.Profile { UserId = userId, ProfileId = Guid.NewGuid(), RankId = 1, PointBalance = 0 };
+                    await _profileRepository.AddAsync(profile);
+                }
+
+                profile.CreditBalance += WELCOME_BONUS_CREDIT;
+                await _profileRepository.UpdateAsync(profile);
+
+                var creditHistory = new CreditTransactionHistory
+                {
+                    UserId = userId,
+                    Amount = WELCOME_BONUS_CREDIT,
+                    BalanceAfter = profile.CreditBalance,
+                    Type = "Bonus", 
+                    Description = "Quà tặng trải nghiệm: Chào mừng bạn gia nhập cộng đồng Collector!",
+                    CreatedAt = DateTime.UtcNow,
+                };
+                await _creditHistoryRepository.AddAsync(creditHistory);
+
+                notificationMessage = $"Chúc mừng! Bạn đã trở thành Collector và được tặng {WELCOME_BONUS_CREDIT} điểm trải nghiệm miễn phí.";
+            }
         }
         catch (DbUpdateException ex)
         {
@@ -214,19 +260,6 @@ public class ProfileService : IProfileService
             throw;
         }
 
-        user.Status = UserStatus.Active;
-        user.BuyerType = request.BuyerType;
-        await _userManager.UpdateAsync(user);
-
-        var currentRoles = await _userManager.GetRolesAsync(user);
-        var rolesToRemove = currentRoles.Where(r => r != "Admin").ToList();
-
-        if (rolesToRemove.Any()) await _userManager.RemoveFromRolesAsync(user, rolesToRemove);
-
-        var newRole = request.BuyerType == BuyerType.Individual ? "IndividualCollector" : "BusinessCollector";
-        await _userManager.AddToRoleAsync(user, newRole);
-
-        _ = _notificationService.SendNotificationAsync(userId, "Xác minh thành công",
-            "Tài khoản của bạn đã được nâng cấp thành công!");
+        _ = _notificationService.SendNotificationAsync(userId, "Xác minh thành công", notificationMessage);
     }
 }

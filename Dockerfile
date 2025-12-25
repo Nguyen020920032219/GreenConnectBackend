@@ -18,9 +18,6 @@ RUN dotnet publish "GreenConnectPlatform.Api/GreenConnectPlatform.Api.csproj" -c
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y tzdata
-ENV TZ=Asia/Ho_Chi_Minh
-
 COPY --from=build /app/publish .
 
 EXPOSE 8080

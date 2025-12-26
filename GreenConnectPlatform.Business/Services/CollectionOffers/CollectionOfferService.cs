@@ -211,12 +211,28 @@ public class CollectionOfferService : ICollectionOfferService
     public async Task<CollectionOfferModel> SupplementaryOffers(Guid collectorId, Guid postId,
         CollectionOfferCreateModel request)
     {
-        var post = await _postRepository.GetByIdAsync(postId);
+        var post = await _postRepository.GetByIdWithDetailsAsync(postId);
         if (post == null)
             throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Bài đăng không tìm thấy.");
         if (post.HouseholdId == collectorId)
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Không thể tự tạo đề nghị thu gom cho bài đăng của chính mình.");
+        var existsOffer = post.CollectionOffers.FirstOrDefault(o => 
+            o.ScrapPostId == postId && o.ScrapCollectorId == collectorId && o.Status == OfferStatus.Accepted);
+        if (existsOffer == null)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", 
+                "Bạn phải có một đề nghị đã được chấp nhận trước đó để tạo đề nghị bổ sung.");
+        var existsTransaction = existsOffer.Transactions.FirstOrDefault(t => 
+            t.ScrapCollectorId == collectorId && 
+            t.Status == TransactionStatus.InProgress);
+        if (existsTransaction == null)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", 
+                "Không tìm thấy giao dịch đang thực hiện cho đề nghị này.");
+        if (existsTransaction.CheckInTime == null || string.IsNullOrEmpty(existsTransaction.CheckInLocation.ToString()))
+        {
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", 
+                "Bạn cần thực hiện Check-in cho giao dịch hiện tại trước khi tạo đề nghị bổ sung.");
+        }
         var offerCategoryIds = request.OfferDetails.Select(d => d.ScrapCategoryId).Distinct().ToList();
         var postCategoryIds = post.ScrapPostDetails.Select(d => d.ScrapCategoryId).ToList();
         var allCategoryId = request.OfferDetails.Select(d => d.ScrapCategoryId).ToList();

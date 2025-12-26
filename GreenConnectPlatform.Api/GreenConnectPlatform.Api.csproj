@@ -4,9 +4,14 @@
         <TargetFramework>net9.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <UserSecretsId>4caacc7c-f337-498e-bb71-85f27033fcee</UserSecretsId>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <NoWarn>$(NoWarn);1591</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="DotNetEnv" Version="3.1.1"/>
+        <PackageReference Include="FirebaseAdmin" Version="3.4.0"/>
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.9"/>
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.9"/>
         <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.9"/>
@@ -24,12 +29,15 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Controllers\"/>
-        <Folder Include="Resources\" />
+        <Folder Include="Resources\"/>
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\GreenConnectPlatform.Bussiness\GreenConnectPlatform.Bussiness.csproj"/>
+        <ProjectReference Include="..\GreenConnectPlatform.Business\GreenConnectPlatform.Business.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Remove="Dockerfile"/>
     </ItemGroup>
 
 </Project>

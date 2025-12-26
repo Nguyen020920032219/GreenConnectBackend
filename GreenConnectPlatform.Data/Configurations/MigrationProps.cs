@@ -1,4 +1,4 @@
-﻿namespace GreenConnectPlatform.Data.Configuretions;
+﻿namespace GreenConnectPlatform.Data.Configurations;
 
 public class MigrationProps
 {

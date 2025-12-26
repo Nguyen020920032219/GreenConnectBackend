@@ -1,6 +1,8 @@
 ﻿using System.Configuration;
 using GreenConnectPlatform.Data.Configurations;
+using GreenConnectPlatform.Data.Enums;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Npgsql;
 using ConfigurationManager = Microsoft.Extensions.Configuration.ConfigurationManager;
 
@@ -8,43 +10,32 @@ namespace GreenConnectPlatform.Api.Configurations;
 
 public static class DatabaseConfiguration
 {
-    public static async Task AddPostgresAsync(this IServiceCollection services, ConfigurationManager configuration,
-        string connectionName, bool isDevelopment = false)
+    public static async Task AddPostgresAsync(this IServiceCollection services,
+        ConfigurationManager configuration,
+        string connectionName,
+        bool isDevelopment = false)
     {
         var props = GetDbConnectionProps(configuration, connectionName);
         if (string.IsNullOrWhiteSpace(props.DbHost))
             throw new ConfigurationErrorsException("Missing DbHost for database configuration");
 
-        services.AddEntityFrameworkNpgsql().AddDbContext<GreenConnectDbContext>(options =>
-        {
-            options.UseNpgsql(props.PsqlConnectionString);
+        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+        AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
 
-            if (isDevelopment) options.EnableSensitiveDataLogging();
+        services.AddDbContext<GreenConnectDbContext>(options =>
+        {
+            options.UseNpgsql(
+                props.PsqlConnectionString,
+                npgsqlOptions => npgsqlOptions.UseNetTopologySuite()
+            );
+
+            if (isDevelopment)
+                options.EnableSensitiveDataLogging();
+
+            options.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
         });
 
-        await ApplyEfMigrationsAsync(services, props);
-    }
-
-    private static async Task ApplyEfMigrationsAsync(IServiceCollection services, DbConnectionProps props)
-    {
-        try
-        {
-            Console.WriteLine($"[Database] Checking database '{props.Database}' on {props.DbHost}:{props.DbPort}...");
-
-            await CreateDbIfNotExistsAsync(props);
-
-            using var scope = services.BuildServiceProvider().CreateScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<GreenConnectDbContext>();
-
-            Console.WriteLine("[Database] Applying EF Core migrations...");
-            await dbContext.Database.MigrateAsync();
-            Console.WriteLine("[Database] EF Core migrations applied successfully.");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[Database] Migration failed: {ex.Message}");
-            throw;
-        }
+        await CreateDbIfNotExistsAsync(props);
     }
 
     private static async Task CreateDbIfNotExistsAsync(DbConnectionProps props)
@@ -78,12 +69,35 @@ public static class DatabaseConfiguration
 
     private static DbConnectionProps GetDbConnectionProps(ConfigurationManager configuration, string connectionName)
     {
+        var section = configuration.GetSection("DatabaseConnection").GetSection(connectionName);
         var props = new DbConnectionProps();
-        configuration.GetSection("DatabaseConnection").GetSection(connectionName).Bind(props);
+        section.Bind(props);
 
-        if (string.IsNullOrWhiteSpace(props.PsqlConnectionString))
-            Console.WriteLine($"[Database] Warning: No connection string found for '{connectionName}'.");
+        props.DbHost = configuration[$"DatabaseConnection:{connectionName}:DbHost"] ?? props.DbHost;
+        props.DbPort = int.TryParse(configuration[$"DatabaseConnection:{connectionName}:DbPort"], out var port)
+            ? port
+            : props.DbPort;
 
         return props;
+    }
+
+    [Obsolete("Obsolete")]
+    public static void MapPostgresEnums()
+    {
+        NpgsqlConnection.GlobalTypeMapper.MapEnum<UserStatus>("user_status");
+        NpgsqlConnection.GlobalTypeMapper.MapEnum<PostStatus>("post_status");
+        NpgsqlConnection.GlobalTypeMapper.MapEnum<PostDetailStatus>("post_detail_status");
+        NpgsqlConnection.GlobalTypeMapper.MapEnum<OfferStatus>("offer_status");
+        NpgsqlConnection.GlobalTypeMapper.MapEnum<TransactionStatus>("transaction_status");
+        NpgsqlConnection.GlobalTypeMapper.MapEnum<ComplaintStatus>("complaint_status");
+        NpgsqlConnection.GlobalTypeMapper.MapEnum<ProposalStatus>("proposal_status");
+        NpgsqlConnection.GlobalTypeMapper.MapEnum<VerificationStatus>("verification_status");
+        NpgsqlConnection.GlobalTypeMapper.MapEnum<Gender>("gender");
+        NpgsqlConnection.GlobalTypeMapper.MapEnum<PackageType>("package_type");
+        NpgsqlConnection.GlobalTypeMapper.MapEnum<PaymentStatus>("payment_status");
+        NpgsqlConnection.GlobalTypeMapper.MapEnum<BuyerType>("buyer_type");
+        NpgsqlConnection.GlobalTypeMapper.MapEnum<ItemTransactionType>("item_transaction_type");
+        NpgsqlConnection.GlobalTypeMapper.MapEnum<TransactionPaymentMethod>("transaction_payment_method");
+        Console.WriteLine("[Database] PostgreSQL enums mapped successfully.");
     }
 }

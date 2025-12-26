@@ -1,5 +1,8 @@
 ﻿using System.Text;
 using System.Text.Json;
+using FirebaseAdmin;
+using FirebaseAdmin.Auth;
+using Google.Apis.Auth.OAuth2;
 using GreenConnectPlatform.Data.Configurations;
 using GreenConnectPlatform.Data.Entities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -54,7 +57,7 @@ public static class AuthConfiguration
 
                         var errorResponse = new
                         {
-                            errorCode = "PR40101",
+                            errorCode = "401",
                             message = "Authentication error. A valid token is required to access this resource."
                         };
 
@@ -68,7 +71,7 @@ public static class AuthConfiguration
 
                         var errorResponse = new
                         {
-                            errorCode = "PR40301",
+                            errorCode = "403",
                             message = "Not authorized. You do not have permission to access this resource."
                         };
 
@@ -76,5 +79,32 @@ public static class AuthConfiguration
                     }
                 };
             });
+    }
+
+    public static void ConfigureFirebase(this IServiceCollection services, IWebHostEnvironment environment)
+    {
+        try
+        {
+            var keyPath = Path.Combine(environment.ContentRootPath, "Configs", "firebase-service-account.json");
+
+            if (FirebaseApp.DefaultInstance == null)
+            {
+                FirebaseApp.Create(new AppOptions
+                {
+                    Credential = GoogleCredential.FromFile(keyPath)
+                });
+
+                Console.WriteLine("Firebase App '[DEFAULT]' initialized.");
+            }
+
+            services.AddSingleton<FirebaseAuth>(FirebaseAuth.DefaultInstance);
+            // services.AddSingleton<FirebaseStorage>(FirebaseStorage.DefaultInstance);
+            // services.AddSingleton<FirebaseMessaging>(FirebaseMessaging.DefaultInstance);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error initializing Firebase: {ex.Message}");
+            throw;
+        }
     }
 }

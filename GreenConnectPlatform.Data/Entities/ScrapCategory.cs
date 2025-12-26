@@ -1,12 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace GreenConnectPlatform.Data.Entities;
+﻿namespace GreenConnectPlatform.Data.Entities;
 
 public class ScrapCategory
 {
-    public int ScrapCategoryId { get; set; }
-    public string CategoryName { get; set; } = null!;
-    public string? Description { get; set; }
+    public Guid Id { get; set; }
+    public string Name { get; set; } = null!;
+    public string? ImageUrl { get; set; }
     public virtual ICollection<ScrapPostDetail> ScrapPostDetails { get; set; } = new List<ScrapPostDetail>();
+
+    public virtual ICollection<TransactionDetail> TransactionDetails { get; set; } = new List<TransactionDetail>();
 }

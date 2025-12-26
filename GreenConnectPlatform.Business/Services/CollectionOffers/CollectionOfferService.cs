@@ -224,10 +224,10 @@ public class CollectionOfferService : ICollectionOfferService
                 "Bạn phải có một đề nghị đã được chấp nhận trước đó để tạo đề nghị bổ sung.");
         var existsTransaction = existsOffer.Transactions.FirstOrDefault(t => 
             t.ScrapCollectorId == collectorId && 
-            t.Status == TransactionStatus.InProgress);
+            t.Status == TransactionStatus.InProgress || t.Status == TransactionStatus.Completed);
         if (existsTransaction == null)
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", 
-                "Không tìm thấy giao dịch đang thực hiện cho đề nghị này.");
+                "Không tìm thấy giao dịch nào trước đó liên quan đến đề nghị đã được chấp nhận của bạn.");
         if (existsTransaction.CheckInTime == null || string.IsNullOrEmpty(existsTransaction.CheckInLocation.ToString()))
         {
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", 

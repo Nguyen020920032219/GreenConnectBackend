@@ -131,6 +131,7 @@ public class TransactionRepository : BaseRepository<GreenConnectDbContext, Trans
             .Include(t => t.Offer)
             .ThenInclude(o => o.ScrapPost)
             .ThenInclude(p => p.ScrapPostDetails)
+            .ThenInclude(d => d.ScrapCategory)
             .Include(t => t.TimeSlot)
             .Where(t => t.ScrapCollectorId == collectorId &&
                         t.Offer!.ScrapPostId == postId &&

@@ -117,9 +117,6 @@ public class TransactionService : ITransactionService
         var transactions = await _transactionRepository.GetTransactionByIdsAsync(collectorId, scrapPostId, slotId);
         if (!transactions.Any())
             throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Không tìm thấy giao dịch nào.");
-        float totalSale = 0;
-        float totalService = 0;
-        float totalAllPrice = 0;
         var transactionModels = _mapper.Map<List<TransactionModel>>(transactions);
         foreach (var transactionModel in transactionModels)
         {
@@ -129,20 +126,19 @@ public class TransactionService : ITransactionService
                     d.ImageUrl = await _fileStorageService.GetReadSignedUrlAsync(d.ImageUrl);
             }
             var originalEntity = transactions.First(t => t.TransactionId == transactionModel.TransactionId);
-            transactionModel.TotalPrice = originalEntity.TransactionDetails.Sum(d => d.FinalPrice);
-            totalSale += (float)originalEntity.TransactionDetails
-                .Where(d => d.Type == ItemTransactionType.Sale) 
+            var totalSalePrice = originalEntity.TransactionDetails
+                .Where(d => d.Type == ItemTransactionType.Sale)
                 .Sum(d => d.FinalPrice);
-            totalService += (float)originalEntity.TransactionDetails
-                .Where(d => d.Type == ItemTransactionType.Service) 
+            var totalServicePrice = originalEntity.TransactionDetails
+                .Where(d => d.Type == ItemTransactionType.Service)
                 .Sum(d => d.FinalPrice);
-            
+            transactionModel.TotalPrice = totalSalePrice - totalServicePrice;
         }
 
         var result = new TransactionForPaymentModel
         {
             Transactions = transactionModels,
-            AmountDifference = totalSale - totalService
+            AmountDifference = (float)transactionModels.Sum(t => t.TotalPrice)
         };
         return result;
     }

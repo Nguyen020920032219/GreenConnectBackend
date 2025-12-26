@@ -9,6 +9,7 @@ public class OfferDetailModel
     public Guid CollectionOfferId { get; set; }
     public Guid ScrapCategoryId { get; set; }
     public ScrapCategoryModel ScrapCategory { get; set; } = new();
+    public decimal PricePerKg { get; set; }
     public decimal PricePerUnit { get; set; }
     public string? Unit { get; set; }
     public ItemTransactionType Type { get; set; }

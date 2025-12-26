@@ -243,7 +243,7 @@ public class CollectionOfferController : ControllerBase
         [FromBody] CollectionOfferCreateModel request)
     {
         var userId = GetCurrentUserId();
-        var result = await _service.SupplementaryOffers(postId, userId, request);
+        var result = await _service.SupplementaryOffers(userId, postId, request);
         return CreatedAtAction(nameof(GetById), new { id = result.CollectionOfferId }, result);
     }
 

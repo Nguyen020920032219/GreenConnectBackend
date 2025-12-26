@@ -119,6 +119,7 @@ public class TransactionService : ITransactionService
             throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Không tìm thấy giao dịch nào.");
         float totalSale = 0;
         float totalService = 0;
+        float totalAllPrice = 0;
         var transactionModels = _mapper.Map<List<TransactionModel>>(transactions);
         foreach (var transactionModel in transactionModels)
         {
@@ -135,6 +136,7 @@ public class TransactionService : ITransactionService
             totalService += (float)originalEntity.TransactionDetails
                 .Where(d => d.Type == ItemTransactionType.Service) 
                 .Sum(d => d.FinalPrice);
+            
         }
 
         var result = new TransactionForPaymentModel

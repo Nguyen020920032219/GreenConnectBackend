@@ -19,6 +19,7 @@ public class ScrapPostRepository : BaseRepository<GreenConnectDbContext, ScrapPo
             .Include(p => p.Household).ThenInclude(u => u.Profile).ThenInclude(pr => pr.Rank)
             .Include(p => p.ScrapPostDetails).ThenInclude(d => d.ScrapCategory)
             .Include(p => p.TimeSlots)
+            .Include(p => p.CollectionOffers).ThenInclude(c => c.Transactions)
             .AsSplitQuery()
             .FirstOrDefaultAsync(p => p.Id == id);
     }

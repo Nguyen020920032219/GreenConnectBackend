@@ -542,9 +542,13 @@ public class CollectionOfferService : ICollectionOfferService
     {
         var offer = await _offerRepository.GetByIdWithDetailsAsync(offerId);
         var detail = offer!.OfferDetails.FirstOrDefault(d => d.OfferDetailId == detailId);
+        if(offer.ScrapCollectorId != collectorId)
+            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Bạn không có quyền.");
+        if(offer.Status == OfferStatus.Accepted)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "Bạn không thể cập nhật khi đề nghị đã được chấp nhận.");
         if (detail == null)
             throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Đề nghị thu gom không tìm thấy.");
-
         _mapper.Map(request, detail);
         await _offerRepository.UpdateAsync(offer);
     }

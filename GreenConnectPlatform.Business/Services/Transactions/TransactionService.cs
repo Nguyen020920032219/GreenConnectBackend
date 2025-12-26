@@ -215,16 +215,23 @@ public class TransactionService : ITransactionService
         var updateDetails = new List<TransactionDetail>();
         foreach (var transaction in transactions)
         {
+            var currentOfferDetails = transaction.Offer?.OfferDetails.ToList();
             foreach (var detail in transaction.TransactionDetails)
             {
                 var matchingRequest = details.FirstOrDefault(d => d.ScrapCategoryId == detail.ScrapCategoryId);
 
                 if (matchingRequest != null)
                 {
+                    var matchingOfferDetail = currentOfferDetails
+                        .FirstOrDefault(od => od.ScrapCategoryId == detail.ScrapCategoryId);
                     detail.TransactionId = transaction.TransactionId;
                     detail.PricePerUnit = matchingRequest.PricePerUnit;
                     detail.Unit = matchingRequest.Unit;
                     detail.Quantity = matchingRequest.Quantity;
+                    if (matchingOfferDetail != null)
+                    {
+                        detail.Type = matchingOfferDetail.Type;
+                    }
                     detail.FinalPrice = detail.PricePerUnit * (decimal)detail.Quantity;
                     updateDetails.Add(detail);
                     transaction.TransactionDetails.Add(detail);

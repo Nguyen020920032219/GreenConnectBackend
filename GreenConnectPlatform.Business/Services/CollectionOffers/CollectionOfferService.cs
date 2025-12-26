@@ -11,6 +11,7 @@ using GreenConnectPlatform.Data.Repositories.Chatrooms;
 using GreenConnectPlatform.Data.Repositories.CollectionOffers;
 using GreenConnectPlatform.Data.Repositories.CreditTransactionHistories;
 using GreenConnectPlatform.Data.Repositories.Profiles;
+using GreenConnectPlatform.Data.Repositories.ReferencePrices;
 using GreenConnectPlatform.Data.Repositories.ScrapCategories;
 using GreenConnectPlatform.Data.Repositories.ScrapPosts;
 using GreenConnectPlatform.Data.Repositories.Transactions;
@@ -30,6 +31,7 @@ public class CollectionOfferService : ICollectionOfferService
     private readonly IChatRoomRepository _roomRepository;
     private readonly IScrapCategoryRepository _scrapCategoryRepository;
     private readonly ITransactionRepository _transactionRepository;
+    private readonly IReferencePriceRepository _priceRepository;
 
     public CollectionOfferService(
         ICollectionOfferRepository offerRepository,
@@ -41,7 +43,8 @@ public class CollectionOfferService : ICollectionOfferService
         IMapper mapper,
         INotificationService notificationService,
         IProfileRepository profileRepository,
-        ICreditTransactionHistoryRepository creditTransactionHistoryRepository)
+        ICreditTransactionHistoryRepository creditTransactionHistoryRepository,
+        IReferencePriceRepository priceRepository)
     {
         _offerRepository = offerRepository;
         _postRepository = postRepository;
@@ -53,6 +56,7 @@ public class CollectionOfferService : ICollectionOfferService
         _notificationService = notificationService;
         _profileRepository = profileRepository;
         _creditTransactionHistoryRepository = creditTransactionHistoryRepository;
+        _priceRepository = priceRepository;
     }
 
     public async Task<PaginatedResult<CollectionOfferOveralForCollectorModel>> GetByCollectorAsync(
@@ -99,7 +103,13 @@ public class CollectionOfferService : ICollectionOfferService
         foreach (var detail in offerModel.ScrapPost.ScrapPostDetails)
             if (!string.IsNullOrEmpty(detail.ImageUrl))
                 detail.ImageUrl = await _fileStorageService.GetReadSignedUrlAsync(detail.ImageUrl);
-
+        foreach (var refer in offerModel.OfferDetails)
+        {
+            var referPrice = await _priceRepository.GetReferencePriceByCategoryId(refer.ScrapCategoryId);
+            if (referPrice == null)
+                throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Giá tham khảo không tìm thấy.");
+            refer.PricePerKg = referPrice.PricePerKg;
+        }
         return offerModel;
     }
 
@@ -120,7 +130,7 @@ public class CollectionOfferService : ICollectionOfferService
         var offerCategoryIds = request.OfferDetails.Select(d => d.ScrapCategoryId).Distinct().ToList();
         var allCategoryId = request.OfferDetails.Select(d => d.ScrapCategoryId).ToList();
         var postCategoryIds = post.ScrapPostDetails.Select(d => d.ScrapCategoryId).ToList();
-
+        
         if (offerCategoryIds.Except(postCategoryIds).Any())
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Đề nghị không thể bao gồm các mục không có trong bài đăng.");

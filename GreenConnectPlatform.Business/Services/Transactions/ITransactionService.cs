@@ -10,7 +10,7 @@ public interface ITransactionService
 {
     Task CheckInAsync(Guid transactionId, Guid collectorId, LocationModel currentLocation);
     Task<TransactionModel> GetByIdAsync(Guid id);
-    
+
     Task<TransactionForPaymentModel> GetTransactionsForPayment(Guid scrapPostId, Guid collectorId, Guid slotId);
 
     Task<PaginatedResult<TransactionOveralModel>> GetByOfferIdAsync(

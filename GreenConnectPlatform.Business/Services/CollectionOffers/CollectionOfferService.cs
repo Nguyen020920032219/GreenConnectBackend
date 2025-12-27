@@ -27,11 +27,11 @@ public class CollectionOfferService : ICollectionOfferService
     private readonly INotificationService _notificationService;
     private readonly ICollectionOfferRepository _offerRepository;
     private readonly IScrapPostRepository _postRepository;
+    private readonly IReferencePriceRepository _priceRepository;
     private readonly IProfileRepository _profileRepository;
     private readonly IChatRoomRepository _roomRepository;
     private readonly IScrapCategoryRepository _scrapCategoryRepository;
     private readonly ITransactionRepository _transactionRepository;
-    private readonly IReferencePriceRepository _priceRepository;
 
     public CollectionOfferService(
         ICollectionOfferRepository offerRepository,
@@ -110,6 +110,7 @@ public class CollectionOfferService : ICollectionOfferService
                 throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Giá tham khảo không tìm thấy.");
             refer.PricePerKg = referPrice.PricePerKg;
         }
+
         return offerModel;
     }
 
@@ -130,7 +131,7 @@ public class CollectionOfferService : ICollectionOfferService
         var offerCategoryIds = request.OfferDetails.Select(d => d.ScrapCategoryId).Distinct().ToList();
         var allCategoryId = request.OfferDetails.Select(d => d.ScrapCategoryId).ToList();
         var postCategoryIds = post.ScrapPostDetails.Select(d => d.ScrapCategoryId).ToList();
-        
+
         if (offerCategoryIds.Except(postCategoryIds).Any())
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Đề nghị không thể bao gồm các mục không có trong bài đăng.");
@@ -222,43 +223,54 @@ public class CollectionOfferService : ICollectionOfferService
         CollectionOfferCreateModel request)
     {
         var post = await _postRepository.GetByIdWithDetailsAsync(postId);
+
         if (post == null)
             throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Bài đăng không tìm thấy.");
+
         if (post.HouseholdId == collectorId)
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Không thể tự tạo đề nghị thu gom cho bài đăng của chính mình.");
-        var existsOffer = post.CollectionOffers.FirstOrDefault(o => 
+
+        var existsOffer = post.CollectionOffers.FirstOrDefault(o =>
             o.ScrapPostId == postId && o.ScrapCollectorId == collectorId && o.Status == OfferStatus.Accepted);
+
         if (existsOffer == null)
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", 
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Bạn phải có một đề nghị đã được chấp nhận trước đó để tạo đề nghị bổ sung.");
-        var existsTransaction = existsOffer.Transactions.FirstOrDefault(t => 
-            t.ScrapCollectorId == collectorId && 
-            t.Status == TransactionStatus.InProgress || t.Status == TransactionStatus.Completed);
+
+        var existsTransaction = existsOffer.Transactions.FirstOrDefault(t =>
+            (t.ScrapCollectorId == collectorId &&
+             t.Status == TransactionStatus.InProgress) || t.Status == TransactionStatus.Completed);
+
         if (existsTransaction == null)
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", 
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Không tìm thấy giao dịch nào trước đó liên quan đến đề nghị đã được chấp nhận của bạn.");
+
         if (existsTransaction.CheckInTime == null || string.IsNullOrEmpty(existsTransaction.CheckInLocation.ToString()))
-        {
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", 
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Bạn cần thực hiện Check-in cho giao dịch hiện tại trước khi tạo đề nghị bổ sung.");
-        }
+
         var offerCategoryIds = request.OfferDetails.Select(d => d.ScrapCategoryId).Distinct().ToList();
         var postCategoryIds = post.ScrapPostDetails.Select(d => d.ScrapCategoryId).ToList();
         var allCategoryId = request.OfferDetails.Select(d => d.ScrapCategoryId).ToList();
+
         if (offerCategoryIds.Except(postCategoryIds).Any())
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Đề nghị không thể bao gồm các mục không có trong bài đăng.");
+
         var unavailableItems = post.ScrapPostDetails
             .Where(detail => offerCategoryIds.Contains(detail.ScrapCategoryId)
                              && detail.Status != PostDetailStatus.Available)
             .ToList();
+
         if (unavailableItems.Any())
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Có mục trong đề nghị không còn sẵn sàng để thu gom.");
+
         if (offerCategoryIds.Count != allCategoryId.Count)
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Không thể có mục trùng lặp trong đề nghị.");
+
         var existOffer =
             post.CollectionOffers.FirstOrDefault(o => o.ScrapPostId == postId && o.ScrapCollectorId == collectorId);
         var existTransaction = existOffer.Transactions.FirstOrDefault(t => t.ScrapCollectorId == collectorId &&
@@ -268,8 +280,9 @@ public class CollectionOfferService : ICollectionOfferService
         offer.CollectionOfferId = Guid.NewGuid();
         offer.ScrapPostId = postId;
         offer.ScrapCollectorId = collectorId;
-        offer.Status = OfferStatus.Pending;
+        offer.Status = OfferStatus.Accepted;
         offer.CreatedAt = DateTime.UtcNow;
+        offer.TimeSlotId = existsOffer.TimeSlotId;
 
         foreach (var detail in offer.OfferDetails)
         {
@@ -305,8 +318,18 @@ public class CollectionOfferService : ICollectionOfferService
             ScheduledTime = existTransaction.ScheduledTime,
             OfferId = offer.CollectionOfferId,
             Status = TransactionStatus.InProgress,
-            TimeSlotId = existTransaction.TimeSlotId
+            TimeSlotId = existTransaction.TimeSlotId,
+            TransactionDetails = new List<TransactionDetail>(
+                offer.OfferDetails.Select(od => new TransactionDetail
+                {
+                    ScrapCategoryId = od.ScrapCategoryId,
+                    PricePerUnit = od.PricePerUnit,
+                    Unit = od.Unit ?? "kg",
+                    Quantity = 0,
+                    FinalPrice = 0
+                }).ToList())
         };
+
         await _transactionRepository.AddAsync(transaction);
 
         var profile = await _profileRepository.GetByUserIdWithRankAsync(collectorId);
@@ -542,9 +565,9 @@ public class CollectionOfferService : ICollectionOfferService
     {
         var offer = await _offerRepository.GetByIdWithDetailsAsync(offerId);
         var detail = offer!.OfferDetails.FirstOrDefault(d => d.OfferDetailId == detailId);
-        if(offer.ScrapCollectorId != collectorId)
+        if (offer.ScrapCollectorId != collectorId)
             throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Bạn không có quyền.");
-        if(offer.Status == OfferStatus.Accepted)
+        if (offer.Status == OfferStatus.Accepted)
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Bạn không thể cập nhật khi đề nghị đã được chấp nhận.");
         if (detail == null)

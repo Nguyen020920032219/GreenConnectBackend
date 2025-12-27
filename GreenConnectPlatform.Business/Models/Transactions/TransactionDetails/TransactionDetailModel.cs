@@ -17,6 +17,6 @@ public class TransactionDetailModel
     public float Quantity { get; set; }
 
     public decimal FinalPrice { get; set; }
-    
+
     public ItemTransactionType Type { get; set; }
 }

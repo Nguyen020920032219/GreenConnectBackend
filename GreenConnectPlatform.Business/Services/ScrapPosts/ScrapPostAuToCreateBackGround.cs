@@ -89,7 +89,7 @@ public class ScrapPostAuToCreateBackGround : BackgroundService
 
                 await context.SaveChangesAsync();
                 var title = "Bài đăng đã được tạo tự động từ lịch trình";
-                
+
 
                 var body = $"Bài đăng '{schedules.First().Title}' đã được tạo tự động cho ngày {todayDate:dd/MM/yyyy}.";
 

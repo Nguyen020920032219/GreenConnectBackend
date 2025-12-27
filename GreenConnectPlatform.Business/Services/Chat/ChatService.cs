@@ -57,7 +57,7 @@ public class ChatService : IChatService
             ChatRoomId = room.ChatRoomId,
             SenderId = senderId,
             Content = model.Content,
-            Timestamp = DateTime.UtcNow,
+            Timestamp = DateTime.Now,
             IsRead = false
         };
         await _messageRepository.AddAsync(message);

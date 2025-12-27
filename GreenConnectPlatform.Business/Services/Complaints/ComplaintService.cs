@@ -116,7 +116,7 @@ public class ComplaintService : IComplaintService
 
         var complaintModel = _mapper.Map<Complaint>(model);
         complaintModel.Status = ComplaintStatus.Submitted;
-        complaintModel.CreatedAt = DateTime.UtcNow;
+        complaintModel.CreatedAt = DateTime.Now;
         complaintModel.ComplainantId = userId;
         complaintModel.ComplaintId = Guid.NewGuid();
         if (roleName == "Household")
@@ -185,7 +185,7 @@ public class ComplaintService : IComplaintService
             UserId = userId,
             PointChange = pointChange,
             Reason = reason,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.Now
         };
         await _pointHistoryRepository.AddAsync(pointHistory);
     }

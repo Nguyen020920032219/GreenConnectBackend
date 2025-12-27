@@ -55,7 +55,7 @@ public class PaymentService : IPaymentService
             PaymentGateway = "VNPay",
             Status = PaymentStatus.Pending,
             TransactionRef = txnRef,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.Now
         };
         await _txnRepo.AddAsync(transaction);
 
@@ -106,8 +106,8 @@ public class PaymentService : IPaymentService
                 UserPackageId = Guid.NewGuid(),
                 UserId = userId,
                 PackageId = packageId,
-                ActivationDate = DateTime.UtcNow,
-                ExpirationDate = DateTime.UtcNow.AddDays(30),
+                ActivationDate = DateTime.Now,
+                ExpirationDate = DateTime.Now.AddDays(30),
                 RemainingConnections = package.ConnectionAmount
             };
             await _userPackageRepo.AddAsync(newUserPackage);
@@ -115,8 +115,8 @@ public class PaymentService : IPaymentService
         else
         {
             existingUserPackage.PackageId = packageId;
-            existingUserPackage.ActivationDate = DateTime.UtcNow;
-            existingUserPackage.ExpirationDate = DateTime.UtcNow.AddDays(30);
+            existingUserPackage.ActivationDate = DateTime.Now;
+            existingUserPackage.ExpirationDate = DateTime.Now.AddDays(30);
             if (package.ConnectionAmount.HasValue)
                 existingUserPackage.RemainingConnections =
                     (existingUserPackage.RemainingConnections ?? 0) + package.ConnectionAmount;
@@ -138,7 +138,7 @@ public class PaymentService : IPaymentService
                 Type = "Purchase",
                 ReferenceId = transactionId,
                 Description = $"Mua gói {package.Name}",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now
             };
             await _creditHistoryRepo.AddAsync(history);
         }

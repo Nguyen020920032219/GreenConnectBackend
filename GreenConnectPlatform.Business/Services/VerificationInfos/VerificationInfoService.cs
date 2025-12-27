@@ -111,7 +111,7 @@ public class VerificationInfoService : IVerificationInfoService
         }
 
         verificationInfo.ReviewerId = reviewerId;
-        verificationInfo.ReviewedAt = DateTime.UtcNow;
+        verificationInfo.ReviewedAt = DateTime.Now;
         verificationInfo.ReviewerNotes = reviewerNotes;
 
         await _verificationInfoRepository.UpdateAsync(verificationInfo);

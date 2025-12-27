@@ -63,7 +63,7 @@ public class ReferencePriceService : IReferencePriceService
             ReferencePriceId = Guid.NewGuid(),
             ScrapCategoryId = scrapCategoryId,
             PricePerKg = pricePerKg,
-            LastUpdated = DateTime.UtcNow,
+            LastUpdated = DateTime.Now,
             UpdatedByAdminId = userId
         };
         await _referencePriceRepository.AddAsync(referencePrice);
@@ -82,7 +82,7 @@ public class ReferencePriceService : IReferencePriceService
             referencePrice.PricePerKg = pricePerKg.Value;
         if (referencePrice.UpdatedByAdminId != userId)
             referencePrice.UpdatedByAdminId = userId;
-        referencePrice.LastUpdated = DateTime.UtcNow;
+        referencePrice.LastUpdated = DateTime.Now;
         await _referencePriceRepository.UpdateAsync(referencePrice);
         return _mapper.Map<ReferencePriceModel>(referencePrice);
     }

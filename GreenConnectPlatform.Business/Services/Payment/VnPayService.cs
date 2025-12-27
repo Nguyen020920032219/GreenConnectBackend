@@ -20,7 +20,7 @@ public class VnPayService : IVnPayService
     public string CreatePaymentUrl(HttpContext context, string txnRef, double amount, string orderInfo)
     {
         var timeZoneById = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
-        var timeNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timeZoneById);
+        var timeNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.Now, timeZoneById);
         var pay = new VnPayLibrary();
 
         pay.AddRequestData("vnp_Version", _config["VnPay:Version"] ?? "2.1.0");

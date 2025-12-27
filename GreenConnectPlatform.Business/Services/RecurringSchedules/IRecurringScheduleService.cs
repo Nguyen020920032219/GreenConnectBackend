@@ -7,7 +7,8 @@ namespace GreenConnectPlatform.Business.Services.RecurringSchedules;
 
 public interface IRecurringScheduleService
 {
-    Task<PaginatedResult<RecurringScheduleOverallModel>> GetPagedRecurringSchedulesAsync(int pageNumber, int pageSize,
+    Task<PaginatedResult<RecurringScheduleOverallModel>> GetPagedRecurringSchedulesAsync(Guid userId, int pageNumber,
+        int pageSize,
         bool sortByCreatedAt);
 
     Task<RecurringScheduleModel> GetRecurringScheduleByIdAsync(Guid id);

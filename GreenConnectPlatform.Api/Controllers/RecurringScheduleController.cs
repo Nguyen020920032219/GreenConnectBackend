@@ -30,7 +30,8 @@ public class RecurringScheduleController(IRecurringScheduleService service) : Co
         [FromQuery] int pageSize = 10,
         [FromQuery] bool sortByCreatedAt = true)
     {
-        var result = await service.GetPagedRecurringSchedulesAsync(pageNumber, pageSize, sortByCreatedAt);
+        var householdId = GetCurrentUserId();
+        var result = await service.GetPagedRecurringSchedulesAsync(householdId, pageNumber, pageSize, sortByCreatedAt);
         return Ok(result);
     }
 

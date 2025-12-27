@@ -12,10 +12,11 @@ public class RecurringScheduleRepository : BaseRepository<GreenConnectDbContext,
     {
     }
 
-    public async Task<(List<RecurringSchedule> Items, int TotalCount)> GetPagedRecurringSchedulesAsync(int pageNumber,
+    public async Task<(List<RecurringSchedule> Items, int TotalCount)> GetPagedRecurringSchedulesAsync(Guid userId,
+        int pageNumber,
         int pageSize, bool sortByCreatedAt)
     {
-        var query = _dbSet.AsNoTracking();
+        var query = _dbSet.Where(q => q.HouseholdId == userId).AsNoTracking();
         if (sortByCreatedAt)
             query = query.OrderByDescending(q => q.CreatedAt);
         else

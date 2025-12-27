@@ -38,8 +38,8 @@ public class ReportControllerTests
     public async Task ADM11_GetReport_ReturnsOk_WithStats()
     {
         // Arrange
-        var start = DateTime.UtcNow.AddDays(-30);
-        var end = DateTime.UtcNow;
+        var start = DateTime.Now.AddDays(-30);
+        var end = DateTime.Now;
         var reportData = new ReportModel(); // Giả lập dữ liệu
 
         // Lưu ý: Controller có logic xử lý DateTimeKind, nhưng ở đây ta test Service call

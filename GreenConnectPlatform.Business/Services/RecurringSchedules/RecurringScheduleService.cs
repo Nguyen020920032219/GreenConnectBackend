@@ -30,11 +30,13 @@ public class RecurringScheduleService : IRecurringScheduleService
         _geometryFactory = NtsGeometryServices.Instance.CreateGeometryFactory(4326);
     }
 
-    public async Task<PaginatedResult<RecurringScheduleOverallModel>> GetPagedRecurringSchedulesAsync(int pageNumber,
+    public async Task<PaginatedResult<RecurringScheduleOverallModel>> GetPagedRecurringSchedulesAsync(Guid userId,
+        int pageNumber,
         int pageSize, bool sortByCreatedAt)
     {
         var (items, totalCount) =
-            await _recurringScheduleRepository.GetPagedRecurringSchedulesAsync(pageNumber, pageSize, sortByCreatedAt);
+            await _recurringScheduleRepository.GetPagedRecurringSchedulesAsync(userId, pageNumber, pageSize,
+                sortByCreatedAt);
         var models = _mapper.Map<List<RecurringScheduleOverallModel>>(items);
         return new PaginatedResult<RecurringScheduleOverallModel>
         {
@@ -65,9 +67,9 @@ public class RecurringScheduleService : IRecurringScheduleService
         recurringSchedule.Id = Guid.NewGuid();
         recurringSchedule.HouseholdId = userId;
         recurringSchedule.IsActive = true;
-        recurringSchedule.CreatedAt = DateTime.UtcNow;
+        recurringSchedule.CreatedAt = DateTime.Now;
 
-        var vnNow = DateTime.UtcNow.AddHours(7);
+        var vnNow = DateTime.Now;
         var currentDayOfWeek = (int)vnNow.DayOfWeek;
         var currentTimeOnly = TimeOnly.FromDateTime(vnNow);
         if (model.DayOfWeek == currentDayOfWeek && model.StartTime > currentTimeOnly)

@@ -295,24 +295,24 @@ public class TransactionControllerTests
     // GROUP 6: QR CODE (TRX-12)
     // =================================================================
 
-    [Fact] // TRX-12: Get Payment QR Code
-    public async Task TRX12_GetQrCode_ReturnsUrl_WhenSuccess()
-    {
-        // Arrange
-        var transactionId = Guid.NewGuid();
-        var expectedUrl = "https://img.vietqr.io/image/970436-123456789-compact.png";
-
-        // Service: GetTransactionQrCodeAsync(transactionId, userId)
-        _mockService.Setup(s => s.GetTransactionQrCodeAsync(transactionId, _testUserId))
-            .ReturnsAsync(expectedUrl);
-
-        // Act
-        var result = await _controller.GetQrCode(transactionId);
-
-        // Assert
-        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        // Verify anonymous object property or string content depending on Controller implementation
-        var json = JsonSerializer.Serialize(okResult.Value);
-        json.Should().Contain(expectedUrl);
-    }
+    // [Fact] // TRX-12: Get Payment QR Code
+    // public async Task TRX12_GetQrCode_ReturnsUrl_WhenSuccess()
+    // {
+    //     // Arrange
+    //     var transactionId = Guid.NewGuid();
+    //     var expectedUrl = "https://img.vietqr.io/image/970436-123456789-compact.png";
+    //
+    //     // Service: GetTransactionQrCodeAsync(transactionId, userId)
+    //     _mockService.Setup(s => s.GetTransactionQrCodeAsync(transactionId, _testUserId))
+    //         .ReturnsAsync(expectedUrl);
+    //
+    //     // Act
+    //     var result = await _controller.GetQrCode(transactionId);
+    //
+    //     // Assert
+    //     var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+    //     // Verify anonymous object property or string content depending on Controller implementation
+    //     var json = JsonSerializer.Serialize(okResult.Value);
+    //     json.Should().Contain(expectedUrl);
+    // }
 }

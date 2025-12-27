@@ -60,7 +60,7 @@ public class RewardItemService : IRewardItemService
             RewardItemId = h.RewardItemId,
             ItemName = h.RewardItem?.ItemName ?? "Unknown Reward",
             Description = h.RewardItem?.Description,
-            PointsSpent = h.RewardItem?.PointsCost ?? 0, // Lấy giá tại thời điểm đổi (hoặc giá hiện tại)
+            PointsSpent = h.RewardItem?.PointsCost ?? 0,
             ImageUrl = h.RewardItem?.ImageUrl,
             RedemptionDate = h.RedemptionDate
         }).ToList();

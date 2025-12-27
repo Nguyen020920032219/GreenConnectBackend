@@ -147,12 +147,12 @@ public static class ModelBuilderExtensions
         modelBuilder.Entity<PaymentPackage>().HasData(
             new PaymentPackage
             {
-                PackageId = freePackId, Name = "Gói Free", Description = "5 lượt/tuần", Price = 0, ConnectionAmount = 5,
+                PackageId = freePackId, Name = "Gói Free", Description = "5 credit", Price = 0, ConnectionAmount = 5,
                 PackageType = PackageType.Freemium, IsActive = true
             },
             new PaymentPackage
             {
-                PackageId = proPackId, Name = "Gói Pro", Description = "500 lượt/tháng", Price = 200000,
+                PackageId = proPackId, Name = "Gói Pro", Description = "500 credit", Price = 200000,
                 ConnectionAmount = 500, PackageType = PackageType.Paid, IsActive = true
             }
         );
@@ -163,10 +163,10 @@ public static class ModelBuilderExtensions
             {
                 RewardItemId = 1,
                 ItemName = "1 Lượt Kết Nối",
-                Description = "Đổi ngay 1 lượt xem SĐT để liên hệ chủ bài đăng.",
+                Description = "10 credit.",
                 PointsCost = 100,
                 Type = "Credit",
-                Value = "1",
+                Value = "10",
                 ImageUrl = "https://firebasestorage.googleapis.com/.../icon_credit_1.png"
             },
 
@@ -176,9 +176,9 @@ public static class ModelBuilderExtensions
                 RewardItemId = 2,
                 ItemName = "Combo 5 Lượt",
                 Description = "Gói tiết kiệm. Phù hợp cho người thu gom thường xuyên.",
-                PointsCost = 450,
+                PointsCost = 400,
                 Type = "Credit",
-                Value = "5",
+                Value = "50",
                 ImageUrl = "https://firebasestorage.googleapis.com/.../icon_credit_5.png"
             },
 
@@ -188,9 +188,9 @@ public static class ModelBuilderExtensions
                 RewardItemId = 3,
                 ItemName = "Combo 10 Lượt",
                 Description = "Gói sỉ siêu hời. Thoải mái kết nối.",
-                PointsCost = 800,
+                PointsCost = 750,
                 Type = "Credit",
-                Value = "10",
+                Value = "100",
                 ImageUrl = "https://firebasestorage.googleapis.com/.../icon_credit_10.png"
             },
 
@@ -199,11 +199,11 @@ public static class ModelBuilderExtensions
             new RewardItem
             {
                 RewardItemId = 4,
-                ItemName = "Dùng thử VIP 1 Ngày",
-                Description = "Mở khóa không giới hạn lượt xem và tính năng Pro trong 24h.",
-                PointsCost = 2000,
+                ItemName = "Combo 20 Lượt",
+                Description = "Gói sỉ siêu hời. Thoải mái kết nối.",
+                PointsCost = 1300,
                 Type = "Package",
-                Value = $"{proPackId}|1", // Link tới gói Pro đã seed ở trên
+                Value = "200", 
                 ImageUrl = "https://firebasestorage.googleapis.com/.../icon_vip_day.png"
             }
         );

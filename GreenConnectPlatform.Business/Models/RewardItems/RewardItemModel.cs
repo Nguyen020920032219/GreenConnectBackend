@@ -12,7 +12,6 @@ public class RewardItemModel
 
     public string? ImageUrl { get; set; }
 
-    // [NEW] Thêm 2 trường này
-    public string Type { get; set; } = "Credit"; // Credit / Package
+    public string Type { get; set; } = "Credit";
     public string Value { get; set; } = "0";
 }

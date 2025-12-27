@@ -55,7 +55,7 @@ public class RecurringScheduleService : IRecurringScheduleService
     public async Task<RecurringScheduleModel> CreateRecurringScheduleAsync(Guid userId,
         RecurringScheduleCreateModel model)
     {
-        if (model.DayOfWeek <= 0 || model.DayOfWeek >= 6)
+        if (model.DayOfWeek < 0 || model.DayOfWeek > 6)
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "DayOfWeek phải nằm trong khoảng từ 0 đến 6 tương với thứ 2 đến chủ nhật và bắt đầu với 0 là chủ nhật và 1 là thứ 2");
         if (model.StartTime >= model.EndTime)

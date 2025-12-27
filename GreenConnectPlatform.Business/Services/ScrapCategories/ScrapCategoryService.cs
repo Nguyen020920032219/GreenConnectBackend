@@ -2,6 +2,7 @@
 using GreenConnectPlatform.Business.Models.Exceptions;
 using GreenConnectPlatform.Business.Models.Paging;
 using GreenConnectPlatform.Business.Models.ScrapCategories;
+using GreenConnectPlatform.Business.Services.FileStorage;
 using GreenConnectPlatform.Data.Entities;
 using GreenConnectPlatform.Data.Repositories.ScrapCategories;
 using GreenConnectPlatform.Data.Repositories.ScrapPosts;
@@ -14,13 +15,16 @@ public class ScrapCategoryService : IScrapCategoryService
     private readonly IMapper _mapper;
     private readonly IScrapPostRepository _postRepository;
     private readonly IScrapCategoryRepository _repository;
+    private readonly IFileStorageService _fileStorageService;
+
 
     public ScrapCategoryService(IScrapCategoryRepository repository, IScrapPostRepository postRepository,
-        IMapper mapper)
+        IMapper mapper, IFileStorageService fileStorageService)
     {
         _repository = repository;
         _postRepository = postRepository;
         _mapper = mapper;
+        _fileStorageService = fileStorageService;
     }
 
     public async Task<PaginatedResult<ScrapCategoryModel>> GetListAsync(int pageNumber, int pageSize,
@@ -28,7 +32,18 @@ public class ScrapCategoryService : IScrapCategoryService
     {
         var (entities, totalRecords) = await _repository.SearchAndPaginateAsync(searchName, pageNumber, pageSize);
 
-        var data = _mapper.Map<List<ScrapCategoryModel>>(entities);
+        var data = new List<ScrapCategoryModel>();
+        foreach (var entity in entities)
+        {
+            data.Add(new ScrapCategoryModel()
+            {
+                Id = entity.Id,
+                Name = entity.Name,
+                ImageUrl = string.IsNullOrEmpty(entity.ImageUrl)
+                    ? null
+                    : await _fileStorageService.GetReadSignedUrlAsync(entity.ImageUrl)
+            });
+        }
 
         var pagination = new PaginationModel(totalRecords, pageNumber, pageSize);
 
@@ -45,7 +60,14 @@ public class ScrapCategoryService : IScrapCategoryService
         if (entity == null)
             throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Danh mục không tồn tại.");
 
-        return _mapper.Map<ScrapCategoryModel>(entity);
+        return new ScrapCategoryModel()
+        {
+            Id = entity.Id,
+            Name = entity.Name,
+            ImageUrl = string.IsNullOrEmpty(entity.ImageUrl)
+                ? null
+                : await _fileStorageService.GetReadSignedUrlAsync(entity.ImageUrl)
+        };
     }
 
     public async Task<ScrapCategoryModel> CreateAsync(string categoryName, string imageUrl)

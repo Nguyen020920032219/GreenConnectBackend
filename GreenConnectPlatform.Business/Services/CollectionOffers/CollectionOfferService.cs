@@ -326,7 +326,8 @@ public class CollectionOfferService : ICollectionOfferService
                     PricePerUnit = od.PricePerUnit,
                     Unit = od.Unit ?? "kg",
                     Quantity = 0,
-                    FinalPrice = 0
+                    FinalPrice = 0,
+                    Type = od.Type
                 }).ToList())
         };
 
@@ -383,7 +384,8 @@ public class CollectionOfferService : ICollectionOfferService
                 PricePerUnit = od.PricePerUnit,
                 Unit = od.Unit ?? "kg",
                 Quantity = 0,
-                FinalPrice = 0
+                FinalPrice = 0,
+                Type = od.Type
             }).ToList();
 
             await _transactionRepository.AddAsync(transaction);

@@ -11,7 +11,7 @@ public class PaymentPackageCreateModel
     public string Description { get; set; }
 
     [Required(ErrorMessage = "Package price là bắt buộc.")]
-    [Range(0.1, double.MaxValue, ErrorMessage = "Price phải lớn hơn 0.")]
+    [Range(0, double.MaxValue, ErrorMessage = "Price phải lớn hơn 0.")]
     public decimal Price { get; set; }
 
     [Required(ErrorMessage = "Package connection amount là bắt buộc.")]

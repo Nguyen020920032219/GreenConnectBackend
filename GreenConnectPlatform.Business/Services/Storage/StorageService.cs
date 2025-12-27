@@ -62,6 +62,14 @@ public class StorageService : IStorageService
         return new FileUploadResponse { UploadUrl = signedUrl, FilePath = filePath };
     }
 
+    public async Task<FileUploadResponse> GenerateScrapCategoryUploadUrlAsync(FileUploadBaseRequest request)
+    {
+        var extension = Path.GetExtension(request.FileName);
+        var filePath = $"scrap-categories/{Guid.NewGuid()}{extension}";
+        var signedUrl = await _fileStorageService.GenerateUploadSignedUrlAsync(filePath, request.ContentType);
+        return new FileUploadResponse { UploadUrl = signedUrl, FilePath = filePath };
+    }
+
     // --- 2. READ LOGIC (Lấy link xem ảnh) ---
 
     public async Task<string> GetFileReadUrlAsync(Guid userId, string role, string filePath)

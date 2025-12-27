@@ -130,6 +130,27 @@ public class FilesController : ControllerBase
         var result = await _storageService.GenerateComplaintImageUploadUrlAsync(userId, request);
         return Ok(result);
     }
+    
+    /// <summary>
+    ///     (Admin) Xin link upload ảnh cho Loại ve chai (Scrap Category).
+    /// </summary>
+    /// <remarks>
+    ///     **Quy trình:** <br />
+    ///     1. Admin gọi API này để lấy `UploadUrl` và `FilePath`. <br />
+    ///     2. Upload ảnh binary lên `UploadUrl`. <br />
+    ///     3. Dùng `FilePath` để tạo/cập nhật Category (`POST /api/v1/scrap-categories`).
+    /// </remarks>
+    /// <param name="request">Thông tin file (Tên, Content-Type).</param>
+    /// <response code="200">Thành công.</response>
+    [HttpPost("upload-url/scrap-category")]
+    [Authorize(Roles = "Admin")] 
+    [ProducesResponseType(typeof(FileUploadResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<FileUploadResponse>> UploadScrapCategory([FromBody] FileUploadBaseRequest request)
+    {
+        var result = await _storageService.GenerateScrapCategoryUploadUrlAsync(request);
+        return Ok(result);
+    }
 
     // --- Helper ---
     private Guid GetCurrentUserId()

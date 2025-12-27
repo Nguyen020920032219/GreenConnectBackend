@@ -206,12 +206,6 @@ public class ScrapPostService : IScrapPostService
             if (slots.StartTime >= slots.EndTime)
                 throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                     "Thời gian bắt đầu phải trước thời gian kết thúc trong khung thời gian.");
-            if (slots.SpecificDate == DateOnly.FromDateTime(DateTime.Now))
-            {
-                if (slots.StartTime < TimeOnly.FromDateTime(DateTime.Now))
-                    throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
-                        "Nếu khung thời gian có ngày cụ thể là hôm nay, thời gian bắt đầu phải lớn hơn thời gian hiện tại.");
-            }
             slots.Id = Guid.NewGuid();
             slots.ScrapPostId = post.Id;
             slots.IsBooked = false;
@@ -354,12 +348,6 @@ public class ScrapPostService : IScrapPostService
         if (timeSlotRequest.StartTime >= timeSlotRequest.EndTime)
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Thời gian bắt đầu phải trước thời gian kết thúc trong khung thời gian.");
-        if (timeSlotRequest.SpecificDate == DateOnly.FromDateTime(DateTime.Now))
-        {
-            if(timeSlotRequest.StartTime < TimeOnly.FromDateTime(DateTime.Now))
-                throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
-                    "Nếu khung thời gian có ngày cụ thể là hôm nay, thời gian bắt đầu phải lớn hơn thời gian hiện tại.");
-        }
         var timeSlot = _mapper.Map<ScrapPostTimeSlot>(timeSlotRequest);
         timeSlot.ScrapPostId = postId;
         post.TimeSlots.Add(timeSlot);
@@ -380,12 +368,6 @@ public class ScrapPostService : IScrapPostService
         if (startTime >= endTime)
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Thời gian bắt đầu phải trước thời gian kết thúc trong khung thời gian.");
-        if (specificDate == DateOnly.FromDateTime(DateTime.Now))
-        {
-            if(startTime < TimeOnly.FromDateTime(DateTime.Now))
-                throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
-                    "Nếu khung thời gian có ngày cụ thể là hôm nay, thời gian bắt đầu phải lớn hơn thời gian hiện tại.");
-        }
         var timeSlot = post.TimeSlots.FirstOrDefault(ts => ts.Id == timeSlotId);
         if (timeSlot == null)
             throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Khung thời gian không tồn tại.");

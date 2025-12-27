@@ -342,13 +342,19 @@ public class ScrapPostService : IScrapPostService
         if (post.Status == PostStatus.Completed)
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 " thể thêm khung thời gian khi bài đăng đã hoàn thành.");
+        if(timeSlotRequest.SpecificDate < DateOnly.FromDateTime(DateTime.Now))
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "Khung thời gian không thể có ngày cụ thể trong quá khứ.");
+        if (timeSlotRequest.StartTime >= timeSlotRequest.EndTime)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "Thời gian bắt đầu phải trước thời gian kết thúc trong khung thời gian.");
         var timeSlot = _mapper.Map<ScrapPostTimeSlot>(timeSlotRequest);
         timeSlot.ScrapPostId = postId;
         post.TimeSlots.Add(timeSlot);
         await _postRepository.UpdateAsync(post);
     }
 
-    public async Task UpdateTimeSlotAsync(Guid householdId, Guid postId, Guid timeSlotId, DateOnly? scpecificDate,
+    public async Task UpdateTimeSlotAsync(Guid householdId, Guid postId, Guid timeSlotId, DateOnly? specificDate,
         TimeOnly? startTime,
         TimeOnly? endTime)
     {
@@ -356,11 +362,17 @@ public class ScrapPostService : IScrapPostService
         if (post == null) throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Bài đăng không tồn tại.");
         if (post.HouseholdId != householdId)
             throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Không có quyền.");
+        if(specificDate < DateOnly.FromDateTime(DateTime.Now))
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "Khung thời gian không thể có ngày cụ thể trong quá khứ.");
+        if (startTime >= endTime)
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                "Thời gian bắt đầu phải trước thời gian kết thúc trong khung thời gian.");
         var timeSlot = post.TimeSlots.FirstOrDefault(ts => ts.Id == timeSlotId);
         if (timeSlot == null)
             throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Khung thời gian không tồn tại.");
-        if (scpecificDate.HasValue)
-            timeSlot.SpecificDate = scpecificDate.Value;
+        if (specificDate.HasValue)
+            timeSlot.SpecificDate = specificDate.Value;
         if (startTime.HasValue)
             timeSlot.StartTime = startTime.Value;
         if (endTime.HasValue)

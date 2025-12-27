@@ -186,21 +186,22 @@ public class TransactionController : ControllerBase
     ///     (All) Lấy mã VietQR để thanh toán cho đơn hàng.
     /// </summary>
     /// <remarks>
-    ///     Tạo mã QR chuyển khoản tự động dựa trên tổng tiền đơn hàng và số tài khoản của Household. <br />
-    ///     Collector quét mã này để chuyển tiền nhanh chóng. <br />
-    ///     **Lưu ý:** Household phải cập nhật thông tin ngân hàng trong Profile trước thì mới tạo được mã.
+    ///     Tạo mã QR chuyển khoản tự động dựa trên tổng tiền đơn hàng và số tài khoản của Household hoặc Collector. <br />
+    ///     Collector hoặc Household quét mã này để chuyển tiền nhanh chóng. <br />
+    ///     **Lưu ý:** Household hoặc Collector phải cập nhật thông tin ngân hàng trong Profile trước thì mới tạo được mã.
     /// </remarks>
-    /// <param name="id">ID Giao dịch.</param>
+    /// <param name="id">ID Bài post.</param>
+    /// <param name="totalAmount">Tổng giá tiền (số dương)</param>
     /// <response code="200">Thành công. Trả về URL ảnh QR.</response>
-    /// <response code="400">Household chưa có số tài khoản hoặc đơn hàng 0 đồng.</response>
+    /// <response code="400">Household hoặc Collector chưa có số tài khoản hoặc đơn hàng 0 đồng.</response>
     [HttpGet("{id:guid}/qr-code")]
     [Authorize]
     [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> GetQrCode(Guid id)
+    public async Task<IActionResult> GetQrCode(Guid id, [FromQuery] decimal totalAmount)
     {
         var userId = GetCurrentUserId();
-        var qrUrl = await _service.GetTransactionQrCodeAsync(id, userId);
+        var qrUrl = await _service.GetTransactionQrCodeAsync(userId, id, totalAmount);
         return Ok(new { QrUrl = qrUrl });
     }
 

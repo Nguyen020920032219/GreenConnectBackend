@@ -392,41 +392,23 @@ public class TransactionService : ITransactionService
         await _transactionRepository.UpdateAsync(transaction);
     }
 
-    public async Task<string> GetTransactionQrCodeAsync(Guid transactionId, Guid userId)
+    public async Task<string> GetTransactionQrCodeAsync(Guid recieverId, Guid postId, decimal totalAmount)
     {
-        var transaction = await _transactionRepository.GetByIdWithDetailsAsync(transactionId);
-        if (transaction == null)
-            throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Giao dịch không tồn tại.");
+        var profile = await _profileRepository.GetByUserIdWithRankAsync(recieverId);
 
-        // Chỉ Collector hoặc Household của đơn này mới được lấy QR
-        if (transaction.HouseholdId != userId && transaction.ScrapCollectorId != userId)
-            throw new ApiExceptionModel(StatusCodes.Status403Forbidden, "403", "Bạn không có quyền xem mã QR này.");
+        if (profile == null || string.IsNullOrEmpty(profile.BankCode) || string.IsNullOrEmpty(profile.BankAccountNumber))
+        {
+            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "BANK_INFO_MISSING",
+                "Người nhận chưa cập nhật thông tin tài khoản ngân hàng.");
+        }
 
-        // Tính tổng tiền
-        var totalAmount = transaction.TransactionDetails.Sum(d => d.FinalPrice);
-        if (totalAmount <= 0)
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Đơn hàng chưa có giá trị thanh toán.");
+        var content = $"GC {postId.ToString().Substring(0, 8)}";
 
-        // Lấy thông tin ngân hàng của Household (Người nhận tiền)
-        // Lưu ý: Dùng hàm GetByUserIdWithRankAsync hoặc hàm nào đó có load thông tin Bank
-        var householdProfile = await _profileRepository.GetByUserIdWithRankAsync(transaction.HouseholdId);
-
-        if (householdProfile == null ||
-            string.IsNullOrEmpty(householdProfile.BankCode) ||
-            string.IsNullOrEmpty(householdProfile.BankAccountNumber))
-            throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
-                "Người bán (Household) chưa cập nhật thông tin tài khoản ngân hàng.");
-
-        // Tạo nội dung chuyển khoản: "Thanh toan don hang {Mã đơn}"
-        // Lấy 8 ký tự đầu của ID cho ngắn gọn
-        var content = $"GC {transaction.TransactionId.ToString().Substring(0, 8)}";
-
-        // Gọi Service tạo link
         var qrUrl = _vietQrService.GenerateQrUrl(
-            householdProfile.BankCode,
-            householdProfile.BankAccountNumber,
-            householdProfile.BankAccountName ?? "",
-            totalAmount,
+            profile.BankCode,
+            profile.BankAccountNumber,
+            profile.BankAccountName ?? "",
+            Math.Abs(totalAmount),
             content
         );
 

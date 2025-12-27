@@ -32,5 +32,5 @@ public interface ITransactionService
 
     Task ToggleCancelAsync(Guid transactionId, Guid collectorId);
 
-    Task<string> GetTransactionQrCodeAsync(Guid transactionId, Guid userId);
+    public Task<string> GetTransactionQrCodeAsync(Guid recieverId, Guid postId, decimal totalAmount);
 }

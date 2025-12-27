@@ -111,9 +111,9 @@ public class ScrapCategoryController : ControllerBase
     [ProducesResponseType(typeof(ScrapCategoryModel), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Update(Guid id, [FromQuery] string? categoryName, [FromQuery] string? description)
+    public async Task<IActionResult> Update(Guid id, [FromQuery] string? categoryName, [FromQuery] string? stringUrl)
     {
-        var result = await _service.UpdateAsync(id, categoryName, description);
+        var result = await _service.UpdateAsync(id, categoryName, stringUrl);
         return Ok(result);
     }
 

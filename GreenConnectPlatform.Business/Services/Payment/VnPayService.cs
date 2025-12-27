@@ -19,14 +19,14 @@ public class VnPayService : IVnPayService
 
     public string CreatePaymentUrl(HttpContext context, string txnRef, double amount, string orderInfo)
     {
-        var timeZoneById = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
-        var timeNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.Now, timeZoneById);
+        var vipsTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+        var timeNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vipsTimeZone);
         var pay = new VnPayLibrary();
 
         pay.AddRequestData("vnp_Version", _config["VnPay:Version"] ?? "2.1.0");
         pay.AddRequestData("vnp_Command", "pay");
         pay.AddRequestData("vnp_TmnCode", _config["VnPay:TmnCode"]!);
-        pay.AddRequestData("vnp_Amount", ((long)(amount * 100)).ToString()); // Nhân 100 theo quy tắc VNPay
+        pay.AddRequestData("vnp_Amount", ((long)(amount * 100)).ToString()); 
         pay.AddRequestData("vnp_CreateDate", timeNow.ToString("yyyyMMddHHmmss"));
         pay.AddRequestData("vnp_CurrCode", "VND");
         pay.AddRequestData("vnp_IpAddr", Utils.GetIpAddress(context));

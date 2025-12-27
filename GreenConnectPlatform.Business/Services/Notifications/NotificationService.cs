@@ -37,7 +37,7 @@ public class NotificationService : INotificationService
             // Nếu token đã tồn tại nhưng của user khác (trường hợp đăng xuất rồi đăng nhập nick khác trên cùng máy)
             // -> Update lại UserId cho token này
             if (existingDevice.UserId != userId) existingDevice.UserId = userId;
-            existingDevice.LastUpdated = DateTime.UtcNow;
+            existingDevice.LastUpdated = DateTime.Now;
             await _userDeviceRepo.UpdateAsync(existingDevice);
         }
         else
@@ -49,7 +49,7 @@ public class NotificationService : INotificationService
                 UserId = userId,
                 FcmToken = request.FcmToken,
                 Platform = request.Platform,
-                LastUpdated = DateTime.UtcNow
+                LastUpdated = DateTime.Now
             };
             await _userDeviceRepo.AddAsync(newDevice);
         }
@@ -65,7 +65,7 @@ public class NotificationService : INotificationService
             RecipientId = userId,
             Content = body, // Hoặc title + body
             IsRead = false,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.Now,
             // EntityType/EntityId có thể truyền qua data dictionary nếu cần
             EntityType = data?.ContainsKey("type") == true ? data["type"] : "System",
             EntityId = data?.ContainsKey("id") == true && Guid.TryParse(data["id"], out var id) ? id : null

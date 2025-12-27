@@ -177,13 +177,12 @@ public class ScrapPostService : IScrapPostService
         if (!request.ScrapPostTimeSlots.Any())
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Phải có ít nhất một khung thời gian trong bài đăng.");
-
         var post = _mapper.Map<ScrapPost>(request);
         post.Id = Guid.NewGuid();
         post.HouseholdId = householdId;
         post.Status = PostStatus.Open;
-        post.CreatedAt = DateTime.UtcNow;
-        post.UpdatedAt = DateTime.UtcNow;
+        post.CreatedAt = DateTime.Now;
+        post.UpdatedAt = DateTime.Now;
 
         if (request.Location != null && request.Location.Latitude.HasValue && request.Location.Longitude.HasValue)
         {
@@ -201,6 +200,9 @@ public class ScrapPostService : IScrapPostService
 
         foreach (var slots in post.TimeSlots)
         {
+            if (slots.SpecificDate < DateOnly.FromDateTime(DateTime.Now))
+                throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
+                    "Khung thời gian không thể có ngày cụ thể trong quá khứ.");
             if (slots.StartTime >= slots.EndTime)
                 throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                     "Thời gian bắt đầu phải trước thời gian kết thúc trong khung thời gian.");
@@ -227,7 +229,7 @@ public class ScrapPostService : IScrapPostService
                 "Chỉ có thể chỉnh sửa bài đăng khi trạng thái là Open.");
 
         _mapper.Map(request, post);
-        post.UpdatedAt = DateTime.UtcNow;
+        post.UpdatedAt = DateTime.Now;
 
         if (request.Location != null && request.Location.Latitude.HasValue && request.Location.Longitude.HasValue)
         {
@@ -264,7 +266,7 @@ public class ScrapPostService : IScrapPostService
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 "Không thể đổi trạng thái bài đăng này (đang xử lý hoặc đã xong).");
 
-        post.UpdatedAt = DateTime.UtcNow;
+        post.UpdatedAt = DateTime.Now;
         await _postRepository.UpdateAsync(post);
     }
 

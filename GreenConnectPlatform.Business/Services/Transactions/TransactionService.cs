@@ -84,10 +84,10 @@ public class TransactionService : ITransactionService
             throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400",
                 $"Bạn đang ở cách xa ({distanceInMeters:F0}m). Phải ở trong khoảng {CheckinRadiusMeters}m.");
 
-        transaction.CheckInTime = DateTime.UtcNow;
+        transaction.CheckInTime = DateTime.Now;
         transaction.CheckInLocation = collectorPoint;
         transaction.Status = TransactionStatus.InProgress;
-        transaction.UpdatedAt = DateTime.UtcNow;
+        transaction.UpdatedAt = DateTime.Now;
 
         await _transactionRepository.UpdateAsync(transaction);
 
@@ -239,7 +239,7 @@ public class TransactionService : ITransactionService
             }
 
             transaction.TotalAmount = transaction.TransactionDetails.Sum(t => t.FinalPrice);
-            transaction.UpdatedAt = DateTime.UtcNow;
+            transaction.UpdatedAt = DateTime.Now;
 
             await _transactionRepository.UpdateAsync(transaction);
         }
@@ -280,7 +280,7 @@ public class TransactionService : ITransactionService
                 transaction.Status = TransactionStatus.Completed;
                 transaction.TotalAmount = transaction.TransactionDetails.Sum(d => d.FinalPrice);
                 transaction.PaymentMethod = paymentMethod;
-                transaction.UpdatedAt = DateTime.UtcNow;
+                transaction.UpdatedAt = DateTime.Now;
             }
 
             var collectorProfile = transactions.First().ScrapCollector.Profile;
@@ -291,7 +291,7 @@ public class TransactionService : ITransactionService
                 UserId = collectorId,
                 PointChange = 10,
                 Reason = "Hoàn thành thu gom vật phẩm.",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now
             };
             await _pointHistoryRepository.AddAsync(pointCollectorHistory);
             var scrapPost = transactions.First().Offer.ScrapPost;
@@ -319,7 +319,7 @@ public class TransactionService : ITransactionService
                     UserId = householdId,
                     PointChange = 10,
                     Reason = "Hoàn thành thu gom tất cả vật phẩm trong bài đăng.",
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.Now
                 });
             }
 
@@ -338,7 +338,7 @@ public class TransactionService : ITransactionService
             foreach (var trans in transactions)
             {
                 trans.Status = TransactionStatus.CanceledByUser;
-                trans.UpdatedAt = DateTime.UtcNow;
+                trans.UpdatedAt = DateTime.Now;
             }
 
             var title = "Giao dịch bị hủy";
@@ -388,7 +388,7 @@ public class TransactionService : ITransactionService
             await _notificationService.SendNotificationAsync(transaction.HouseholdId, title, body, data);
         }
 
-        transaction.UpdatedAt = DateTime.UtcNow;
+        transaction.UpdatedAt = DateTime.Now;
         await _transactionRepository.UpdateAsync(transaction);
     }
 

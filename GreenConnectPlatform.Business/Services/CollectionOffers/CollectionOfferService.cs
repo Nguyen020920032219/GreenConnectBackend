@@ -164,7 +164,7 @@ public class CollectionOfferService : ICollectionOfferService
         offer.ScrapPostId = postId;
         offer.ScrapCollectorId = collectorId;
         offer.Status = OfferStatus.Pending;
-        offer.CreatedAt = DateTime.UtcNow;
+        offer.CreatedAt = DateTime.Now;
         offer.TimeSlotId = timeSlotId;
 
         foreach (var detail in offer.OfferDetails)
@@ -201,7 +201,7 @@ public class CollectionOfferService : ICollectionOfferService
             BalanceAfter = profile.CreditBalance,
             Type = "Usage",
             ReferenceId = offer.CollectionOfferId,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.Now,
             Description = $"Tạo đề nghị thu gom cho bài đăng '{post.Title}'."
         };
         await _creditTransactionHistoryRepository.AddAsync(creditHistory);
@@ -281,7 +281,7 @@ public class CollectionOfferService : ICollectionOfferService
         offer.ScrapPostId = postId;
         offer.ScrapCollectorId = collectorId;
         offer.Status = OfferStatus.Accepted;
-        offer.CreatedAt = DateTime.UtcNow;
+        offer.CreatedAt = DateTime.Now;
         offer.TimeSlotId = existsOffer.TimeSlotId;
 
         foreach (var detail in offer.OfferDetails)
@@ -313,7 +313,7 @@ public class CollectionOfferService : ICollectionOfferService
             CheckInLocation = existTransaction.CheckInLocation,
             CheckInTime = existTransaction.CheckInTime,
             HouseholdId = existTransaction.HouseholdId,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.Now,
             ScrapCollectorId = existTransaction.ScrapCollectorId,
             ScheduledTime = existTransaction.ScheduledTime,
             OfferId = offer.CollectionOfferId,
@@ -372,7 +372,7 @@ public class CollectionOfferService : ICollectionOfferService
                 OfferId = offerId,
                 Status = TransactionStatus.Scheduled,
                 ScheduledTime = slotTime.SpecificDate.ToDateTime(slotTime.StartTime),
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.Now,
                 TimeSlotId = offer.TimeSlotId
             };
 
@@ -392,19 +392,19 @@ public class CollectionOfferService : ICollectionOfferService
             {
                 ChatRoomId = Guid.NewGuid(),
                 TransactionId = transaction.TransactionId,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now
             };
             chatRoom.ChatParticipants.Add(new ChatParticipant
             {
                 UserId = householdId,
                 ChatRoomId = chatRoom.ChatRoomId,
-                JoinedAt = DateTime.UtcNow
+                JoinedAt = DateTime.Now
             });
             chatRoom.ChatParticipants.Add(new ChatParticipant
             {
                 UserId = offer.ScrapCollectorId,
                 ChatRoomId = chatRoom.ChatRoomId,
-                JoinedAt = DateTime.UtcNow
+                JoinedAt = DateTime.Now
             });
             await _roomRepository.AddAsync(chatRoom);
             var detailsBooked = offer.ScrapPost.ScrapPostDetails
@@ -500,7 +500,7 @@ public class CollectionOfferService : ICollectionOfferService
                 BalanceAfter = profile.CreditBalance,
                 Type = "Usage",
                 ReferenceId = offer.CollectionOfferId,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.Now,
                 Description = $"Mở lại đề nghị thu gom cho bài đăng '{offer.ScrapPost.Title}'."
             };
             await _creditTransactionHistoryRepository.AddAsync(creditHistory);

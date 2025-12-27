@@ -111,7 +111,7 @@ public class AuthService : IAuthService
             PhoneNumber = phoneNumber,
             PhoneNumberConfirmed = true,
             Status = UserStatus.Active,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.Now,
             BuyerType = null
         };
 

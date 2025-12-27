@@ -57,8 +57,8 @@ public class ScrapPostAuToCreateBackGround : BackgroundService
                         Address = schedule.Address,
                         MustTakeAll = schedule.MustTakeAll,
                         Location = schedule.Location,
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow,
+                        CreatedAt = DateTime.Now,
+                        UpdatedAt = DateTime.Now,
                         Status = PostStatus.Open,
                         TimeSlots = new List<ScrapPostTimeSlot>(),
                         ScrapPostDetails = new List<ScrapPostDetail>()

@@ -103,7 +103,7 @@ public class RewardItemService : IRewardItemService
                     Type = "Redemption", // Loại giao dịch: Đổi thưởng
                     ReferenceId = null, // Hoặc lưu ID redemption nếu cần
                     Description = $"Đổi quà: {reward.ItemName}",
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.Now
                 };
                 await _creditHistoryRepo.AddAsync(creditLog);
             }
@@ -127,7 +127,7 @@ public class RewardItemService : IRewardItemService
         {
             UserId = userId,
             RewardItemId = rewardItemId,
-            RedemptionDate = DateTime.UtcNow
+            RedemptionDate = DateTime.Now
         };
         await _redemptionRepo.AddAsync(redemption);
 
@@ -138,7 +138,7 @@ public class RewardItemService : IRewardItemService
             UserId = userId,
             PointChange = -reward.PointsCost,
             Reason = $"Đổi quà: {reward.ItemName}",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.Now
         };
         await _pointHistoryRepo.AddAsync(pointHistory);
     }
@@ -198,8 +198,8 @@ public class RewardItemService : IRewardItemService
                 UserPackageId = Guid.NewGuid(),
                 UserId = userId,
                 PackageId = packageId,
-                ActivationDate = DateTime.UtcNow,
-                ExpirationDate = DateTime.UtcNow.AddDays(days),
+                ActivationDate = DateTime.Now,
+                ExpirationDate = DateTime.Now.AddDays(days),
                 RemainingConnections = package.ConnectionAmount
             };
             await _userPackageRepo.AddAsync(currentPackage);
@@ -210,9 +210,9 @@ public class RewardItemService : IRewardItemService
             currentPackage.PackageId = packageId;
 
             // Nếu gói cũ còn hạn thì cộng thêm ngày, nếu hết thì tính từ nay
-            var baseDate = currentPackage.ExpirationDate > DateTime.UtcNow
+            var baseDate = currentPackage.ExpirationDate > DateTime.Now
                 ? currentPackage.ExpirationDate.Value
-                : DateTime.UtcNow;
+                : DateTime.Now;
 
             currentPackage.ExpirationDate = baseDate.AddDays(days);
 

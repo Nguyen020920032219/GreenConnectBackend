@@ -169,7 +169,7 @@ public class ProfileService : IProfileService
 
         if (ocrResult.Dob.HasValue)
         {
-            var age = DateTime.UtcNow.Year - ocrResult.Dob.Value.Year;
+            var age = DateTime.Now.Year - ocrResult.Dob.Value.Year;
             if (age < 18)
                 throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "AGE_INVALID",
                     "Bạn phải từ 18 tuổi trở lên.");
@@ -200,8 +200,8 @@ public class ProfileService : IProfileService
         verificationInfo.PlaceOfOrigin = ocrResult.Address;
         verificationInfo.IssuedBy = "FPT.AI Verified";
         verificationInfo.Status = VerificationStatus.Approved;
-        verificationInfo.SubmittedAt = DateTime.UtcNow;
-        verificationInfo.ReviewedAt = DateTime.UtcNow;
+        verificationInfo.SubmittedAt = DateTime.Now;
+        verificationInfo.ReviewedAt = DateTime.Now;
         verificationInfo.ReviewerNotes = $"Tự động xác minh qua eKYC. Tên: {ocrResult.FullName}";
 
         var currentRoles = await _userManager.GetRolesAsync(user);
@@ -243,7 +243,7 @@ public class ProfileService : IProfileService
                     BalanceAfter = profile.CreditBalance,
                     Type = "Bonus",
                     Description = "Quà tặng trải nghiệm: Chào mừng bạn gia nhập cộng đồng Collector!",
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.Now
                 };
                 await _creditHistoryRepository.AddAsync(creditHistory);
 

@@ -32,7 +32,7 @@ public class TransactionAutoCancelBackGroundService : BackgroundService
         {
             var context = scope.ServiceProvider.GetRequiredService<GreenConnectDbContext>();
             var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
-            var now = DateTime.UtcNow;
+            var now = DateTime.Now;
             var overdueTransactions = await context.Transactions
                 .Where(t => t.Status == TransactionStatus.Scheduled
                             && t.TimeSlot.SpecificDate.ToDateTime(t.TimeSlot.EndTime).AddMinutes(30) < now)

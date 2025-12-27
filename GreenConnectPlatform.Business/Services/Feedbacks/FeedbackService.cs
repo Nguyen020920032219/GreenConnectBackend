@@ -74,7 +74,7 @@ public class FeedbackService : IFeedbackService
         newFeedback.FeedbackId = Guid.NewGuid();
         newFeedback.ReviewerId = userId;
         newFeedback.RevieweeId = transaction.ScrapCollectorId;
-        newFeedback.CreatedAt = DateTime.UtcNow;
+        newFeedback.CreatedAt = DateTime.Now;
         await _feedbackRepository.AddAsync(newFeedback);
         return _mapper.Map<FeedbackModel>(newFeedback);
     }

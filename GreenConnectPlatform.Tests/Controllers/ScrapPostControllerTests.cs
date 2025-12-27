@@ -26,7 +26,8 @@ public class ScrapPostControllerTests
         _mockScrapPostService = new Mock<IScrapPostService>();
         _mockCollectionOfferService = new Mock<ICollectionOfferService>();
         _mockTransactionService = new Mock<ITransactionService>();
-        _controller = new ScrapPostController(_mockScrapPostService.Object, _mockCollectionOfferService.Object, _mockTransactionService.Object);
+        _controller = new ScrapPostController(_mockScrapPostService.Object, _mockCollectionOfferService.Object,
+            _mockTransactionService.Object);
 
         _testUserId = Guid.NewGuid();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new[]

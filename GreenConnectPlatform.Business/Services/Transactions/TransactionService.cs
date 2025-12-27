@@ -112,19 +112,21 @@ public class TransactionService : ITransactionService
         return transactionModel;
     }
 
-    public async Task<TransactionForPaymentModel> GetTransactionsForPayment(Guid scrapPostId, Guid collectorId, Guid slotId)
+    public async Task<TransactionForPaymentModel> GetTransactionsForPayment(Guid scrapPostId, Guid collectorId,
+        Guid slotId)
     {
         var transactions = await _transactionRepository.GetTransactionByIdsAsync(collectorId, scrapPostId, slotId);
+
         if (!transactions.Any())
             throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Không tìm thấy giao dịch nào.");
+
         var transactionModels = _mapper.Map<List<TransactionModel>>(transactions);
+
         foreach (var transactionModel in transactionModels)
         {
             foreach (var d in transactionModel.Offer.ScrapPost.ScrapPostDetails)
-            {
                 if (!string.IsNullOrEmpty(d.ImageUrl))
                     d.ImageUrl = await _fileStorageService.GetReadSignedUrlAsync(d.ImageUrl);
-            }
             var originalEntity = transactions.First(t => t.TransactionId == transactionModel.TransactionId);
             var totalSalePrice = originalEntity.TransactionDetails
                 .Where(d => d.Type == ItemTransactionType.Sale)
@@ -186,17 +188,22 @@ public class TransactionService : ITransactionService
         Guid scrapPostId, Guid collectorId, Guid slotId, List<TransactionDetailCreateModel> details)
     {
         var transactions = await _transactionRepository.GetTransactionByIdsAsync(collectorId, scrapPostId, slotId);
+
         if (!transactions.Any())
             throw new ApiExceptionModel(StatusCodes.Status404NotFound, "404", "Không tìm thấy giao dịch nào.");
+
         foreach (var transaction in transactions)
             if (transaction.CheckInLocation == null || transaction.CheckInTime == null)
                 throw new ApiExceptionModel(StatusCodes.Status400BadRequest, "400", "Người thu gom chưa check-in.");
+
         var offerCategoryIds = transactions
             .Where(t => t.Offer != null)
             .SelectMany(t => t.Offer.OfferDetails)
             .Select(o => o.ScrapCategoryId)
             .ToList();
+
         var categoryIds = details.Select(d => d.ScrapCategoryId).Distinct().ToList();
+
         var inputCategoryIds = details.Select(d => d.ScrapCategoryId).ToList();
 
         if (categoryIds.Count != inputCategoryIds.Count)
@@ -224,10 +231,7 @@ public class TransactionService : ITransactionService
                     detail.PricePerUnit = matchingRequest.PricePerUnit;
                     detail.Unit = matchingRequest.Unit;
                     detail.Quantity = matchingRequest.Quantity;
-                    if (matchingOfferDetail != null)
-                    {
-                        detail.Type = matchingOfferDetail.Type;
-                    }
+                    if (matchingOfferDetail != null) detail.Type = matchingOfferDetail.Type;
                     detail.FinalPrice = detail.PricePerUnit * (decimal)detail.Quantity;
                     updateDetails.Add(detail);
                     transaction.TransactionDetails.Add(detail);

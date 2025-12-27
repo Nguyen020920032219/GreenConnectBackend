@@ -7,7 +7,6 @@ using GreenConnectPlatform.Business.Services.AI;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-using Xunit;
 
 namespace GreenConnectPlatform.Tests.Controllers;
 
@@ -80,7 +79,7 @@ public class AIControllerTests
             .Should().ThrowAsync<ApiExceptionModel>()
             .Where(e => e.StatusCode == 400 && e.ErrorCode == "AI_ERROR");
     }
-    
+
     // [FIX LỖI 1] PST-03: Test khớp với ErrorCode "FILE_MISSING" mới sửa ở Controller
     [Fact]
     public async Task PST03_AnalyzeScrap_ThrowsBadRequest_WhenFileIsEmpty()

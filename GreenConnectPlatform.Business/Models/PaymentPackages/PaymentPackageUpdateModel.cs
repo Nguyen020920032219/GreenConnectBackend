@@ -7,7 +7,7 @@ public class PaymentPackageUpdateModel
     public string? Name { get; set; }
     public string? Description { get; set; }
 
-    [Range(0.1, double.MaxValue, ErrorMessage = "Price phải lớn hơn 0.")]
+    [Range(0, double.MaxValue, ErrorMessage = "Price phải lớn hơn 0.")]
     public decimal? Price { get; set; }
 
     [Range(1, int.MaxValue, ErrorMessage = "Amount phải lớn hơn 0.")]

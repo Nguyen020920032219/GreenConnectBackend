@@ -20,7 +20,9 @@ namespace GreenConnectPlatform.Business.Services.Profile;
 
 public class ProfileService : IProfileService
 {
+    private const int WELCOME_BONUS_CREDIT = 50;
     private readonly IBankService _bankService;
+    private readonly ICreditTransactionHistoryRepository _creditHistoryRepository;
     private readonly IEkycService _ekycService;
     private readonly IFileStorageService _fileStorageService;
     private readonly GeometryFactory _geometryFactory;
@@ -28,9 +30,6 @@ public class ProfileService : IProfileService
     private readonly IProfileRepository _profileRepository;
     private readonly UserManager<User> _userManager;
     private readonly IVerificationInfoRepository _verificationInfoRepository;
-    private readonly ICreditTransactionHistoryRepository _creditHistoryRepository;
-
-    private const int WELCOME_BONUS_CREDIT = 50;
 
     public ProfileService(
         UserManager<User> userManager,
@@ -206,7 +205,7 @@ public class ProfileService : IProfileService
         verificationInfo.ReviewerNotes = $"Tự động xác minh qua eKYC. Tên: {ocrResult.FullName}";
 
         var currentRoles = await _userManager.GetRolesAsync(user);
-        bool isAlreadyCollector = currentRoles.Any(r => r == "IndividualCollector" || r == "BusinessCollector");
+        var isAlreadyCollector = currentRoles.Any(r => r == "IndividualCollector" || r == "BusinessCollector");
 
         user.Status = UserStatus.Active;
         user.BuyerType = request.BuyerType;
@@ -218,7 +217,7 @@ public class ProfileService : IProfileService
         var newRole = request.BuyerType == BuyerType.Individual ? "IndividualCollector" : "BusinessCollector";
         await _userManager.AddToRoleAsync(user, newRole);
 
-        string notificationMessage = "Tài khoản của bạn đã được nâng cấp thành công!";
+        var notificationMessage = "Tài khoản của bạn đã được nâng cấp thành công!";
 
         try
         {
@@ -229,7 +228,8 @@ public class ProfileService : IProfileService
                 var profile = await _profileRepository.GetByUserIdWithRankAsync(userId);
                 if (profile == null)
                 {
-                    profile = new Data.Entities.Profile { UserId = userId, ProfileId = Guid.NewGuid(), RankId = 1, PointBalance = 0 };
+                    profile = new Data.Entities.Profile
+                        { UserId = userId, ProfileId = Guid.NewGuid(), RankId = 1, PointBalance = 0 };
                     await _profileRepository.AddAsync(profile);
                 }
 
@@ -241,13 +241,14 @@ public class ProfileService : IProfileService
                     UserId = userId,
                     Amount = WELCOME_BONUS_CREDIT,
                     BalanceAfter = profile.CreditBalance,
-                    Type = "Bonus", 
+                    Type = "Bonus",
                     Description = "Quà tặng trải nghiệm: Chào mừng bạn gia nhập cộng đồng Collector!",
-                    CreatedAt = DateTime.UtcNow,
+                    CreatedAt = DateTime.UtcNow
                 };
                 await _creditHistoryRepository.AddAsync(creditHistory);
 
-                notificationMessage = $"Chúc mừng! Bạn đã trở thành Collector và được tặng {WELCOME_BONUS_CREDIT} điểm trải nghiệm miễn phí.";
+                notificationMessage =
+                    $"Chúc mừng! Bạn đã trở thành Collector và được tặng {WELCOME_BONUS_CREDIT} điểm trải nghiệm miễn phí.";
             }
         }
         catch (DbUpdateException ex)

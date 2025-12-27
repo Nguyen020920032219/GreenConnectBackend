@@ -27,7 +27,7 @@ public class FptAiService : IEkycService
             return new IdCardOcrResult { IsValid = false, ErrorMessage = "File ảnh không hợp lệ." };
 
         using var request = new HttpRequestMessage(HttpMethod.Post, _baseUrl);
-        
+
         request.Headers.Add("api-key", _apiKey);
 
         using var content = new MultipartFormDataContent();
@@ -37,12 +37,12 @@ public class FptAiService : IEkycService
         ms.Position = 0;
 
         var fileContent = new StreamContent(ms);
-        
-        try 
+
+        try
         {
             fileContent.Headers.ContentType = new MediaTypeHeaderValue(imageFile.ContentType);
         }
-        catch 
+        catch
         {
             fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
         }
@@ -56,14 +56,14 @@ public class FptAiService : IEkycService
         if (!response.IsSuccessStatusCode)
         {
             var errorBody = await response.Content.ReadAsStringAsync();
-            throw new ApiExceptionModel(StatusCodes.Status502BadGateway, "AI_ERROR", 
+            throw new ApiExceptionModel(StatusCodes.Status502BadGateway, "AI_ERROR",
                 $"Lỗi kết nối FPT.AI ({response.StatusCode}): {errorBody}");
         }
 
         var jsonString = await response.Content.ReadAsStringAsync();
 
         FptAiResponse? fptResult;
-        try 
+        try
         {
             fptResult = JsonSerializer.Deserialize<FptAiResponse>(jsonString);
         }
@@ -83,11 +83,12 @@ public class FptAiService : IEkycService
         var data = fptResult.Data[0];
 
         if (string.IsNullOrEmpty(data.Id) || string.IsNullOrEmpty(data.Name))
-            return new IdCardOcrResult { IsValid = false, ErrorMessage = "Không tìm thấy số CCCD hoặc Họ tên trong ảnh." };
+            return new IdCardOcrResult
+                { IsValid = false, ErrorMessage = "Không tìm thấy số CCCD hoặc Họ tên trong ảnh." };
 
         DateTime? dob = null;
         string[] formats = { "dd/MM/yyyy", "dd-MM-yyyy", "yyyy/MM/dd" };
-        if (DateTime.TryParseExact(data.Dob, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var d)) 
+        if (DateTime.TryParseExact(data.Dob, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var d))
             dob = d;
 
         return new IdCardOcrResult

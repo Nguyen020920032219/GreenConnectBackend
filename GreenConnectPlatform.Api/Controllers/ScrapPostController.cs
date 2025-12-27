@@ -24,7 +24,8 @@ public class ScrapPostController : ControllerBase
     private readonly IScrapPostService _service;
     private readonly ITransactionService _transactionService;
 
-    public ScrapPostController(IScrapPostService service, ICollectionOfferService collectionOfferService, ITransactionService transactionService)
+    public ScrapPostController(IScrapPostService service, ICollectionOfferService collectionOfferService,
+        ITransactionService transactionService)
     {
         _service = service;
         _collectionOfferService = collectionOfferService;
@@ -318,9 +319,9 @@ public class ScrapPostController : ControllerBase
     {
         return Ok(await _collectionOfferService.GetByPostAsync(pageNumber, pageSize, status, id));
     }
-    
+
     /// <summary>
-    ///   (Household) Thêm khung thời gian thu gom cho bài đăng.
+    ///     (Household) Thêm khung thời gian thu gom cho bài đăng.
     /// </summary>
     /// <param name="id"></param>
     /// <param name="timeSlotRequest"></param>
@@ -337,9 +338,9 @@ public class ScrapPostController : ControllerBase
         await _service.AddTimeSlotAsync(userId, id, timeSlotRequest);
         return Ok(await _service.GetByIdAsync(id));
     }
-    
+
     /// <summary>
-    ///  (Household) Cập nhật khung thời gian thu gom cho bài đăng.
+    ///     (Household) Cập nhật khung thời gian thu gom cho bài đăng.
     /// </summary>
     /// <param name="id"></param>
     /// <param name="timeSlotId"></param>
@@ -353,18 +354,18 @@ public class ScrapPostController : ControllerBase
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> UpdateTimeSlot([FromRoute]Guid id, [FromRoute]Guid timeSlotId,
-        [FromQuery]DateOnly? specificDate,
-        [FromQuery]TimeOnly? startTime, [FromQuery]TimeOnly? endTime)
+    public async Task<IActionResult> UpdateTimeSlot([FromRoute] Guid id, [FromRoute] Guid timeSlotId,
+        [FromQuery] DateOnly? specificDate,
+        [FromQuery] TimeOnly? startTime, [FromQuery] TimeOnly? endTime)
     {
         var userId = GetCurrentUserId();
         await _service.UpdateTimeSlotAsync(userId, id, timeSlotId, specificDate,
             startTime, endTime);
         return Ok(await _service.GetByIdAsync(id));
     }
-    
+
     /// <summary>
-    ///  (Household) Xóa khung thời gian thu gom cho bài đăng.
+    ///     (Household) Xóa khung thời gian thu gom cho bài đăng.
     /// </summary>
     /// <param name="id"></param>
     /// <param name="timeSlotId"></param>
@@ -376,15 +377,15 @@ public class ScrapPostController : ControllerBase
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> DeleteTimeSlot([FromRoute]Guid id, [FromRoute]Guid timeSlotId)
+    public async Task<IActionResult> DeleteTimeSlot([FromRoute] Guid id, [FromRoute] Guid timeSlotId)
     {
         var userId = GetCurrentUserId();
         await _service.DeleteTimeSlotAsync(userId, id, timeSlotId);
         return NoContent();
     }
-    
+
     /// <summary>
-    ///  (IndividualCollector/BusinessCollector/Household) Lấy danh sách giao dịch cần thanh toán cho bài đăng.
+    ///     (IndividualCollector/BusinessCollector/Household) Lấy danh sách giao dịch cần thanh toán cho bài đăng.
     /// </summary>
     /// <param name="id"></param>
     /// <param name="collectorId"></param>
@@ -396,11 +397,10 @@ public class ScrapPostController : ControllerBase
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ExceptionModel), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetTransactionsForPayment([FromRoute]Guid id, [FromQuery] Guid collectorId,
-        [FromQuery]Guid slotId)
+    public async Task<IActionResult> GetTransactionsForPayment([FromRoute] Guid id, [FromQuery] Guid collectorId,
+        [FromQuery] Guid slotId)
     {
         var result = await _transactionService.GetTransactionsForPayment(id, collectorId, slotId);
         return Ok(result);
     }
-    
 }

@@ -22,4 +22,7 @@ COPY --from=build /app/publish .
 
 EXPOSE 8080
 
+RUN apt-get update && apt-get install -y tzdata
+ENV TZ=Asia/Ho_Chi_Minh
+
 ENTRYPOINT ["dotnet", "GreenConnectPlatform.Api.dll"]
